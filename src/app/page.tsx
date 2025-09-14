@@ -54,7 +54,7 @@ export default function HomePage() {
   const scrollToSubscription = () => {
     const subscriptionSection = document.getElementById('subscription-form')
     if (subscriptionSection) {
-      subscriptionSection.scrollIntoView({ 
+      subscriptionSection.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       })
@@ -121,12 +121,21 @@ export default function HomePage() {
               <span className="text-xl font-bold text-gray-900">Personal AI</span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm">
-                Войти
-              </Button>
+             <div className="flex items-center gap-4">
+               <Button 
+                 type="button"
+                 variant="ghost" 
+                 size="sm"
+                 onClick={() => alert('Функция входа будет доступна в следующих обновлениях!')}
+               >
+                 Войти
+               </Button>
               {isInstallable && (
-                <Button onClick={handleInstallClick} size="sm">
+                <Button 
+                  type="button"
+                  onClick={handleInstallClick} 
+                  size="sm"
+                >
                   Установить приложение
                 </Button>
               )}
@@ -166,15 +175,16 @@ export default function HomePage() {
                 </p>
               </div>
 
-               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                  <Button 
+                   type="button"
                    onClick={scrollToSubscription}
                    size="lg" 
                    className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700"
                  >
-                   🔔 Уведомить о релизе
-                   <ArrowRight className="w-5 h-5 ml-2" />
-                 </Button>
+                  🔔 Уведомить о релизе
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
                 <Link href="/roadmap">
                   <Button variant="ghost" size="lg" className="text-lg px-8 py-4">
                     📋 Roadmap разработки
@@ -262,9 +272,9 @@ export default function HomePage() {
             </div>
           </section>
 
-           {/* CTA */}
-           <section id="subscription-form" className="py-20">
-             <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
+          {/* CTA */}
+          <section id="subscription-form" className="py-20">
+            <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
               <h2 className="text-3xl font-bold mb-4">
                 Хотите первыми узнать о релизе?
               </h2>

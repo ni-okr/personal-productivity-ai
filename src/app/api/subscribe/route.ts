@@ -47,16 +47,16 @@ export async function POST(request: NextRequest) {
             type: typeof error
         })
 
-        // Проверяем, если это ошибка дублирования email
-        if (errorMessage.includes('уже подписан')) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Этот email уже подписан на уведомления. Спасибо за интерес к проекту!'
-                },
-                { status: 400 }
-            )
-        }
+    // Проверяем, если это ошибка дублирования email
+    if (errorMessage.includes('уже подписан') || errorMessage.includes('duplicate key') || errorMessage.includes('23505')) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Этот email уже подписан на уведомления. Спасибо за интерес к проекту!'
+        },
+        { status: 200 } // Меняем на 200, чтобы фронтенд обработал как обычный ответ
+      )
+    }
 
         return NextResponse.json(
             {
