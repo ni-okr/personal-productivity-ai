@@ -80,36 +80,42 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium mb-8">
               <Sparkles className="w-4 h-4" />
-              Превратите хаос в систему за 5 минут
+              Скоро: Революция в персональной продуктивности
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 text-balance">
-              Персональный
+              Встречайте
               <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                {' '}ИИ-ассистент{' '}
+                {' '}Personal AI{' '}
               </span>
-              для продуктивности
+              - ваш будущий ассистент
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-balance">
-              Автоматизируем рутину, обучаем планированию, предлагаем решения. 
-              Для тех, кто устал от хаоса и хочет фокусироваться на важном.
+              Мы создаем ИИ-ассистента, который превратит хаос в систему за 5 минут. 
+              Автоматизация рутины, обучение планированию, умные предложения.
             </p>
             
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+              <p className="text-indigo-800 font-medium text-center">
+                🚀 <strong>Релиз запланирован на Q1 2025</strong> • Сейчас идет активная разработка
+              </p>
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="text-lg px-8 py-4">
-                Начать бесплатно
+              <Button size="lg" className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700">
+                🔔 Уведомить о релизе
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button variant="ghost" size="lg" className="text-lg px-8 py-4">
-                Посмотреть демо
+                📋 Roadmap разработки
               </Button>
             </div>
             
             <p className="text-sm text-gray-500 mt-4">
-              7 дней полного доступа • Без кредитной карты
+              Бесплатные уведомления • Эксклюзивный ранний доступ для подписчиков
             </p>
           </motion.div>
         </section>
@@ -118,10 +124,10 @@ export default function HomePage() {
         <section className="py-20">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Решаем ваши главные проблемы
+              Что будет решать Personal AI
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Мы знаем эти боли, потому что сами через них прошли
+              Мы создаем решения для самых болезненных проблем продуктивности
             </p>
           </div>
 
@@ -190,21 +196,30 @@ export default function HomePage() {
 
         {/* CTA */}
         <section className="py-20">
-          <div className="card bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center">
+          <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
             <h2 className="text-3xl font-bold mb-4">
-              Готовы превратить хаос в систему?
+              Хотите первыми узнать о релизе?
             </h2>
             <p className="text-lg mb-8 opacity-90">
-              Присоединяйтесь к тысячам людей, которые уже нашли свою систему продуктивности
+              Подпишитесь на уведомления и получите эксклюзивный ранний доступ к Personal AI
             </p>
-            <Button 
-              variant="secondary" 
-              size="lg" 
-              className="text-lg px-8 py-4 bg-white text-indigo-600 hover:bg-gray-50"
-            >
-              Начать за 5 минут
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+              <input 
+                type="email" 
+                placeholder="Ваш email для уведомлений"
+                className="px-4 py-3 rounded-lg text-gray-900 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-white"
+              />
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="text-lg px-8 py-3 bg-white text-orange-600 hover:bg-gray-50 w-full sm:w-auto"
+              >
+                🔔 Подписаться
+              </Button>
+            </div>
+            <p className="text-sm opacity-75">
+              ✨ Подписчики получат скидку 50% на первый месяц
+            </p>
           </div>
         </section>
       </main>
@@ -212,7 +227,10 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="container py-12 border-t border-gray-200">
         <div className="text-center text-gray-600">
-          <p>&copy; 2024 Personal Productivity AI. Превращаем хаос в систему.</p>
+          <p>&copy; 2024 Personal Productivity AI. Скоро превратим хаос в систему.</p>
+          <p className="text-sm mt-2 opacity-75">
+            🚧 Сайт в разработке • Релиз Q1 2025 • Следите за обновлениями
+          </p>
         </div>
       </footer>
     </div>
