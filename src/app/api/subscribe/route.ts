@@ -10,7 +10,7 @@ const subscribeSchema = z.object({
 export async function POST(request: NextRequest) {
     try {
         console.log('🚀 API /subscribe вызван')
-        
+
         // Проверяем переменные окружения
         console.log('🔧 Переменные окружения:', {
             supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET',

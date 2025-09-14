@@ -33,6 +33,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
         }
 
         if (existingSubscriber) {
+            console.log('📧 Email уже существует:', email)
             return {
                 success: false,
                 message: 'Этот email уже подписан на уведомления'
@@ -47,6 +48,16 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
             .single()
 
         if (error) {
+            console.error('🚨 Ошибка при вставке:', error)
+            
+            // Проверяем если это ошибка дублирования
+            if (error.code === '23505' || error.message?.includes('duplicate key')) {
+                return {
+                    success: false,
+                    message: 'Этот email уже подписан на уведомления'
+                }
+            }
+            
             throw error
         }
 
