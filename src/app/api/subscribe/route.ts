@@ -28,12 +28,22 @@ export async function POST(request: NextRequest) {
         const { email } = result.data
 
         // Сохраняем подписчика в Supabase
-        const subscription = await addSubscriber(email, 'landing_page')
+        const subscription = await addSubscriber(email)
+
+        if (!subscription.success) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: subscription.message
+                },
+                { status: 200 } // Возвращаем 200 для дубликатов
+            )
+        }
 
         return NextResponse.json({
             success: true,
-            message: 'Спасибо за подписку! Мы уведомим вас о релизе.',
-            data: subscription
+            message: subscription.message,
+            data: subscription.data
         })
 
     } catch (error) {

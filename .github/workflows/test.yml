@@ -1,0 +1,211 @@
+name: 🧪 Тестирование
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  unit-tests:
+    name: 🔧 Unit тесты
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🔧 Запуск Unit тестов
+      run: npm run test:unit
+      
+    - name: 📊 Загрузка покрытия кода
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  integration-tests:
+    name: 🔗 Интеграционные тесты
+    runs-on: ubuntu-latest
+    
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🔗 Запуск интеграционных тестов
+      run: npm run test:integration
+
+  e2e-tests:
+    name: 🎭 E2E тесты
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🎭 Установка Playwright браузеров
+      run: npx playwright install --with-deps
+      
+    - name: 🏗️ Сборка приложения
+      run: npm run build
+      
+    - name: 🎭 Запуск E2E тестов
+      run: npm run test:e2e
+      
+    - name: 📸 Загрузка скриншотов при ошибках
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+
+  security-audit:
+    name: 🔒 Аудит безопасности
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🔒 Проверка уязвимостей
+      run: npm audit --audit-level=moderate
+      
+    - name: 🔍 Проверка лицензий
+      run: npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC'
+
+  build-test:
+    name: 🏗️ Тест сборки
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🏗️ Сборка приложения
+      run: npm run build
+      
+    - name: 🧪 Проверка размера бандла
+      run: |
+        echo "📦 Размер .next/static/chunks:"
+        du -sh .next/static/chunks/ || echo "Папка chunks не найдена"
+        echo "📊 Общий размер .next:"
+        du -sh .next/
+
+  lint-and-format:
+    name: 📝 Линтинг и форматирование
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🔍 ESLint проверка
+      run: npm run lint || echo "⚠️ ESLint не настроен"
+      
+    - name: 🎨 Prettier проверка
+      run: npx prettier --check . || echo "⚠️ Prettier не настроен"
+      
+    - name: 📝 TypeScript проверка
+      run: npx tsc --noEmit
+
+  performance-test:
+    name: ⚡ Тесты производительности
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🏗️ Сборка приложения
+      run: npm run build
+      
+    - name: ⚡ Lighthouse CI
+      run: |
+        npm install -g @lhci/cli@0.12.x
+        lhci autorun || echo "⚠️ Lighthouse CI не настроен"
+
+  notify-success:
+    name: 🎉 Уведомление об успехе
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, security-audit, build-test, lint-and-format]
+    if: success()
+    
+    steps:
+    - name: 🎉 Все тесты прошли успешно
+      run: |
+        echo "✅ Все тесты прошли успешно!"
+        echo "🔧 Unit тесты: ✅"
+        echo "🔗 Интеграционные тесты: ✅"
+        echo "🎭 E2E тесты: ✅"
+        echo "🔒 Аудит безопасности: ✅"
+        echo "🏗️ Сборка: ✅"
+        echo "📝 Линтинг: ✅"

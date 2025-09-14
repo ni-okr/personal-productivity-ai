@@ -51,6 +51,12 @@ pids/
 coverage/
 *.lcov
 
+# Test reports
+test-results/
+playwright-report/
+allure-results/
+allure-report/
+
 # Temporary folders
 tmp/
 temp/

@@ -3,67 +3,71 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpgkzvflmgxrlgkecscg.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c'
 
-// Отладочная информация для продакшна
-if (typeof window === 'undefined') {
-    console.log('🔍 Supabase ENV check (server):', {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseAnonKey,
-        urlPrefix: supabaseUrl?.substring(0, 20) + '...'
-    })
-}
-
-if (!supabaseUrl || !supabaseAnonKey) {
-    const errorMsg = `Отсутствуют переменные окружения для Supabase. URL: ${!!supabaseUrl}, Key: ${!!supabaseAnonKey}`
-    console.error('❌', errorMsg)
-    throw new Error(errorMsg)
-}
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Типы для базы данных
-export interface Subscription {
-    id: string
+export interface Subscriber {
+    id?: string
     email: string
-    subscribed_at: string
-    source: string
-    is_active: boolean
+    source?: string
+    subscribed_at?: string
+    is_active?: boolean
     created_at?: string
     updated_at?: string
 }
 
-// Функция для добавления подписчика
-export async function addSubscriber(email: string, source: string = 'landing_page') {
+/**
+ * Добавляет нового подписчика в базу данных
+ */
+export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: Subscriber }> {
     try {
+        // Проверяем, существует ли уже такой email
+        const { data: existingSubscriber, error: checkError } = await supabase
+            .from('subscriptions')
+            .select('email')
+            .eq('email', email)
+            .single()
+
+        if (checkError && checkError.code !== 'PGRST116') {
+            // PGRST116 = "The result contains 0 rows" - это нормально, значит email не найден
+            throw checkError
+        }
+
+        if (existingSubscriber) {
+            return {
+                success: false,
+                message: 'Этот email уже подписан на уведомления'
+            }
+        }
+
+        // Добавляем нового подписчика
         const { data, error } = await supabase
             .from('subscriptions')
-            .insert([
-                {
-                    email,
-                    source,
-                    subscribed_at: new Date().toISOString(),
-                    is_active: true
-                }
-            ])
+            .insert([{ email, source: 'landing_page', is_active: true }])
             .select()
             .single()
 
         if (error) {
-            // Проверяем на дублирование email
-            if (error.code === '23505' || error.message?.includes('duplicate key')) {
-                throw new Error('Этот email уже подписан на уведомления')
-            }
             throw error
         }
 
-        return data
+        return {
+            success: true,
+            message: 'Спасибо за подписку! Мы уведомим вас о релизе.',
+            data
+        }
     } catch (error) {
         console.error('Ошибка при добавлении подписчика:', error)
-        throw error
+        return {
+            success: false,
+            message: 'Произошла ошибка. Попробуйте позже.'
+        }
     }
 }
 
-// Функция для получения всех подписчиков
-export async function getSubscribers() {
+/**
+ * Получает всех активных подписчиков
+ */
+export async function getActiveSubscribers(): Promise<Subscriber[]> {
     try {
         const { data, error } = await supabase
             .from('subscriptions')
@@ -71,27 +75,40 @@ export async function getSubscribers() {
             .eq('is_active', true)
             .order('created_at', { ascending: false })
 
-        if (error) throw error
-        return data
+        if (error) {
+            throw error
+        }
+
+        return data || []
     } catch (error) {
         console.error('Ошибка при получении подписчиков:', error)
-        throw error
+        return []
     }
 }
 
-// Функция для отписки
-export async function unsubscribe(email: string) {
+/**
+ * Деактивирует подписчика (отписка)
+ */
+export async function unsubscribe(email: string): Promise<{ success: boolean; message: string }> {
     try {
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('subscriptions')
-            .update({ is_active: false, updated_at: new Date().toISOString() })
+            .update({ is_active: false })
             .eq('email', email)
-            .select()
 
-        if (error) throw error
-        return data
+        if (error) {
+            throw error
+        }
+
+        return {
+            success: true,
+            message: 'Вы успешно отписались от уведомлений'
+        }
     } catch (error) {
         console.error('Ошибка при отписке:', error)
-        throw error
+        return {
+            success: false,
+            message: 'Произошла ошибка при отписке'
+        }
     }
 }

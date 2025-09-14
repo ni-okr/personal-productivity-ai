@@ -89,15 +89,15 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
         test('🤖 Android Chrome - APK установка', async ({ page }) => {
             // Эмулируем Android устройство
             await page.setViewportSize(devices['Pixel 5'].viewport)
-            await page.setUserAgent(devices['Pixel 5'].userAgent)
-            await page.goto('/')
-
-            await page.addInitScript(() => {
-                // Эмулируем Android PWA
+            await page.context().addInitScript(() => {
                 Object.defineProperty(navigator, 'userAgent', {
                     value: 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
                     writable: true
                 })
+            })
+            await page.goto('/')
+
+            await page.addInitScript(() => {
 
                 // Android PWA событие
                 const mockEvent = {
@@ -138,15 +138,15 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
         test('🍎 iOS Safari - Добавить на главный экран', async ({ page }) => {
             // Эмулируем iPhone
             await page.setViewportSize(devices['iPhone 12'].viewport)
-            await page.setUserAgent(devices['iPhone 12'].userAgent)
-            await page.goto('/')
-
-            await page.addInitScript(() => {
-                // Эмулируем iOS
+            await page.context().addInitScript(() => {
                 Object.defineProperty(navigator, 'userAgent', {
                     value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1',
                     writable: true
                 })
+            })
+            await page.goto('/')
+
+            await page.addInitScript(() => {
 
                 // iOS не поддерживает beforeinstallprompt
                 console.log('🍎 iOS: Используется встроенный механизм Safari')
