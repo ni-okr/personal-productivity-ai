@@ -136,16 +136,25 @@ export default function HomePage() {
     // Проверяем, что мы в браузере (не на сервере)
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       console.log('✅ Браузерная среда подтверждена')
-      const subscriptionSection = document.getElementById('subscription-form')
-      if (subscriptionSection) {
-        console.log('✅ Секция найдена, выполняю прокрутку')
-        subscriptionSection.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        })
-      } else {
-        console.log('❌ Секция subscription-form не найдена')
-      }
+      
+      // Добавляем небольшую задержку для гидрации
+      setTimeout(() => {
+        const subscriptionSection = document.getElementById('subscription-form')
+        if (subscriptionSection) {
+          console.log('✅ Секция найдена, выполняю прокрутку')
+          subscriptionSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          })
+        } else {
+          console.log('❌ Секция subscription-form не найдена')
+          // Fallback - прокручиваем к низу страницы
+          window.scrollTo({
+            top: document.body.scrollHeight - window.innerHeight,
+            behavior: 'smooth'
+          })
+        }
+      }, 100)
     } else {
       console.log('❌ Серверная среда - пропускаем прокрутку')
     }
@@ -217,8 +226,12 @@ export default function HomePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
+                  console.log('🚪 Кнопка Войти нажата')
                   if (typeof window !== 'undefined') {
+                    console.log('✅ Показываем alert')
                     alert('Функция входа будет доступна в следующих обновлениях!')
+                  } else {
+                    console.log('❌ Серверная среда - alert недоступен')
                   }
                 }}
               >
