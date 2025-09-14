@@ -100,7 +100,7 @@ export default function HomePage() {
             
             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
               <p className="text-indigo-800 font-medium text-center">
-                🚀 <strong>Релиз запланирован на Q1 2025</strong> • Сейчас идет активная разработка
+                🚀 <strong>Релиз запланирован на Q4 2025</strong> • Сейчас идет активная разработка
               </p>
             </div>
             
@@ -229,7 +229,7 @@ export default function HomePage() {
         <div className="text-center text-gray-600">
           <p>&copy; 2024 Personal Productivity AI. Скоро превратим хаос в систему.</p>
           <p className="text-sm mt-2 opacity-75">
-            🚧 Сайт в разработке • Релиз Q1 2025 • Следите за обновлениями
+            🚧 Сайт в разработке • Релиз Q4 2025 • Следите за обновлениями
           </p>
         </div>
       </footer>
