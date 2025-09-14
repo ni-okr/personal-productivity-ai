@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpgkzvflmgxrlgkecscg.supabase.co'
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c'
 
 // Отладочная информация для продакшна
 if (typeof window === 'undefined') {
@@ -49,7 +49,7 @@ export async function addSubscriber(email: string, source: string = 'landing_pag
 
         if (error) {
             // Проверяем на дублирование email
-            if (error.code === '23505') {
+            if (error.code === '23505' || error.message?.includes('duplicate key')) {
                 throw new Error('Этот email уже подписан на уведомления')
             }
             throw error
