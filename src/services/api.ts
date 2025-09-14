@@ -15,7 +15,7 @@ class ApiService {
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl
-    
+
     // Load token from localStorage if available
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('auth_token')
@@ -34,11 +34,11 @@ class ApiService {
   }
 
   private async request<T>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string> || {}),
@@ -57,7 +57,7 @@ class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new ApiError(
-          response.status, 
+          response.status,
           errorData.message || `HTTP ${response.status}`
         )
       }
@@ -172,4 +172,5 @@ class ApiService {
 export const apiService = new ApiService()
 
 // Export for testing
-export { ApiService, ApiError }
+export { ApiError, ApiService }
+

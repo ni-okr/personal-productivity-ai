@@ -234,6 +234,15 @@ export default function HomePage() {
                 type="button"
                 variant="ghost"
                 size="sm"
+                onClick={() => window.location.href = '/planner'}
+                className="gap-2"
+              >
+                🧠 Планировщик
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   console.log('🚪 Кнопка Войти нажата')
                   if (typeof window !== 'undefined') {
