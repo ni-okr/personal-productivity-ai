@@ -88,7 +88,8 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
 
         test('🤖 Android Chrome - APK установка', async ({ page }) => {
             // Эмулируем Android устройство
-            await page.emulate(devices['Pixel 5'])
+            await page.setViewportSize(devices['Pixel 5'].viewport)
+            await page.setUserAgent(devices['Pixel 5'].userAgent)
             await page.goto('/')
 
             await page.addInitScript(() => {
@@ -136,7 +137,8 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
 
         test('🍎 iOS Safari - Добавить на главный экран', async ({ page }) => {
             // Эмулируем iPhone
-            await page.emulate(devices['iPhone 12'])
+            await page.setViewportSize(devices['iPhone 12'].viewport)
+            await page.setUserAgent(devices['iPhone 12'].userAgent)
             await page.goto('/')
 
             await page.addInitScript(() => {
