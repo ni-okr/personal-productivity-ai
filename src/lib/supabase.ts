@@ -3,8 +3,19 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+// Отладочная информация для продакшна
+if (typeof window === 'undefined') {
+    console.log('🔍 Supabase ENV check (server):', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseAnonKey,
+        urlPrefix: supabaseUrl?.substring(0, 20) + '...'
+    })
+}
+
 if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Отсутствуют переменные окружения для Supabase')
+    const errorMsg = `Отсутствуют переменные окружения для Supabase. URL: ${!!supabaseUrl}, Key: ${!!supabaseAnonKey}`
+    console.error('❌', errorMsg)
+    throw new Error(errorMsg)
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)

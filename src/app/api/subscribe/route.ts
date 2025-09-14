@@ -36,17 +36,26 @@ export async function POST(request: NextRequest) {
             data: subscription
         })
 
-    } catch (error) {
-        console.error('Ошибка при подписке:', error)
-
-        return NextResponse.json(
-            {
-                success: false,
-                error: 'Произошла ошибка при подписке. Попробуйте позже.'
-            },
-            { status: 500 }
-        )
-    }
+  } catch (error) {
+    console.error('Ошибка при подписке:', error)
+    
+    // Более детальная информация об ошибке
+    const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
+    console.error('Детали ошибки:', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      type: typeof error
+    })
+    
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Произошла ошибка при подписке. Попробуйте позже.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
+      { status: 500 }
+    )
+  }
 }
 
 // Обработка GET запросов (для тестирования)

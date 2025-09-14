@@ -150,11 +150,11 @@ export default function HomePage() {
                 Автоматизация рутины, обучение планированию, умные предложения.
               </p>
 
-               <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
-                 <p className="text-indigo-800 font-medium text-center">
-                   🚀 <strong>Релиз запланирован на Q4 2026</strong> • Сейчас идет активная разработка
-                 </p>
-               </div>
+              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+                <p className="text-indigo-800 font-medium text-center">
+                  🚀 <strong>Релиз запланирован на Q4 2026</strong> • Сейчас идет активная разработка
+                </p>
+              </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Button size="lg" className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700">
@@ -280,8 +280,8 @@ export default function HomePage() {
               {/* Статус подписки */}
               {subscriptionStatus.type && (
                 <div className={`mb-4 p-3 rounded-lg text-center ${subscriptionStatus.type === 'success'
-                    ? 'bg-green-100 text-green-800 border border-green-200'
-                    : 'bg-red-100 text-red-800 border border-red-200'
+                  ? 'bg-green-100 text-green-800 border border-green-200'
+                  : 'bg-red-100 text-red-800 border border-red-200'
                   }`}>
                   {subscriptionStatus.message}
                 </div>
@@ -297,9 +297,9 @@ export default function HomePage() {
         <footer className="container py-12 border-t border-gray-200">
           <div className="text-center text-gray-600">
             <p>&copy; 2024 Personal Productivity AI. Скоро превратим хаос в систему.</p>
-             <p className="text-sm mt-2 opacity-75">
-               🚧 Сайт в разработке • Релиз Q4 2026 • Следите за обновлениями
-             </p>
+            <p className="text-sm mt-2 opacity-75">
+              🚧 Сайт в разработке • Релиз Q4 2026 • Следите за обновлениями
+            </p>
           </div>
         </footer>
       </div>
