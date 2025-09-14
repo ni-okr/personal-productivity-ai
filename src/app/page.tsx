@@ -51,6 +51,16 @@ export default function HomePage() {
     }
   }
 
+  const scrollToSubscription = () => {
+    const subscriptionSection = document.getElementById('subscription-form')
+    if (subscriptionSection) {
+      subscriptionSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }
+  }
+
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -156,11 +166,15 @@ export default function HomePage() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button size="lg" className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700">
-                  🔔 Уведомить о релизе
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                 <Button 
+                   onClick={scrollToSubscription}
+                   size="lg" 
+                   className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700"
+                 >
+                   🔔 Уведомить о релизе
+                   <ArrowRight className="w-5 h-5 ml-2" />
+                 </Button>
                 <Link href="/roadmap">
                   <Button variant="ghost" size="lg" className="text-lg px-8 py-4">
                     📋 Roadmap разработки
@@ -248,9 +262,9 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* CTA */}
-          <section className="py-20">
-            <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
+           {/* CTA */}
+           <section id="subscription-form" className="py-20">
+             <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
               <h2 className="text-3xl font-bold mb-4">
                 Хотите первыми узнать о релизе?
               </h2>

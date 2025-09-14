@@ -36,37 +36,37 @@ export async function POST(request: NextRequest) {
             data: subscription
         })
 
-  } catch (error) {
-    console.error('Ошибка при подписке:', error)
-    
-    // Более детальная информация об ошибке
-    const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
-    console.error('Детали ошибки:', {
-      message: errorMessage,
-      stack: error instanceof Error ? error.stack : 'No stack trace',
-      type: typeof error
-    })
-    
-    // Проверяем, если это ошибка дублирования email
-    if (errorMessage.includes('уже подписан')) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Этот email уже подписан на уведомления. Спасибо за интерес к проекту!'
-        },
-        { status: 400 }
-      )
+    } catch (error) {
+        console.error('Ошибка при подписке:', error)
+
+        // Более детальная информация об ошибке
+        const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка'
+        console.error('Детали ошибки:', {
+            message: errorMessage,
+            stack: error instanceof Error ? error.stack : 'No stack trace',
+            type: typeof error
+        })
+
+        // Проверяем, если это ошибка дублирования email
+        if (errorMessage.includes('уже подписан')) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Этот email уже подписан на уведомления. Спасибо за интерес к проекту!'
+                },
+                { status: 400 }
+            )
+        }
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'Произошла ошибка при подписке. Попробуйте позже.',
+                details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            },
+            { status: 500 }
+        )
     }
-    
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Произошла ошибка при подписке. Попробуйте позже.',
-        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
-      },
-      { status: 500 }
-    )
-  }
 }
 
 // Обработка GET запросов (для тестирования)
