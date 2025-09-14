@@ -35,10 +35,19 @@ export default function HomePage() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
 
+    // Fallback: показываем кнопку через 3 секунды если событие не сработало
+    const fallbackTimer = setTimeout(() => {
+      if (!isInstallable) {
+        console.log('🔄 Fallback: показываем кнопку PWA без события beforeinstallprompt')
+        setIsInstallable(true)
+      }
+    }, 3000)
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      clearTimeout(fallbackTimer)
     }
-  }, [])
+  }, [isInstallable])
 
   const handleInstallClick = async () => {
     if (typeof window === 'undefined') return
