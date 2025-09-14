@@ -9,12 +9,22 @@ const subscribeSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        console.log('🚀 API /subscribe вызван')
+        
+        // Проверяем переменные окружения
+        console.log('🔧 Переменные окружения:', {
+            supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET',
+            supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
+        })
+
         const body = await request.json()
+        console.log('📝 Получен body:', body)
 
         // Валидация входных данных
         const result = subscribeSchema.safeParse(body)
 
         if (!result.success) {
+            console.log('❌ Валидация не прошла:', result.error.errors)
             return NextResponse.json(
                 {
                     success: false,
@@ -26,11 +36,15 @@ export async function POST(request: NextRequest) {
         }
 
         const { email } = result.data
+        console.log('✅ Email валиден:', email)
 
         // Сохраняем подписчика в Supabase
+        console.log('📡 Вызываем addSubscriber...')
         const subscription = await addSubscriber(email)
+        console.log('📡 Результат addSubscriber:', subscription)
 
         if (!subscription.success) {
+            console.log('⚠️ Подписка не удалась:', subscription.message)
             return NextResponse.json(
                 {
                     success: false,
@@ -40,6 +54,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        console.log('🎉 Подписка успешна!')
         return NextResponse.json({
             success: true,
             message: subscription.message,
