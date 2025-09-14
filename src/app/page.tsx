@@ -136,7 +136,7 @@ export default function HomePage() {
     // Проверяем, что мы в браузере (не на сервере)
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       console.log('✅ Браузерная среда подтверждена')
-      
+
       // Добавляем небольшую задержку для гидрации
       setTimeout(() => {
         const subscriptionSection = document.getElementById('subscription-form')
