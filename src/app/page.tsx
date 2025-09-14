@@ -42,7 +42,7 @@ export default function HomePage() {
 
   const handleInstallClick = async () => {
     if (typeof window === 'undefined') return
-    
+
     // Определяем платформу пользователя
     const userAgent = navigator.userAgent.toLowerCase()
     const platform = {
@@ -62,7 +62,7 @@ export default function HomePage() {
           console.log('📱 Запуск PWA установки для мобильного устройства')
           deferredPrompt.prompt()
           const { outcome } = await deferredPrompt.userChoice
-          
+
           if (outcome === 'accepted') {
             console.log('✅ PWA установлено на мобильное устройство')
             setDeferredPrompt(null)
@@ -72,7 +72,7 @@ export default function HomePage() {
           }
         } catch (error) {
           console.error('❌ Ошибка PWA установки:', error)
-          
+
           // Fallback для iOS - показываем инструкции
           if (platform.isIOS) {
             alert('📱 Для установки на iOS:\n1. Нажмите кнопку "Поделиться" в Safari\n2. Выберите "Добавить на главный экран"')
@@ -92,7 +92,7 @@ export default function HomePage() {
     // Для десктопа - предлагаем скачать нативное приложение
     let downloadUrl = ''
     let fileName = ''
-    
+
     if (platform.isWindows) {
       // В будущем здесь будет ссылка на .exe файл
       downloadUrl = '/downloads/PersonalProductivityAI-Setup.exe'
@@ -116,7 +116,7 @@ export default function HomePage() {
         console.log('🖥️ Запуск PWA установки для десктопа')
         deferredPrompt.prompt()
         const { outcome } = await deferredPrompt.userChoice
-        
+
         if (outcome === 'accepted') {
           console.log('✅ PWA установлено на десктоп')
           setDeferredPrompt(null)
