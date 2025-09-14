@@ -79,7 +79,7 @@ export default function HomePage() {
           } else {
             console.log('❌ Пользователь отклонил PWA установку')
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('❌ Ошибка PWA установки:', error)
 
           // Fallback для iOS - показываем инструкции
@@ -131,7 +131,7 @@ export default function HomePage() {
           setDeferredPrompt(null)
           setIsInstallable(false)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Ошибка PWA установки:', error)
       }
     } else {
@@ -206,7 +206,7 @@ export default function HomePage() {
           message: data.error || 'Произошла ошибка при подписке'
         })
       }
-    } catch (error) {
+    } catch (error: any) {
       setSubscriptionStatus({
         type: 'error',
         message: 'Ошибка сети. Проверьте подключение и попробуйте снова.'

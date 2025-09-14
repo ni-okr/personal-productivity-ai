@@ -14,7 +14,7 @@ export async function GET() {
             buildTime: 'Force deploy at 22:17 MSK',
             commitHash: '751efa1+'
         })
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error'

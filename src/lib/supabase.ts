@@ -66,7 +66,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
             message: 'Спасибо за подписку! Мы уведомим вас о релизе.',
             data
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Ошибка при добавлении подписчика:', error)
         console.error('Детали Supabase ошибки:', {
             error,
@@ -98,7 +98,7 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
         }
 
         return data || []
-    } catch (error) {
+    } catch (error: any) {
         console.error('Ошибка при получении подписчиков:', error)
         return []
     }
@@ -122,7 +122,7 @@ export async function unsubscribe(email: string): Promise<{ success: boolean; me
             success: true,
             message: 'Вы успешно отписались от уведомлений'
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Ошибка при отписке:', error)
         return {
             success: false,

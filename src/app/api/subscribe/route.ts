@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
             data: subscription.data
         })
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Ошибка при подписке:', error)
 
         // Более детальная информация об ошибке

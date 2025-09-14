@@ -63,7 +63,7 @@ class ApiService {
       }
 
       return await response.json()
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof ApiError) {
         throw error
       }
