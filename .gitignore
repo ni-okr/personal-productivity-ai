@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+venv/
+**/.venv/
+mcp_servers/**/.venv/
+linux_chat/.venv/
+**/__pycache__/
+*.egg-info/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Gmail API credentials (секретные файлы)
+gmail_credentials.json
+credentials.json
+token.json
+client_secret_*.json
+**/gmail_*.json
+**/config/gmail_*.json
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+
+# Package manager lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# Docker
+.dockerignore
+docker-compose.override.yml
