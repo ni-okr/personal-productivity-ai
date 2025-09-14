@@ -41,23 +41,38 @@ export default function HomePage() {
   }, [])
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt()
-      const { outcome } = await deferredPrompt.userChoice
-      if (outcome === 'accepted') {
-        setDeferredPrompt(null)
-        setIsInstallable(false)
+    // Проверяем, что мы в браузере
+    if (typeof window !== 'undefined' && deferredPrompt) {
+      try {
+        deferredPrompt.prompt()
+        const { outcome } = await deferredPrompt.userChoice
+        if (outcome === 'accepted') {
+          setDeferredPrompt(null)
+          setIsInstallable(false)
+        }
+      } catch (error) {
+        console.error('Ошибка установки PWA:', error)
       }
     }
   }
 
   const scrollToSubscription = () => {
-    const subscriptionSection = document.getElementById('subscription-form')
-    if (subscriptionSection) {
-      subscriptionSection.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      })
+    console.log('🔍 scrollToSubscription вызван')
+    // Проверяем, что мы в браузере (не на сервере)
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      console.log('✅ Браузерная среда подтверждена')
+      const subscriptionSection = document.getElementById('subscription-form')
+      if (subscriptionSection) {
+        console.log('✅ Секция найдена, выполняю прокрутку')
+        subscriptionSection.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
+        })
+      } else {
+        console.log('❌ Секция subscription-form не найдена')
+      }
+    } else {
+      console.log('❌ Серверная среда - пропускаем прокрутку')
     }
   }
 
@@ -121,19 +136,23 @@ export default function HomePage() {
               <span className="text-xl font-bold text-gray-900">Personal AI</span>
             </div>
 
-             <div className="flex items-center gap-4">
-               <Button 
-                 type="button"
-                 variant="ghost" 
-                 size="sm"
-                 onClick={() => alert('Функция входа будет доступна в следующих обновлениях!')}
-               >
-                 Войти
-               </Button>
+            <div className="flex items-center gap-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                 onClick={() => {
+                   if (typeof window !== 'undefined') {
+                     alert('Функция входа будет доступна в следующих обновлениях!')
+                   }
+                 }}
+              >
+                Войти
+              </Button>
               {isInstallable && (
-                <Button 
+                <Button
                   type="button"
-                  onClick={handleInstallClick} 
+                  onClick={handleInstallClick}
                   size="sm"
                 >
                   Установить приложение
@@ -176,12 +195,12 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                 <Button 
-                   type="button"
-                   onClick={scrollToSubscription}
-                   size="lg" 
-                   className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700"
-                 >
+                <Button
+                  type="button"
+                  onClick={scrollToSubscription}
+                  size="lg"
+                  className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700"
+                >
                   🔔 Уведомить о релизе
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
