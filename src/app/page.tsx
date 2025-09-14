@@ -41,18 +41,93 @@ export default function HomePage() {
   }, [])
 
   const handleInstallClick = async () => {
-    // Проверяем, что мы в браузере
-    if (typeof window !== 'undefined' && deferredPrompt) {
+    if (typeof window === 'undefined') return
+    
+    // Определяем платформу пользователя
+    const userAgent = navigator.userAgent.toLowerCase()
+    const platform = {
+      isAndroid: /android/.test(userAgent),
+      isIOS: /iphone|ipad|ipod/.test(userAgent),
+      isWindows: /windows/.test(userAgent),
+      isMac: /macintosh|mac os x/.test(userAgent),
+      isLinux: /linux/.test(userAgent) && !/android/.test(userAgent)
+    }
+
+    console.log('🔍 Платформа пользователя:', platform)
+
+    // Для мобильных устройств - используем PWA
+    if (platform.isAndroid || platform.isIOS) {
+      if (deferredPrompt) {
+        try {
+          console.log('📱 Запуск PWA установки для мобильного устройства')
+          deferredPrompt.prompt()
+          const { outcome } = await deferredPrompt.userChoice
+          
+          if (outcome === 'accepted') {
+            console.log('✅ PWA установлено на мобильное устройство')
+            setDeferredPrompt(null)
+            setIsInstallable(false)
+          } else {
+            console.log('❌ Пользователь отклонил PWA установку')
+          }
+        } catch (error) {
+          console.error('❌ Ошибка PWA установки:', error)
+          
+          // Fallback для iOS - показываем инструкции
+          if (platform.isIOS) {
+            alert('📱 Для установки на iOS:\n1. Нажмите кнопку "Поделиться" в Safari\n2. Выберите "Добавить на главный экран"')
+          }
+        }
+      } else {
+        // Показываем инструкции для ручной установки
+        if (platform.isIOS) {
+          alert('📱 Для установки на iOS:\n1. Откройте в Safari\n2. Нажмите "Поделиться"\n3. Выберите "Добавить на главный экран"')
+        } else if (platform.isAndroid) {
+          alert('📱 Для установки на Android:\n1. Откройте в Chrome\n2. Нажмите меню (⋮)\n3. Выберите "Установить приложение"')
+        }
+      }
+      return
+    }
+
+    // Для десктопа - предлагаем скачать нативное приложение
+    let downloadUrl = ''
+    let fileName = ''
+    
+    if (platform.isWindows) {
+      // В будущем здесь будет ссылка на .exe файл
+      downloadUrl = '/downloads/PersonalProductivityAI-Setup.exe'
+      fileName = 'PersonalProductivityAI-Setup.exe'
+      console.log('💻 Windows: Подготовка .exe установщика')
+    } else if (platform.isMac) {
+      // В будущем здесь будет ссылка на .dmg файл
+      downloadUrl = '/downloads/PersonalProductivityAI.dmg'
+      fileName = 'PersonalProductivityAI.dmg'
+      console.log('🍎 macOS: Подготовка .dmg установщика')
+    } else if (platform.isLinux) {
+      // В будущем здесь будет ссылка на .deb/.AppImage файл
+      downloadUrl = '/downloads/PersonalProductivityAI.AppImage'
+      fileName = 'PersonalProductivityAI.AppImage'
+      console.log('🐧 Linux: Подготовка AppImage установщика')
+    }
+
+    // Пока нативные приложения не готовы - используем PWA для десктопа
+    if (deferredPrompt) {
       try {
+        console.log('🖥️ Запуск PWA установки для десктопа')
         deferredPrompt.prompt()
         const { outcome } = await deferredPrompt.userChoice
+        
         if (outcome === 'accepted') {
+          console.log('✅ PWA установлено на десктоп')
           setDeferredPrompt(null)
           setIsInstallable(false)
         }
       } catch (error) {
-        console.error('Ошибка установки PWA:', error)
+        console.error('❌ Ошибка PWA установки:', error)
       }
+    } else {
+      // Показываем сообщение о будущих нативных приложениях
+      alert(`🚀 Нативное приложение для вашей платформы будет доступно в следующих обновлениях!\n\nПока вы можете:\n• Добавить сайт в закладки\n• Использовать веб-версию\n• Подписаться на уведомления о релизе`)
     }
   }
 
@@ -64,7 +139,7 @@ export default function HomePage() {
       const subscriptionSection = document.getElementById('subscription-form')
       if (subscriptionSection) {
         console.log('✅ Секция найдена, выполняю прокрутку')
-        subscriptionSection.scrollIntoView({ 
+        subscriptionSection.scrollIntoView({
           behavior: 'smooth',
           block: 'center'
         })
@@ -141,11 +216,11 @@ export default function HomePage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                 onClick={() => {
-                   if (typeof window !== 'undefined') {
-                     alert('Функция входа будет доступна в следующих обновлениях!')
-                   }
-                 }}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    alert('Функция входа будет доступна в следующих обновлениях!')
+                  }
+                }}
               >
                 Войти
               </Button>
