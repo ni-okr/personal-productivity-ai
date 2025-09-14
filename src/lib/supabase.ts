@@ -57,6 +57,13 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
         }
     } catch (error) {
         console.error('Ошибка при добавлении подписчика:', error)
+        console.error('Детали Supabase ошибки:', {
+            error,
+            type: typeof error,
+            code: error?.code,
+            message: error?.message,
+            details: error?.details
+        })
         return {
             success: false,
             message: 'Произошла ошибка. Попробуйте позже.'

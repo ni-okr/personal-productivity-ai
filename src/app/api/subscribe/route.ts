@@ -54,7 +54,9 @@ export async function POST(request: NextRequest) {
         console.error('Детали ошибки:', {
             message: errorMessage,
             stack: error instanceof Error ? error.stack : 'No stack trace',
-            type: typeof error
+            type: typeof error,
+            supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET',
+            supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
         })
 
         // Проверяем, если это ошибка дублирования email
@@ -72,7 +74,10 @@ export async function POST(request: NextRequest) {
             {
                 success: false,
                 error: 'Произошла ошибка при подписке. Попробуйте позже.',
-                details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+                details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+                debug: process.env.NODE_ENV === 'development' ? {
+                    supabaseConfigured: !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+                } : undefined
             },
             { status: 500 }
         )
