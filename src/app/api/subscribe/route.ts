@@ -1,0 +1,60 @@
+import { addSubscriber } from '@/lib/supabase'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+// Схема валидации для email
+const subscribeSchema = z.object({
+    email: z.string().email('Некорректный email адрес'),
+})
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json()
+
+        // Валидация входных данных
+        const result = subscribeSchema.safeParse(body)
+
+        if (!result.success) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Некорректный email адрес',
+                    details: result.error.errors
+                },
+                { status: 400 }
+            )
+        }
+
+        const { email } = result.data
+
+        // Сохраняем подписчика в Supabase
+        const subscription = await addSubscriber(email, 'landing_page')
+
+        return NextResponse.json({
+            success: true,
+            message: 'Спасибо за подписку! Мы уведомим вас о релизе.',
+            data: subscription
+        })
+
+    } catch (error) {
+        console.error('Ошибка при подписке:', error)
+
+        return NextResponse.json(
+            {
+                success: false,
+                error: 'Произошла ошибка при подписке. Попробуйте позже.'
+            },
+            { status: 500 }
+        )
+    }
+}
+
+// Обработка GET запросов (для тестирования)
+export async function GET() {
+    return NextResponse.json({
+        message: 'API подписки работает',
+        endpoint: '/api/subscribe',
+        method: 'POST',
+        required_fields: ['email']
+    })
+}
