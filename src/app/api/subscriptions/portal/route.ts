@@ -4,6 +4,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
     try {
+        // Проверяем переменные окружения
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            return NextResponse.json(
+                { error: 'Supabase не настроен' },
+                { status: 500 }
+            )
+        }
+
         // Проверяем авторизацию
         const user = await getCurrentUser()
         if (!user) {

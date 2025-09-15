@@ -339,9 +339,9 @@ describe('Subscription Integration', () => {
             })
 
             const mockReturnValue = {
-                plan: { 
-                    id: 'plan-free', 
-                    name: 'Free', 
+                plan: {
+                    id: 'plan-free',
+                    name: 'Free',
                     tier: 'free' as const,
                     price: 0,
                     currency: 'RUB',
