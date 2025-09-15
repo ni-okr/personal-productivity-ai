@@ -1,0 +1,32 @@
+name: 🏗️ Simple Build Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: 🏗️ Build приложения
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🏗️ Build приложения
+      run: npm run build
+      env:
+        NODE_ENV: production
+        NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
