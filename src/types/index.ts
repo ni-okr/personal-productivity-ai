@@ -4,14 +4,17 @@ export interface User {
   id: string
   email: string
   name: string
+  avatar?: string
   timezone: string
   subscription: SubscriptionTier
+  subscriptionStatus: SubscriptionStatus
   preferences: UserPreferences
   createdAt: Date
   updatedAt: Date
 }
 
-export type SubscriptionTier = 'free' | 'pro' | 'business'
+export type SubscriptionTier = 'free' | 'premium' | 'pro' | 'enterprise'
+export type SubscriptionStatus = 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
 
 export interface UserPreferences {
   workingHours: {
@@ -65,7 +68,7 @@ export interface AICoachSuggestion {
   createdAt: Date
 }
 
-export type SuggestionType = 
+export type SuggestionType =
   | 'take_break'
   | 'focus_time'
   | 'task_prioritization'
@@ -160,9 +163,86 @@ export interface AppState {
   error: string | null
 }
 
+// Subscription types
+export interface Subscription {
+  id: string
+  userId: string
+  tier: SubscriptionTier
+  status: SubscriptionStatus
+  stripeCustomerId?: string
+  stripeSubscriptionId?: string
+  currentPeriodStart: Date
+  currentPeriodEnd: Date
+  cancelAtPeriodEnd: boolean
+  trialEnd?: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface SubscriptionPlan {
+  id: string
+  name: string
+  tier: SubscriptionTier
+  price: number // in cents
+  currency: string
+  interval: 'month' | 'year'
+  features: string[]
+  limits: {
+    tasks: number
+    aiRequests: number
+    storage: number // in MB
+  }
+  stripePriceId: string
+  isActive: boolean
+}
+
+export interface StripeWebhookEvent {
+  id: string
+  type: string
+  data: {
+    object: any
+  }
+  created: number
+}
+
+// AI Integration types
+export interface AIService {
+  name: string
+  tier: SubscriptionTier
+  isAvailable: boolean
+  apiKey?: string
+  baseUrl: string
+  models: AIModel[]
+}
+
+export interface AIModel {
+  id: string
+  name: string
+  provider: 'openai' | 'anthropic' | 'google' | 'mock'
+  tier: SubscriptionTier
+  maxTokens: number
+  costPerToken: number
+  isActive: boolean
+}
+
+export interface AIRequest {
+  id: string
+  userId: string
+  service: string
+  model: string
+  prompt: string
+  response?: string
+  tokensUsed: number
+  cost: number
+  duration: number // in ms
+  status: 'pending' | 'completed' | 'failed'
+  error?: string
+  createdAt: Date
+}
+
 // Event types
 export interface UserEvent {
-  type: 'task_created' | 'task_completed' | 'break_taken' | 'focus_started'
+  type: 'task_created' | 'task_completed' | 'break_taken' | 'focus_started' | 'subscription_created' | 'subscription_updated'
   timestamp: Date
   data: Record<string, any>
   userId: string

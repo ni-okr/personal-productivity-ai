@@ -375,6 +375,70 @@ export function onAuthStateChange(callback: (user: AuthUser | null) => void) {
 }
 
 /**
+ * 🔐 Вход через Google
+ */
+export async function signInWithGoogle(): Promise<AuthResponse> {
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`
+            }
+        })
+
+        if (error) {
+            return {
+                success: false,
+                error: getAuthErrorMessage(error.message)
+            }
+        }
+
+        return {
+            success: true,
+            message: 'Перенаправление на Google...'
+        }
+    } catch (error) {
+        console.error('Ошибка входа через Google:', error)
+        return {
+            success: false,
+            error: 'Произошла ошибка при входе через Google'
+        }
+    }
+}
+
+/**
+ * 🔐 Вход через GitHub
+ */
+export async function signInWithGitHub(): Promise<AuthResponse> {
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`
+            }
+        })
+
+        if (error) {
+            return {
+                success: false,
+                error: getAuthErrorMessage(error.message)
+            }
+        }
+
+        return {
+            success: true,
+            message: 'Перенаправление на GitHub...'
+        }
+    } catch (error) {
+        console.error('Ошибка входа через GitHub:', error)
+        return {
+            success: false,
+            error: 'Произошла ошибка при входе через GitHub'
+        }
+    }
+}
+
+/**
  * 🛠️ Преобразование ошибок Supabase в понятные сообщения
  */
 function getAuthErrorMessage(error: string): string {

@@ -1,16 +1,22 @@
 'use client'
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
+import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { Button } from '@/components/ui/Button'
-import { AIPlanner, AI_MODELS } from '@/lib/aiModels'
+import { useAuth } from '@/hooks/useAuth'
+import { useSubscription } from '@/hooks/useSubscription'
+import { AI_MODELS } from '@/lib/aiModels'
+import { checkAIAccess, createPremiumAIService } from '@/lib/premiumAI'
 import { analyzeProductivityAndSuggest, smartTaskPrioritization } from '@/lib/smartPlanning'
 import { useAppStore } from '@/stores/useAppStore'
-import { Task, TaskPriority, TaskStatus } from '@/types'
+import { Task, TaskPriority } from '@/types'
 import { validateTask } from '@/utils/validation'
-import { BrainIcon, CalendarIcon, CheckCircleIcon, ClockIcon, LightbulbIcon, PlusIcon, TrendingUpIcon, ZapIcon } from 'lucide-react'
+import { BrainIcon, CalendarIcon, CheckCircleIcon, ClockIcon, CrownIcon, LightbulbIcon, LockIcon, PlusIcon, TrendingUpIcon, ZapIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 function PlannerPageContent() {
+    const { user, isAuthenticated, requireAuth } = useAuth()
     const {
         tasks,
         addTask,
@@ -18,7 +24,14 @@ function PlannerPageContent() {
         deleteTask,
         pendingTasks,
         urgentTasks,
-        completedTasksToday
+        completedTasksToday,
+        loadTasks,
+        createTaskAsync,
+        updateTaskAsync,
+        deleteTaskAsync,
+        completeTaskAsync,
+        isLoading,
+        error
     } = useAppStore()
 
     const [showAddTask, setShowAddTask] = useState(false)
@@ -39,7 +52,24 @@ function PlannerPageContent() {
 
     const [isAiLoading, setIsAiLoading] = useState(false)
     const [smartSortEnabled, setSmartSortEnabled] = useState(true)
-    const [aiModel] = useState('mock-ai') // Для демо используем mock
+    const [aiModel, setAiModel] = useState('mock-ai')
+    const [premiumAI, setPremiumAI] = useState<any>(null)
+    const [aiAccess, setAiAccess] = useState<{
+        hasAccess: boolean
+        requiresUpgrade: boolean
+        upgradeUrl?: string
+    }>({ hasAccess: false, requiresUpgrade: false })
+    const [usageStats, setUsageStats] = useState<any>(null)
+
+    // Подписки
+    const {
+        subscription,
+        plan,
+        isLoading: subscriptionLoading,
+        createCheckoutSession,
+        refreshSubscription
+    } = useSubscription()
+    const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
 
     // Валидация
     const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -50,6 +80,56 @@ function PlannerPageContent() {
         return smartSortEnabled ? smartTaskPrioritization(taskList) : taskList
     }
 
+    // Загрузка задач при входе пользователя
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            loadTasks()
+            initializePremiumAI()
+        }
+    }, [isAuthenticated, user, loadTasks])
+
+    // Инициализация Premium AI
+    const initializePremiumAI = async () => {
+        if (!user) return
+
+        try {
+            const aiService = createPremiumAIService(user)
+            await aiService.initialize()
+            setPremiumAI(aiService)
+
+            // Проверяем доступ к AI функциям
+            const access = await checkAIAccess(user.id, 'ai_requests')
+            setAiAccess(access)
+
+            // Получаем статистику использования
+            const stats = await aiService.getUsageStats()
+            setUsageStats(stats)
+
+            // Выбираем лучшую доступную модель
+            const subscriptionInfo = aiService.getSubscriptionInfo()
+            if (subscriptionInfo.availableModels.length > 0) {
+                setAiModel(subscriptionInfo.availableModels[0])
+            }
+        } catch (error) {
+            console.error('Ошибка инициализации Premium AI:', error)
+        }
+    }
+
+    // Обработка выбора плана подписки
+    const handleSelectPlan = async (planId: string) => {
+        try {
+            const result = await createCheckoutSession(planId)
+
+            if (result.success && result.url) {
+                window.location.href = result.url
+            } else {
+                console.error('Ошибка создания checkout сессии:', result.error)
+            }
+        } catch (error) {
+            console.error('Ошибка выбора плана:', error)
+        }
+    }
+
     // Анализ продуктивности при загрузке
     useEffect(() => {
         const runProductivityAnalysis = async () => {
@@ -58,19 +138,23 @@ function PlannerPageContent() {
                 const completedTasks = tasks.filter(t => t.status === 'completed')
                 const analysis = analyzeProductivityAndSuggest(completedTasks)
 
-                // Если есть ИИ - дополняем анализ
-                if (aiModel && completedTasks.length > 0) {
+                // Если есть Premium AI - используем его
+                if (premiumAI && aiAccess.hasAccess && completedTasks.length > 0) {
                     try {
-                        const aiPlanner = new AIPlanner(aiModel)
-                        const aiAnalysis = await aiPlanner.analyzeProductivity(completedTasks)
+                        const aiAnalysis = await premiumAI.analyzeProductivity(completedTasks)
 
-                        setAiInsights({
-                            score: aiAnalysis.score,
-                            insights: [...analysis.insights, ...aiAnalysis.insights],
-                            recommendations: [...analysis.recommendations, ...aiAnalysis.recommendations]
-                        })
+                        if (aiAnalysis.success) {
+                            setAiInsights({
+                                score: aiAnalysis.data.score,
+                                insights: [...analysis.insights, ...aiAnalysis.data.insights],
+                                recommendations: [...analysis.recommendations, ...aiAnalysis.data.recommendations]
+                            })
+                        } else {
+                            // Fallback к обычному анализу
+                            setAiInsights(analysis)
+                        }
                     } catch (error) {
-                        // Fallback к обычному анализу
+                        console.error('Ошибка Premium AI анализа:', error)
                         setAiInsights(analysis)
                     }
                 } else {
@@ -84,9 +168,14 @@ function PlannerPageContent() {
         }
 
         runProductivityAnalysis()
-    }, [tasks, aiModel])
+    }, [tasks, premiumAI, aiAccess.hasAccess])
 
     const handleAddTask = async () => {
+        if (!isAuthenticated || !user) {
+            setValidationErrors(['Необходимо войти в систему'])
+            return
+        }
+
         setIsSubmitting(true)
         setValidationErrors([])
 
@@ -106,22 +195,15 @@ function PlannerPageContent() {
                 return
             }
 
-            const task: Task = {
-                id: crypto.randomUUID(),
+            // Создание задачи через Supabase
+            await createTaskAsync({
                 title: newTask.title.trim(),
-                description: newTask.description?.trim() || undefined,
+                description: newTask.description?.trim(),
                 priority: newTask.priority,
-                status: 'todo' as TaskStatus,
-                estimatedMinutes: newTask.estimatedMinutes,
                 dueDate: newTask.dueDate ? new Date(newTask.dueDate) : undefined,
-                source: 'manual',
-                tags: [],
-                userId: 'temp-user', // TODO: заменить на реального пользователя
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-
-            addTask(task)
+                estimatedDuration: newTask.estimatedMinutes,
+                tags: []
+            })
 
             // Сброс формы
             setNewTask({
@@ -141,12 +223,24 @@ function PlannerPageContent() {
         }
     }
 
-    const handleToggleTask = (task: Task) => {
-        const newStatus: TaskStatus = task.status === 'completed' ? 'todo' : 'completed'
-        updateTask(task.id, {
-            status: newStatus,
-            completedAt: newStatus === 'completed' ? new Date() : undefined
-        })
+    const handleToggleTask = async (task: Task) => {
+        if (!isAuthenticated) return
+
+        if (task.status === 'completed') {
+            // Возвращаем задачу в работу
+            await updateTaskAsync(task.id, {
+                status: 'todo',
+                completedAt: undefined
+            })
+        } else {
+            // Завершаем задачу
+            await completeTaskAsync(task.id, task.estimatedDuration)
+        }
+    }
+
+    const handleDeleteTask = async (taskId: string) => {
+        if (!isAuthenticated) return
+        await deleteTaskAsync(taskId)
     }
 
     const getPriorityColor = (priority: TaskPriority) => {
@@ -165,6 +259,24 @@ function PlannerPageContent() {
             case 'medium': return '🔵'
             case 'low': return '⚪'
         }
+    }
+
+    // Проверка авторизации
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <BrainIcon className="w-8 h-8 text-white" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">ИИ-Планировщик</h1>
+                    <p className="text-gray-600 mb-6">Для доступа к планировщику необходимо войти в систему</p>
+                    <Button onClick={() => requireAuth()}>
+                        Войти в систему
+                    </Button>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -191,6 +303,7 @@ function PlannerPageContent() {
                             <Button
                                 onClick={() => setShowAddTask(true)}
                                 className="gap-2"
+                                disabled={isLoading}
                             >
                                 <PlusIcon className="w-4 h-4" />
                                 Добавить задачу
@@ -199,6 +312,15 @@ function PlannerPageContent() {
                     </div>
                 </div>
             </header>
+
+            {/* Ошибки */}
+            {error && (
+                <div className="container mx-auto px-4 py-4">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-red-800">{error}</p>
+                    </div>
+                </div>
+            )}
 
             <main className="container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -217,7 +339,7 @@ function PlannerPageContent() {
                                     key={task.id}
                                     task={task}
                                     onToggle={handleToggleTask}
-                                    onDelete={deleteTask}
+                                    onDelete={handleDeleteTask}
                                 />
                             ))}
                             {urgentTasks().length === 0 && (
@@ -242,7 +364,7 @@ function PlannerPageContent() {
                                     key={task.id}
                                     task={task}
                                     onToggle={handleToggleTask}
-                                    onDelete={deleteTask}
+                                    onDelete={handleDeleteTask}
                                 />
                             ))}
                             {pendingTasks().length === 0 && (
@@ -267,7 +389,7 @@ function PlannerPageContent() {
                                     key={task.id}
                                     task={task}
                                     onToggle={handleToggleTask}
-                                    onDelete={deleteTask}
+                                    onDelete={handleDeleteTask}
                                     completed
                                 />
                             ))}
@@ -311,6 +433,14 @@ function PlannerPageContent() {
                             </div>
                         )}
                     </div>
+
+                    {/* Статус подписки */}
+                    {user && (
+                        <SubscriptionStatus
+                            userId={user.id}
+                            onUpgrade={() => setShowSubscriptionModal(true)}
+                        />
+                    )}
 
                     {/* Аналитика продуктивности */}
                     <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-6 text-white">
@@ -371,10 +501,46 @@ function PlannerPageContent() {
                                 <span className="opacity-75">Доступные ИИ модели:</span>
                                 <div className="flex gap-2">
                                     <span className="bg-white/20 px-2 py-1 rounded text-xs">🆓 Mock AI</span>
-                                    <span className="bg-white/10 px-2 py-1 rounded text-xs opacity-50">💎 GPT-4o Mini</span>
-                                    <span className="bg-white/10 px-2 py-1 rounded text-xs opacity-50">🚀 Claude Sonnet</span>
+                                    {aiAccess.hasAccess ? (
+                                        <>
+                                            <span className="bg-white/20 px-2 py-1 rounded text-xs">💎 GPT-4o Mini</span>
+                                            <span className="bg-white/20 px-2 py-1 rounded text-xs">🚀 Claude Sonnet</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="bg-white/10 px-2 py-1 rounded text-xs opacity-50 flex items-center gap-1">
+                                                <LockIcon className="w-3 h-3" />
+                                                GPT-4o Mini
+                                            </span>
+                                            <span className="bg-white/10 px-2 py-1 rounded text-xs opacity-50 flex items-center gap-1">
+                                                <LockIcon className="w-3 h-3" />
+                                                Claude Sonnet
+                                            </span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
+
+                            {/* Статистика использования */}
+                            {usageStats && (
+                                <div className="mt-2 text-xs opacity-75">
+                                    Использовано: {usageStats.requestsUsed}/{usageStats.requestsLimit} запросов
+                                    {usageStats.cost > 0 && ` • Стоимость: $${usageStats.cost.toFixed(4)}`}
+                                </div>
+                            )}
+
+                            {/* Кнопка апгрейда */}
+                            {aiAccess.requiresUpgrade && (
+                                <div className="mt-3">
+                                    <Button
+                                        onClick={() => window.open(aiAccess.upgradeUrl, '_blank')}
+                                        className="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-sm px-4 py-2 rounded-lg flex items-center gap-2"
+                                    >
+                                        <CrownIcon className="w-4 h-4" />
+                                        Обновить до Premium
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -582,6 +748,14 @@ function TaskCard({ task, onToggle, onDelete, completed }: TaskCardProps) {
                     ✕
                 </button>
             </div>
+
+            {/* Модальное окно подписки */}
+            <SubscriptionModal
+                isOpen={showSubscriptionModal}
+                onClose={() => setShowSubscriptionModal(false)}
+                currentTier={plan?.tier}
+                onSelectPlan={handleSelectPlan}
+            />
         </div>
     )
 }
