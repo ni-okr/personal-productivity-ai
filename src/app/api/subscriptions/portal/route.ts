@@ -1,6 +1,6 @@
 // 🏠 API для Stripe Customer Portal
 import { getCurrentUser } from '@/lib/auth'
-import { createPortalSession } from '@/lib/stripe'
+import { createCustomerPortalSession } from '@/lib/stripe'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         const { returnUrl } = await request.json()
 
         // Создаем portal сессию
-        const result = await createPortalSession({
+        const result = await createCustomerPortalSession({
             userId: user.id,
             returnUrl: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner`
         })

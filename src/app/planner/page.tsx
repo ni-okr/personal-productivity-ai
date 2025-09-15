@@ -201,7 +201,7 @@ function PlannerPageContent() {
                 description: newTask.description?.trim(),
                 priority: newTask.priority,
                 dueDate: newTask.dueDate ? new Date(newTask.dueDate) : undefined,
-                estimatedDuration: newTask.estimatedMinutes,
+                estimatedMinutes: newTask.estimatedMinutes,
                 tags: []
             })
 
@@ -234,7 +234,7 @@ function PlannerPageContent() {
             })
         } else {
             // Завершаем задачу
-            await completeTaskAsync(task.id, task.estimatedDuration)
+            await completeTaskAsync(task.id, task.estimatedMinutes)
         }
     }
 
@@ -664,6 +664,14 @@ function PlannerPageContent() {
                     </div>
                 </div>
             )}
+
+            {/* Модальное окно подписки */}
+            <SubscriptionModal
+                isOpen={showSubscriptionModal}
+                onClose={() => setShowSubscriptionModal(false)}
+                currentTier={plan?.tier}
+                onSelectPlan={handleSelectPlan}
+            />
         </div>
     )
 }
@@ -748,14 +756,6 @@ function TaskCard({ task, onToggle, onDelete, completed }: TaskCardProps) {
                     ✕
                 </button>
             </div>
-
-            {/* Модальное окно подписки */}
-            <SubscriptionModal
-                isOpen={showSubscriptionModal}
-                onClose={() => setShowSubscriptionModal(false)}
-                currentTier={plan?.tier}
-                onSelectPlan={handleSelectPlan}
-            />
         </div>
     )
 }

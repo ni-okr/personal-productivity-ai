@@ -7,7 +7,7 @@ export interface CreateTaskData {
     description?: string
     priority: TaskPriority
     dueDate?: Date
-    estimatedDuration?: number
+    estimatedMinutes?: number
     tags?: string[]
 }
 
@@ -18,8 +18,8 @@ export interface UpdateTaskData {
     status?: TaskStatus
     dueDate?: Date
     completedAt?: Date
-    estimatedDuration?: number
-    actualDuration?: number
+    estimatedMinutes?: number
+    actualMinutes?: number
     tags?: string[]
 }
 
@@ -59,9 +59,11 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
             status: task.status,
             dueDate: task.due_date ? new Date(task.due_date) : undefined,
             completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-            estimatedDuration: task.estimated_duration,
-            actualDuration: task.actual_duration,
+            estimatedMinutes: task.estimated_duration,
+            actualMinutes: task.actual_duration,
+            source: task.source || 'manual',
             tags: task.tags || [],
+            userId: task.user_id,
             createdAt: new Date(task.created_at),
             updatedAt: new Date(task.updated_at)
         }))
@@ -93,7 +95,7 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
                 priority: taskData.priority,
                 status: 'todo',
                 due_date: taskData.dueDate?.toISOString(),
-                estimated_duration: taskData.estimatedDuration,
+                estimated_duration: taskData.estimatedMinutes,
                 tags: taskData.tags || [],
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
@@ -117,9 +119,11 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
             status: data.status,
             dueDate: data.due_date ? new Date(data.due_date) : undefined,
             completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-            estimatedDuration: data.estimated_duration,
-            actualDuration: data.actual_duration,
+            estimatedMinutes: data.estimated_duration,
+            actualMinutes: data.actual_duration,
+            source: data.source || 'manual',
             tags: data.tags || [],
+            userId: data.user_id,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at)
         }
@@ -179,9 +183,11 @@ export async function updateTask(taskId: string, updates: UpdateTaskData): Promi
             status: data.status,
             dueDate: data.due_date ? new Date(data.due_date) : undefined,
             completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-            estimatedDuration: data.estimated_duration,
-            actualDuration: data.actual_duration,
+            estimatedMinutes: data.estimated_duration,
+            actualMinutes: data.actual_duration,
+            source: data.source || 'manual',
             tags: data.tags || [],
+            userId: data.user_id,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at)
         }
@@ -234,7 +240,7 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
 /**
  * ✅ Отметка задачи как выполненной
  */
-export async function completeTask(taskId: string, actualDuration?: number): Promise<TasksResponse> {
+export async function completeTask(taskId: string, actualMinutes?: number): Promise<TasksResponse> {
     try {
         const updateData: any = {
             status: 'completed',
@@ -242,8 +248,8 @@ export async function completeTask(taskId: string, actualDuration?: number): Pro
             updated_at: new Date().toISOString()
         }
 
-        if (actualDuration !== undefined) {
-            updateData.actual_duration = actualDuration
+        if (actualMinutes !== undefined) {
+            updateData.actual_duration = actualMinutes
         }
 
         const { data, error } = await supabase
@@ -269,9 +275,11 @@ export async function completeTask(taskId: string, actualDuration?: number): Pro
             status: data.status,
             dueDate: data.due_date ? new Date(data.due_date) : undefined,
             completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-            estimatedDuration: data.estimated_duration,
-            actualDuration: data.actual_duration,
+            estimatedMinutes: data.estimated_duration,
+            actualMinutes: data.actual_duration,
+            source: data.source || 'manual',
             tags: data.tags || [],
+            userId: data.user_id,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at)
         }

@@ -1,6 +1,6 @@
 // 📊 API для получения статуса подписки
 import { getCurrentUser } from '@/lib/auth'
-import { getSubscription } from '@/lib/subscriptions'
+import { getSubscription, getSubscriptionPlan } from '@/lib/subscriptions'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            data: result.data
+            data: {
+                subscription: result.subscription,
+                plan: result.subscription ? getSubscriptionPlan(result.subscription.tier) : null
+            }
         })
     } catch (error: any) {
         console.error('Ошибка получения статуса подписки:', error)

@@ -1,5 +1,5 @@
 // 🔔 Stripe webhook для обработки событий подписок
-import { handleStripeWebhook } from '@/lib/stripe'
+import { handleWebhookEvent, verifyWebhookSignature } from '@/lib/stripe'
 import { headers } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -16,8 +16,19 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Проверяем подпись webhook
+        if (!verifyWebhookSignature(body, signature)) {
+            return NextResponse.json(
+                { error: 'Invalid signature' },
+                { status: 400 }
+            )
+        }
+
+        // Парсим событие
+        const event = JSON.parse(body)
+
         // Обрабатываем webhook
-        const result = await handleStripeWebhook(body, signature)
+        const result = await handleWebhookEvent(event)
 
         if (!result.success) {
             console.error('Ошибка обработки webhook:', result.error)

@@ -1,4 +1,5 @@
 // 🔐 Система авторизации с Supabase Auth
+import { User } from '@/types'
 import { supabase } from './supabase'
 
 export interface AuthUser {
@@ -23,7 +24,7 @@ export interface SignInData {
 
 export interface AuthResponse {
     success: boolean
-    user?: AuthUser
+    user?: User
     error?: string
     message?: string
 }
@@ -31,7 +32,7 @@ export interface AuthResponse {
 /**
  * 📝 Регистрация нового пользователя
  */
-export async function signUp({ email, password, name }: SignUpData): Promise<AuthResponse> {
+export async function signUp({ email, password, name }: SignUpData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
         // 1. Создаем пользователя в Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -77,16 +78,23 @@ export async function signUp({ email, password, name }: SignUpData): Promise<Aut
 
         return {
             success: true,
-            message: authData.user.email_confirmed_at
-                ? 'Регистрация успешна! Добро пожаловать!'
-                : 'Проверьте email для подтверждения регистрации',
             user: authData.user.email_confirmed_at ? {
                 id: authData.user.id,
                 email: authData.user.email!,
                 name: name,
+                avatar: authData.user.user_metadata?.avatar_url,
+                timezone: 'Europe/Moscow',
                 subscription: 'free',
+                subscriptionStatus: 'active',
+                preferences: {
+                    workingHours: { start: '09:00', end: '18:00' },
+                    focusTime: 25,
+                    breakTime: 5,
+                    notifications: { email: true, push: true, desktop: true },
+                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                },
                 createdAt: new Date(),
-                lastLoginAt: new Date()
+                updatedAt: new Date()
             } : undefined
         }
     } catch (error) {
@@ -101,7 +109,7 @@ export async function signUp({ email, password, name }: SignUpData): Promise<Aut
 /**
  * 🚪 Вход пользователя
  */
-export async function signIn({ email, password }: SignInData): Promise<AuthResponse> {
+export async function signIn({ email, password }: SignInData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -133,14 +141,23 @@ export async function signIn({ email, password }: SignInData): Promise<AuthRespo
 
         return {
             success: true,
-            message: 'Добро пожаловать!',
             user: userProfile ?? {
                 id: data.user.id,
                 email: data.user.email!,
                 name: data.user.user_metadata?.name || 'Пользователь',
+                avatar: data.user.user_metadata?.avatar_url,
+                timezone: 'Europe/Moscow',
                 subscription: 'free',
+                subscriptionStatus: 'active',
+                preferences: {
+                    workingHours: { start: '09:00', end: '18:00' },
+                    focusTime: 25,
+                    breakTime: 5,
+                    notifications: { email: true, push: true, desktop: true },
+                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                },
                 createdAt: new Date(),
-                lastLoginAt: new Date()
+                updatedAt: new Date()
             }
         }
     } catch (error) {
@@ -182,7 +199,7 @@ export async function signOut(): Promise<AuthResponse> {
 /**
  * 👤 Получение профиля пользователя
  */
-export async function getUserProfile(userId: string): Promise<AuthUser | null> {
+export async function getUserProfile(userId: string): Promise<User | null> {
     try {
         const { data, error } = await supabase
             .from('users')
@@ -199,9 +216,19 @@ export async function getUserProfile(userId: string): Promise<AuthUser | null> {
             id: data.id,
             email: data.email,
             name: data.name,
+            avatar: data.avatar,
+            timezone: data.timezone || 'Europe/Moscow',
             subscription: data.subscription || 'free',
+            subscriptionStatus: data.subscription_status || 'active',
+            preferences: data.preferences || {
+                workingHours: { start: '09:00', end: '18:00' },
+                focusTime: 25,
+                breakTime: 5,
+                notifications: { email: true, push: true, desktop: true },
+                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+            },
             createdAt: new Date(data.created_at),
-            lastLoginAt: new Date(data.last_login_at)
+            updatedAt: new Date(data.updated_at || data.created_at)
         }
     } catch (error) {
         console.error('Ошибка получения профиля:', error)
@@ -238,9 +265,19 @@ export async function updateUserProfile(
                 id: data.id,
                 email: data.email,
                 name: data.name,
+                avatar: data.avatar,
+                timezone: data.timezone || 'Europe/Moscow',
                 subscription: data.subscription,
+                subscriptionStatus: data.subscription_status || 'active',
+                preferences: data.preferences || {
+                    workingHours: { start: '09:00', end: '18:00' },
+                    focusTime: 25,
+                    breakTime: 5,
+                    notifications: { email: true, push: true, desktop: true },
+                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                },
                 createdAt: new Date(data.created_at),
-                lastLoginAt: new Date(data.last_login_at)
+                updatedAt: new Date(data.updated_at || data.created_at)
             }
         }
     } catch (error) {
@@ -284,7 +321,7 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
 /**
  * 👤 Получение текущего пользователя
  */
-export async function getCurrentUser(): Promise<AuthUser | null> {
+export async function getCurrentUser(): Promise<User | null> {
     try {
         const { data: { user }, error } = await supabase.auth.getUser()
 
@@ -363,7 +400,7 @@ export async function updatePassword(newPassword: string): Promise<AuthResponse>
 /**
  * 📱 Подписка на изменения авторизации
  */
-export function onAuthStateChange(callback: (user: AuthUser | null) => void) {
+export function onAuthStateChange(callback: (user: User | null) => void) {
     return supabase.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
             const userProfile = await getUserProfile(session.user.id)

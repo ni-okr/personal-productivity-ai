@@ -40,7 +40,7 @@ export function LoginForm({ onSuccess, onSwitchToRegister, onSwitchToReset }: Lo
             }
 
             // Авторизация через Supabase
-            const result = await signIn(email, password)
+            const result = await signIn({ email, password })
 
             if (result.success && result.user) {
                 setUser(result.user)
@@ -62,9 +62,9 @@ export function LoginForm({ onSuccess, onSwitchToRegister, onSwitchToReset }: Lo
         try {
             const result = await signInWithGoogle()
 
-            if (result.success && result.user) {
-                setUser(result.user)
-                onSuccess?.()
+            if (result.success) {
+                // OAuth процесс инициирован, пользователь будет перенаправлен
+                // Результат будет обработан в /auth/callback
             } else {
                 setError(result.error || 'Ошибка входа через Google')
             }

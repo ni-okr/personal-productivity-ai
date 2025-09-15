@@ -13,6 +13,7 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
+    const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -48,7 +49,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
             }
 
             // Регистрация через Supabase
-            const result = await signUp(email, password)
+            const result = await signUp({ email, password, name })
 
             if (result.success) {
                 if (result.user) {
@@ -77,14 +78,14 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
         try {
             const result = await signInWithGoogle()
 
-            if (result.success && result.user) {
-                setUser(result.user)
-                onSuccess?.()
+            if (result.success) {
+                // OAuth процесс инициирован, пользователь будет перенаправлен
+                // Результат будет обработан в /auth/callback
             } else {
                 setError(result.error || 'Ошибка регистрации через Google')
             }
         } catch (err: any) {
-            setError(err.message || 'Произошла ошибка при регистрации через Google')
+            setError(err.message || 'Произошла ошибку при регистрации через Google')
         } finally {
             setIsLoading(false)
         }
@@ -99,6 +100,23 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
                     </h2>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Имя поле */}
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Имя
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                                placeholder="Ваше имя"
+                                required
+                                disabled={isLoading}
+                            />
+                        </div>
+
                         {/* Email поле */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

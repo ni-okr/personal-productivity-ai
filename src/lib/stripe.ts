@@ -4,7 +4,7 @@ import Stripe from 'stripe'
 
 // Инициализация Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-06-20',
+    apiVersion: '2025-08-27.basil',
     typescript: true
 })
 
@@ -137,7 +137,7 @@ export async function createCustomerPortalSession(data: CreateCustomerPortalData
  */
 export async function getStripeSubscription(subscriptionId: string): Promise<StripeResponse> {
     try {
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId) as any
 
         return {
             success: true,
