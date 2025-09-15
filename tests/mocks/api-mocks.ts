@@ -98,7 +98,7 @@ export const mockApiResponses = {
 export const mockFetch = (url: string, options?: RequestInit) => {
     const path = url.replace(/^https?:\/\/[^\/]+/, '')
     const response = mockApiResponses[path as keyof typeof mockApiResponses]
-    
+
     if (response) {
         return Promise.resolve({
             ok: true,
@@ -106,7 +106,7 @@ export const mockFetch = (url: string, options?: RequestInit) => {
             json: () => Promise.resolve(response)
         } as Response)
     }
-    
+
     // Default error response
     return Promise.resolve({
         ok: false,

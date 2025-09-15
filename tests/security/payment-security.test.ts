@@ -46,7 +46,7 @@ describe('Payment Security Tests', () => {
                 'plan-',
                 'plan-<script>alert("xss")</script>',
                 'plan-'; DROP TABLE subscriptions; --',
-                null,
+            null,
                 undefined
             ]
 
@@ -75,7 +75,7 @@ describe('Payment Security Tests', () => {
                     currentPeriodStart: new Date(),
                     currentPeriodEnd: new Date()
                 })
-                
+
                 expect(result.success).toBe(false)
                 expect(result.error).toContain('Invalid input')
             }
@@ -118,7 +118,7 @@ describe('Payment Security Tests', () => {
 
         it('должен проверять права доступа к подпискам', async () => {
             const result = await getSubscription('user-123')
-            
+
             // Без авторизации должен возвращать ошибку
             expect(result.success).toBe(false)
             expect(result.error).toContain('Unauthorized')
@@ -134,7 +134,7 @@ describe('Payment Security Tests', () => {
             }
 
             const encrypted = await encryptSensitiveData(sensitiveData)
-            
+
             expect(encrypted.tinkoffCustomerId).not.toBe('customer_123')
             expect(encrypted.tinkoffPaymentId).not.toBe('payment_123')
             expect(encrypted.bankAccount).not.toBe('12345678901234567890')
@@ -148,7 +148,7 @@ describe('Payment Security Tests', () => {
 
             const encrypted = await encryptSensitiveData(sensitiveData)
             const decrypted = await decryptSensitiveData(encrypted)
-            
+
             expect(decrypted.tinkoffCustomerId).toBe('customer_123')
             expect(decrypted.tinkoffPaymentId).toBe('payment_123')
         })
@@ -156,7 +156,7 @@ describe('Payment Security Tests', () => {
 
     describe('Rate Limiting', () => {
         it('должен ограничивать количество запросов к API платежей', async () => {
-            const promises = Array.from({ length: 100 }, () => 
+            const promises = Array.from({ length: 100 }, () =>
                 createPaymentSession({
                     userId: 'user-123',
                     planId: 'plan-premium',
@@ -169,7 +169,7 @@ describe('Payment Security Tests', () => {
 
             const results = await Promise.all(promises)
             const rateLimitedResults = results.filter(r => r.error?.includes('Rate limit'))
-            
+
             expect(rateLimitedResults.length).toBeGreaterThan(0)
         })
     })
@@ -178,9 +178,9 @@ describe('Payment Security Tests', () => {
         it('должен проверять подпись webhook', async () => {
             const payload = { type: 'payment.succeeded', data: { id: 'payment_123' } }
             const invalidSignature = 'invalid_signature'
-            
+
             const result = await verifyTinkoffWebhookSignature(JSON.stringify(payload), invalidSignature)
-            
+
             expect(result).toBe(false)
         })
 
@@ -189,9 +189,9 @@ describe('Payment Security Tests', () => {
                 type: 'payment.succeeded',
                 data: { id: 'fake_payment_123' }
             }
-            
+
             const result = await handleTinkoffWebhook(fakePayload)
-            
+
             expect(result.success).toBe(false)
             expect(result.error).toContain('Invalid webhook')
         })
@@ -207,7 +207,7 @@ describe('Payment Security Tests', () => {
             }
 
             const anonymized = await anonymizeUserData(userData)
-            
+
             expect(anonymized.email).not.toBe('test@example.com')
             expect(anonymized.name).not.toBe('Test User')
             expect(anonymized.id).toBe('user-123') // ID остается для связи
@@ -223,7 +223,7 @@ describe('Payment Security Tests', () => {
             }
 
             const result = await deleteOldSubscriptionData(oldSubscription)
-            
+
             expect(result.success).toBe(true)
         })
     })
@@ -246,8 +246,8 @@ async function validatePlanId(planId: any): Promise<boolean> {
 
 async function sanitizePlanName(name: string): Promise<string> {
     return name.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-               .replace(/on\w+\s*=/gi, '')
-               .replace(/javascript:/gi, '')
+        .replace(/on\w+\s*=/gi, '')
+        .replace(/javascript:/gi, '')
 }
 
 async function createSubscription(data: any): Promise<any> {
