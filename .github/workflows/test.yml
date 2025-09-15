@@ -36,15 +36,15 @@ jobs:
       run: |
         echo "Проверяем что нет случайно закоммиченных секретов"
         # Проверяем только настоящие секреты, исключая тестовые данные
-        if grep -r "sk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports; then
+        if grep -r "sk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github; then
           echo "❌ Найдены live секреты!"
           exit 1
         fi
-        if grep -r "pk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports; then
+        if grep -r "pk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github; then
           echo "❌ Найдены live секреты!"
           exit 1
         fi
-        if grep -r "SUPABASE_SERVICE_ROLE_KEY" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports; then
+        if grep -r "SUPABASE_SERVICE_ROLE_KEY" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github; then
           echo "❌ Найдены service role ключи!"
           exit 1
         fi
