@@ -1,5 +1,5 @@
 // 🧪 Unit тесты для tasks.ts
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import {
     completeTask,
     createTask,
@@ -11,8 +11,8 @@ import {
 } from '@/lib/tasks'
 
 // Mock Supabase
-jest.mock('@/lib/supabase', () => ({
-    supabase: {
+jest.mock('@/lib/supabase', () => {
+    const mockSupabaseClient = {
         from: jest.fn(() => ({
             select: jest.fn(() => ({
                 eq: jest.fn(() => ({
@@ -48,13 +48,18 @@ jest.mock('@/lib/supabase', () => ({
             }))
         }))
     }
-}))
 
-const mockSupabase = supabase as jest.Mocked<typeof supabase>
+    return {
+        supabase: mockSupabaseClient,
+        getSupabaseClient: jest.fn(() => mockSupabaseClient)
+    }
+})
+
 
 describe('Tasks API', () => {
     const mockUserId = 'test-user-id'
     const mockTaskId = 'test-task-id'
+    const mockSupabaseClient = getSupabaseClient() as any
 
     beforeEach(() => {
         jest.clearAllMocks()
@@ -79,7 +84,7 @@ describe('Tasks API', () => {
                 }
             ]
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         order: jest.fn(() => ({
@@ -134,7 +139,7 @@ describe('Tasks API', () => {
                 updated_at: '2024-01-01T00:00:00Z'
             }
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 insert: jest.fn(() => ({
                     select: jest.fn(() => ({
                         single: jest.fn(() => ({
@@ -162,7 +167,7 @@ describe('Tasks API', () => {
                 tags: ['personal']
             }
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 insert: jest.fn(() => ({
                     select: jest.fn(() => ({
                         single: jest.fn(() => ({
@@ -175,10 +180,8 @@ describe('Tasks API', () => {
 
             const result = await createTask(mockUserId, mockTaskData)
 
-            expect(result.success).toBe(true)
-            expect(result.task).toBeDefined()
-            expect(result.task!.title).toBe('New Task')
-            expect(result.message).toBe('Задача успешно создана')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Insert error')
         })
     })
 
@@ -205,7 +208,7 @@ describe('Tasks API', () => {
                 updated_at: '2024-01-01T00:00:00Z'
             }
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 update: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         select: jest.fn(() => ({
@@ -231,7 +234,7 @@ describe('Tasks API', () => {
                 title: 'Updated Task'
             }
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 update: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         select: jest.fn(() => ({
@@ -246,16 +249,14 @@ describe('Tasks API', () => {
 
             const result = await updateTask(mockTaskId, mockUpdates)
 
-            expect(result.success).toBe(true)
-            expect(result.task).toBeDefined()
-            expect(result.task!.title).toBe('Updated Task')
-            expect(result.message).toBe('Задача успешно обновлена')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Update error')
         })
     })
 
     describe('deleteTask', () => {
         it('должен успешно удалить задачу', async () => {
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 delete: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         data: null,
@@ -271,7 +272,7 @@ describe('Tasks API', () => {
         })
 
         it('должен обработать ошибку удаления задачи', async () => {
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 delete: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         data: null,
@@ -282,8 +283,8 @@ describe('Tasks API', () => {
 
             const result = await deleteTask(mockTaskId)
 
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Задача успешно удалена')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Delete error')
         })
     })
 
@@ -304,7 +305,7 @@ describe('Tasks API', () => {
                 updated_at: '2024-01-01T00:00:00Z'
             }
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 update: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         select: jest.fn(() => ({
@@ -327,7 +328,7 @@ describe('Tasks API', () => {
         })
 
         it('должен обработать ошибку завершения задачи', async () => {
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 update: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         select: jest.fn(() => ({
@@ -342,11 +343,8 @@ describe('Tasks API', () => {
 
             const result = await completeTask(mockTaskId)
 
-            expect(result.success).toBe(true)
-            expect(result.task).toBeDefined()
-            expect(result.task!.status).toBe('completed')
-            expect(result.task!.actualMinutes).toBe(25)
-            expect(result.message).toBe('Задача успешно завершена')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Complete error')
         })
     })
 
@@ -359,7 +357,7 @@ describe('Tasks API', () => {
                 { status: 'todo', due_date: '2023-12-31T00:00:00Z', completed_at: null } // overdue
             ]
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         data: mockTasks,
@@ -380,7 +378,7 @@ describe('Tasks API', () => {
         })
 
         it('должен обработать ошибку получения статистики', async () => {
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         data: null,
@@ -391,13 +389,8 @@ describe('Tasks API', () => {
 
             const result = await getTasksStats(mockUserId)
 
-            expect(result.success).toBe(true)
-            expect(result.stats).toBeDefined()
-            expect(result.stats!.total).toBe(4)
-            expect(result.stats!.completed).toBe(2)
-            expect(result.stats!.pending).toBe(2)
-            expect(result.stats!.overdue).toBe(2)
-            expect(result.stats!.completionRate).toBe(50)
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Stats error')
         })
     })
 
@@ -420,7 +413,7 @@ describe('Tasks API', () => {
                 }
             ]
 
-            mockSupabase.from.mockReturnValue({
+            mockSupabaseClient.from.mockReturnValue({
                 select: jest.fn(() => ({
                     eq: jest.fn(() => ({
                         order: jest.fn(() => ({
