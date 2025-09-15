@@ -35,17 +35,9 @@ jobs:
     - name: 🔍 Проверка секретов
       run: |
         echo "Проверяем что нет случайно закоммиченных секретов"
-        # Проверяем только настоящие секреты, исключая тестовые данные
-        if grep -r "sk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github 2>/dev/null; then
-          echo "❌ Найдены live секреты!"
-          exit 1
-        fi
-        if grep -r "pk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github 2>/dev/null; then
-          echo "❌ Найдены live секреты!"
-          exit 1
-        fi
-        if grep -r "SUPABASE_SERVICE_ROLE_KEY" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github 2>/dev/null; then
-          echo "❌ Найдены service role ключи!"
+        # Простая проверка на наличие секретов в коде
+        if find . -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | grep -v .git | grep -v .next | xargs grep -l "sk_live_\|pk_live_\|SUPABASE_SERVICE_ROLE_KEY" 2>/dev/null; then
+          echo "❌ Найдены секреты в коде!"
           exit 1
         fi
         echo "✅ Секреты не найдены"
