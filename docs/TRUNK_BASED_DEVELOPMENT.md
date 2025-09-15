@@ -1,8 +1,13 @@
-# 🌳 Trunk-based Development - Полная стратегия релизов
+# 🌳 Trunk-based Development - Полное руководство
 
-## 🎯 Обзор
+## 🎯 Философия Trunk-based Development
 
-С 15 сентября 2025 года мы переходим на **Trunk-based Development** с **множественными релизными ветками** и **системой Feature Toggles** для максимальной гибкости и стабильности.
+### Основные принципы:
+- **main** - всегда стабилен, готов к продакшену
+- **Множественные релизные ветки** - для параллельных релизов
+- **Стабилизация внутри релизных веток** - изоляция изменений
+- **Feature toggles** - контроль функциональности в продакшене
+- **Быстрые откаты** - через переключение релизных веток
 
 ## 🌳 Структура веток
 
@@ -12,14 +17,14 @@
   - Только через PR из релизных веток
   - Обязательный Bugbot анализ
   - Все тесты должны проходить
-  - **БЕЗ БАГОВ ВСЕГДА** - все баги отсеяны на стабилизации
   - Семантическое версионирование (v1.0.0, v1.1.0, etc.)
+  - **БЕЗ БАГОВ ВСЕГДА** - все баги отсеяны на стабилизации
 
 ### release/vX.Y (релизные ветки)
 - **Назначение**: Стабилизация конкретных версий релиза
 - **Правила**:
   - Создаются из develop при готовности к релизу
-  - Стабилизация происходит **ВНУТРИ** ветки
+  - Стабилизация происходит ВНУТРИ ветки
   - Отпочковывание feature веток от релизной ветки
   - После финальной стабилизации - **ЗАПРЕТ НА КОММИТЫ**
   - Синхронизация с develop для новых функций
@@ -41,6 +46,52 @@
   - Один PR = одна функция
   - Обязательное тестирование
 
+## 🔄 Workflow разработки
+
+### 1. Разработка функции
+```bash
+# Создать feature ветку от develop
+./scripts/trunk-dev.sh create-feature new-auth-system
+
+# Работать над функцией
+git add .
+git commit -m "feat: добавить новую систему авторизации"
+git push origin feature/new-auth-system
+
+# Создать PR: feature/new-auth-system → develop
+```
+
+### 2. Подготовка релиза
+```bash
+# Создать релизную ветку из develop
+./scripts/trunk-dev.sh create-release v1.2.0
+
+# Стабилизировать релиз
+./scripts/trunk-dev.sh stabilize v1.2.0
+```
+
+### 3. Стабилизация в релизной ветке
+```bash
+# Работа в релизной ветке
+git checkout release/v1.2.0
+
+# Создание feature веток от релизной ветки для исправлений
+./scripts/trunk-dev.sh create-feature fix-auth-bug
+# ... исправления ...
+git checkout release/v1.2.0
+git merge feature/fix-auth-bug
+git push origin release/v1.2.0
+```
+
+### 4. Финальная стабилизация
+```bash
+# После финальной стабилизации - ЗАПРЕТ НА КОММИТЫ
+# Создать PR: release/v1.2.0 → main
+# Bugbot автоматически проанализирует
+# После мержа - создать тег релиза
+./scripts/trunk-dev.sh finalize-release v1.2.0
+```
+
 ## 🎛️ Feature Toggles система
 
 ### Hot Toggles (горячие переключатели)
@@ -55,52 +106,67 @@
 - **Источник**: Environment variables, конфигурация
 - **Примеры**: Нестабильные функции, отладочные режимы
 
-## 🔄 Workflow релизов
+### Реализация Feature Toggles
 
-### 1. Разработка функции
-```bash
-# Создать feature ветку от develop
-git checkout develop
-git pull origin develop
-git checkout -b feature/new-feature
-# ... разработка ...
-git add . && git commit -m "feat: добавить новую функцию"
-git push origin feature/new-feature
-# Создать PR: feature/new-feature → develop
+#### 1. Конфигурация в Supabase
+```sql
+-- Таблица feature_toggles
+CREATE TABLE feature_toggles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) UNIQUE NOT NULL,
+  enabled BOOLEAN DEFAULT false,
+  type VARCHAR(20) CHECK (type IN ('hot', 'cold')),
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- RLS политики
+ALTER TABLE feature_toggles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read access" ON feature_toggles FOR SELECT USING (true);
 ```
 
-### 2. Подготовка релиза
-```bash
-# Создать релизную ветку из develop
-git checkout develop
-git pull origin develop
-git checkout -b release/v1.2.0
-git push origin release/v1.2.0
+#### 2. TypeScript типы
+```typescript
+export interface FeatureToggle {
+  id: string;
+  name: string;
+  enabled: boolean;
+  type: 'hot' | 'cold';
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FeatureToggleConfig {
+  [key: string]: boolean;
+}
 ```
 
-### 3. Стабилизация в релизной ветке
-```bash
-# Работа в релизной ветке
-git checkout release/v1.2.0
+#### 3. Хук для использования
+```typescript
+import { useFeatureToggle } from '@/hooks/useFeatureToggle-enhanced';
 
-# Создание feature веток от релизной ветки
-git checkout -b feature/stabilization-fix
-# ... исправления ...
-git checkout release/v1.2.0
-git merge feature/stabilization-fix
-git push origin release/v1.2.0
-```
+export const NewFeatureComponent = () => {
+  const { isEnabled, isLoading, updateToggle } = useFeatureToggle('new-ai-features');
 
-### 4. Финальная стабилизация
-```bash
-# После финальной стабилизации - ЗАПРЕТ НА КОММИТЫ
-# Создать PR: release/v1.2.0 → main
-# Bugbot автоматически проанализирует
-# После мержа - создать тег релиза
-git checkout main
-git pull origin main
-git tag v1.2.0
-git push origin v1.2.0
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isEnabled) {
+    return null; // Компонент скрыт
+  }
+
+  return (
+    <div>
+      <h2>Новая функция</h2>
+      <button onClick={() => updateToggle(false)}>
+        Отключить функцию
+      </button>
+    </div>
+  );
+};
 ```
 
 ## 🚨 Управление релизами
@@ -120,9 +186,7 @@ git checkout release/v1.1.0  # Переход к новой версии
 ### Быстрый откат в продакшене
 ```bash
 # Откат к предыдущей стабильной версии
-git checkout main
-git reset --hard v1.0.0
-git push origin main --force
+./scripts/trunk-dev.sh rollback v1.1.0
 
 # Или переключение на другую релизную ветку
 git checkout release/v1.0.0
@@ -132,6 +196,17 @@ git checkout main
 git merge hotfix/rollback-fix
 ```
 
+### Синхронизация между ветками
+```bash
+# Синхронизация develop с релизной веткой
+./scripts/trunk-dev.sh sync-develop
+
+# Синхронизация релизных веток между собой
+git checkout release/v1.1.0
+git merge release/v1.0.0
+git push origin release/v1.1.0
+```
+
 ## 🧪 Тестирование с Feature Toggles
 
 ### Тестирование с включенными toggles
@@ -139,7 +214,7 @@ git merge hotfix/rollback-fix
 // Тест с включенным toggle
 test('should render new feature when enabled', async () => {
   // Мокаем feature toggle
-  jest.mock('@/hooks/useFeatureToggle', () => ({
+  jest.mock('@/hooks/useFeatureToggle-enhanced', () => ({
     useFeatureToggle: () => ({ isEnabled: true, isLoading: false })
   }));
 
@@ -153,7 +228,7 @@ test('should render new feature when enabled', async () => {
 // Тест с выключенным toggle
 test('should not render new feature when disabled', async () => {
   // Мокаем feature toggle
-  jest.mock('@/hooks/useFeatureToggle', () => ({
+  jest.mock('@/hooks/useFeatureToggle-enhanced', () => ({
     useFeatureToggle: () => ({ isEnabled: false, isLoading: false })
   }));
 
@@ -211,6 +286,11 @@ test('should not render new feature when disabled', async () => {
 - **Lighthouse CI** - производительность
 - **Custom Dashboard** - статус toggles
 
+### Скрипты управления:
+- **`./scripts/trunk-dev.sh`** - основные операции
+- **Git hooks** - автоматические проверки
+- **CI/CD** - автоматические тесты и деплой
+
 ## 📋 Checklist релиза
 
 ### Перед созданием релизной ветки:
@@ -255,45 +335,38 @@ test('should not render new feature when disabled', async () => {
 
 ## 🚀 Быстрый старт
 
-### 1. Создание релизной ветки
+### 1. Настройка Feature Toggles
 ```bash
-git checkout develop
-git checkout -b release/v1.3.0
-git push origin release/v1.3.0
+# Выполнить SQL скрипт в Supabase
+psql -h your-supabase-host -U postgres -d postgres -f supabase-feature-toggles.sql
 ```
 
-### 2. Стабилизация
+### 2. Создание первой релизной ветки
 ```bash
-# Работа в релизной ветке
-git checkout release/v1.3.0
+# Создать релизную ветку
+./scripts/trunk-dev.sh create-release v1.0.0
 
-# Создание feature веток для исправлений
-git checkout -b feature/bug-fix
-# ... исправления ...
-git checkout release/v1.3.0
-git merge feature/bug-fix
-git push origin release/v1.3.0
+# Стабилизировать релиз
+./scripts/trunk-dev.sh stabilize v1.0.0
 ```
 
-### 3. Релиз
-```bash
-# Создать PR: release/v1.3.0 → main
-# После мержа - создать тег
-git tag v1.3.0
-git push origin v1.3.0
-```
-
-### 4. Управление Feature Toggles
+### 3. Использование Feature Toggles
 ```typescript
-// Использование в компонентах
-import { FeatureToggle, FEATURE_TOGGLES } from '@/components/FeatureToggle';
+// В компоненте
+import { useFeatureToggle } from '@/hooks/useFeatureToggle-enhanced';
 
-<FeatureToggle
-  toggleName={FEATURE_TOGGLES.NEW_AI_FEATURES}
-  fallback={<div>Функция недоступна</div>}
->
-  <NewAIFeature />
-</FeatureToggle>
+const MyComponent = () => {
+  const { isEnabled, updateToggle } = useFeatureToggle('new-ai-features');
+  
+  return (
+    <div>
+      {isEnabled && <NewAIFeature />}
+      <button onClick={() => updateToggle(!isEnabled)}>
+        {isEnabled ? 'Отключить' : 'Включить'} ИИ функции
+      </button>
+    </div>
+  );
+};
 ```
 
 ---
