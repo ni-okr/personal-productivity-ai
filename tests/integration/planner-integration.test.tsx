@@ -3,7 +3,7 @@ import PlannerPage from '@/app/planner/page'
 import { useAuth } from '@/hooks/useAuth'
 import * as tasksApi from '@/lib/tasks'
 import { useAppStore } from '@/stores/useAppStore'
-import { SubscriptionStatus } from '@/types'
+import { User, SubscriptionStatus } from '@/types'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 // Mock hooks
@@ -18,20 +18,20 @@ jest.mock('@/stores/useAppStore')
 const mockUseAppStore = useAppStore as jest.MockedFunction<typeof useAppStore>
 
 describe('Planner Integration with Supabase', () => {
-    const mockUser = {
+    const mockUser: User = {
         id: 'test-user-id',
         email: 'test@example.com',
         name: 'Test User',
         avatar: null,
         timezone: 'Europe/Moscow',
-        subscription: 'free' as const,
-        subscriptionStatus: 'active' as const,
+        subscription: 'free',
+        subscriptionStatus: 'active',
         preferences: {
             workingHours: { start: '09:00', end: '18:00' },
             focusTime: 25,
             breakTime: 5,
             notifications: { email: true, push: true, desktop: true },
-            aiCoaching: { enabled: true, frequency: 'medium' as const, style: 'gentle' as const }
+            aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -94,7 +94,7 @@ describe('Planner Integration with Supabase', () => {
 
         it('должен показать планировщик для авторизованных пользователей', () => {
             mockUseAuth.mockReturnValue({
-                user: { ...mockUser, subscriptionStatus: 'active' as SubscriptionStatus },
+                user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -112,7 +112,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Task Management', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: { ...mockUser, subscriptionStatus: 'active' as SubscriptionStatus },
+                user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -152,7 +152,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Add Task Modal', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: { ...mockUser, subscriptionStatus: 'active' as SubscriptionStatus },
+                user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -237,7 +237,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Task Actions', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: { ...mockUser, subscriptionStatus: 'active' as SubscriptionStatus },
+                user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -282,7 +282,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Task Display', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: { ...mockUser, subscriptionStatus: 'active' as SubscriptionStatus },
+                user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -340,7 +340,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Error Handling', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: { ...mockUser, subscriptionStatus: 'active' as SubscriptionStatus },
+                user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
