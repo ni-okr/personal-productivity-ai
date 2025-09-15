@@ -140,7 +140,7 @@ describe('Auth Integration Tests', () => {
                 error: null
             })
 
-            const result = await signIn('test@example.com', 'password123')
+            const result = await signIn({ email: 'test@example.com', password: 'password123' })
 
             expect(result.success).toBe(true)
             expect(result.user?.id).toBe('test-user-id')
@@ -156,7 +156,7 @@ describe('Auth Integration Tests', () => {
                 error: { message: 'Invalid credentials' }
             })
 
-            const result = await signIn('test@example.com', 'wrongpassword')
+            const result = await signIn({ email: 'test@example.com', password: 'wrongpassword' })
 
             expect(result.success).toBe(false)
             expect(result.error).toBe('Произошла ошибка авторизации')
@@ -190,7 +190,7 @@ describe('Auth Integration Tests', () => {
                 error: null
             })
 
-            const profile = await getUserProfile()
+            const profile = await getUserProfile('test-user-id')
 
             expect(profile).toBeDefined()
             expect(profile?.id).toBe('test-user-id')
@@ -223,7 +223,7 @@ describe('Auth Integration Tests', () => {
                 error: null
             })
 
-            const result = await updateUserProfile({
+            const result = await updateUserProfile('test-user-id', {
                 name: 'Updated Name'
             })
 
@@ -310,18 +310,18 @@ describe('Auth Integration Tests', () => {
             })
 
             // Регистрация
-            const signUpResult = await signUp('test@example.com', 'password123', 'Test User')
+            const signUpResult = await signUp({ email: 'test@example.com', password: 'password123', name: 'Test User' })
             expect(signUpResult.success).toBe(true)
             expect(signUpResult.user?.id).toBe('test-user-id')
             expect(signUpResult.user?.email).toBe('test@example.com')
 
             // Получение профиля
-            const profile = await getUserProfile()
+            const profile = await getUserProfile('test-user-id')
             expect(profile).toBeDefined()
             expect(profile?.id).toBe('test-user-id')
 
             // Обновление профиля
-            const updateResult = await updateUserProfile({
+            const updateResult = await updateUserProfile('test-user-id', {
                 name: 'Updated Name'
             })
             expect(updateResult.success).toBe(true)

@@ -262,15 +262,26 @@ describe('Subscription Integration', () => {
             const mockSubscription = {
                 id: 'sub-123',
                 userId: 'user-123',
-                tier: 'premium',
-                status: 'active'
+                tier: 'premium' as const,
+                status: 'active' as const,
+                currentPeriodStart: new Date('2024-01-01'),
+                currentPeriodEnd: new Date('2024-02-01'),
+                cancelAtPeriodEnd: false,
+                createdAt: new Date('2024-01-01'),
+                updatedAt: new Date('2024-01-01')
             }
 
             const mockPlan = {
                 id: 'plan-premium',
                 name: 'Premium',
-                tier: 'premium',
-                price: 999
+                tier: 'premium' as const,
+                price: 99900,
+                currency: 'RUB',
+                interval: 'month' as const,
+                features: ['ИИ планировщик', 'Приоритетная поддержка'],
+                limits: { tasks: 500, aiRequests: 1000, storage: 1000 },
+                tinkoffPriceId: 'tinkoff_premium_monthly',
+                isActive: true
             }
 
                 // Mock fetch для загрузки статуса
@@ -292,6 +303,8 @@ describe('Subscription Integration', () => {
                 isLoading: false,
                 error: null,
                 createCheckoutSession: jest.fn(),
+                createPortalSession: jest.fn(),
+                refreshSubscription: jest.fn(),
                 cancelSubscription: jest.fn(),
                 updateSubscription: jest.fn()
             }
@@ -326,11 +339,24 @@ describe('Subscription Integration', () => {
             })
 
             const mockReturnValue = {
-                plan: { id: 'plan-free', name: 'Free', tier: 'free' },
+                plan: { 
+                    id: 'plan-free', 
+                    name: 'Free', 
+                    tier: 'free' as const,
+                    price: 0,
+                    currency: 'RUB',
+                    interval: 'month' as const,
+                    features: ['Базовые функции'],
+                    limits: { tasks: 50, aiRequests: 10, storage: 100 },
+                    tinkoffPriceId: '',
+                    isActive: true
+                },
                 subscription: null,
                 isLoading: false,
                 error: null,
                 createCheckoutSession: mockCreateCheckoutSession,
+                createPortalSession: jest.fn(),
+                refreshSubscription: jest.fn(),
                 cancelSubscription: jest.fn(),
                 updateSubscription: jest.fn()
             }
@@ -342,7 +368,7 @@ describe('Subscription Integration', () => {
             const checkoutResult = await result.current.createCheckoutSession('plan-premium')
 
             expect(checkoutResult.success).toBe(true)
-            expect(checkoutResult.data).toEqual(mockCheckoutSession)
+            expect(checkoutResult.url).toEqual(mockCheckoutSession.url)
         })
     })
 })

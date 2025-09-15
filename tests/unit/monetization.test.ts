@@ -90,9 +90,9 @@ describe('Monetization System', () => {
 
             expect(result.success).toBe(true)
             expect(result.data).toBeDefined()
-            expect(result.data.amount).toBe(999)
-            expect(result.data.currency).toBe('RUB')
-            expect(result.data.paymentMethod).toBe('bank_transfer')
+            expect(result.data?.amount).toBe(999)
+            expect(result.data?.currency).toBe('RUB')
+            expect(result.data?.paymentMethod).toBe('bank_transfer')
         })
 
         it('должна возвращать правильные цены для планов', () => {

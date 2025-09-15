@@ -45,7 +45,7 @@ describe('Payment Security Tests', () => {
                 'invalid-plan',
                 'plan-',
                 'plan-<script>alert("xss")</script>',
-                'plan-'; DROP TABLE subscriptions; --',
+                'plan-\'; DROP TABLE subscriptions; --',
             null,
                 undefined
             ]

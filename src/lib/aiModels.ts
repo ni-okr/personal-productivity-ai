@@ -365,13 +365,13 @@ export class AIPlanner {
             smart_reminders: `{
         "reminders": [
           {
-            "taskId": "task-1",
+            "taskId": "example-task-1",
             "message": "💪 Самое время заняться этой задачей! У вас сейчас пик энергии",
             "timing": "now",
             "type": "energy"
           },
           {
-            "taskId": "task-2", 
+            "taskId": "example-task-2", 
             "message": "📋 Подготовьте материалы для завтрашней задачи",
             "timing": "in_1hour",
             "type": "preparation"
