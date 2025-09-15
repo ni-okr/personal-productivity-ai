@@ -1,6 +1,6 @@
 // 💳 API для создания Тинькофф checkout сессии
 import { getCurrentUser } from '@/lib/auth'
-import { createPaymentSession } from '@/lib/tinkoff'
+import { createPaymentSession, getTinkoffPriceId } from '@/lib/tinkoff'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const { planId, successUrl, cancelUrl, trialDays } = await request.json()
+        const { planId, paymentMethod = 'bank_transfer' } = await request.json()
 
         if (!planId) {
             return NextResponse.json(
@@ -23,16 +23,23 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Получаем цену плана
+        const priceInfo = getTinkoffPriceId(planId)
+        if (!priceInfo) {
+            return NextResponse.json(
+                { success: false, error: 'План подписки не найден' },
+                { status: 400 }
+            )
+        }
+
         // Создаем checkout сессию
         const result = await createPaymentSession({
             userId: user.id,
             planId,
-            amount: 0, // Будет получено из плана
-            currency: 'RUB',
+            amount: priceInfo.amount,
+            currency: priceInfo.currency,
             description: `Подписка ${planId}`,
-            successUrl: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner?success=true`,
-            cancelUrl: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner?canceled=true`,
-            trialDays: trialDays || 0
+            paymentMethod: paymentMethod as 'bank_transfer' | 'qr_code' | 'sbp' | 'card'
         })
 
         if (!result.success) {

@@ -8,42 +8,64 @@ import {
 } from '@/lib/subscriptions'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 
-// Mock Supabase с правильной структурой
-jest.mock('@/lib/supabase', () => {
-    const mockSingle = jest.fn()
-    const mockInsert = jest.fn().mockReturnValue({
+// Создаем моки вне jest.mock
+const mockSingle = jest.fn()
+const mockInsert = jest.fn().mockReturnValue({
+    select: jest.fn().mockReturnValue({
+        single: mockSingle
+    })
+})
+const mockSelect = jest.fn().mockReturnValue({
+    eq: jest.fn().mockReturnValue({
+        single: mockSingle
+    })
+})
+const mockUpdate = jest.fn().mockReturnValue({
+    eq: jest.fn().mockReturnValue({
         select: jest.fn().mockReturnValue({
             single: mockSingle
         })
     })
-    const mockSelect = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-            single: mockSingle
-        })
-    })
-    const mockUpdate = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-            select: jest.fn().mockReturnValue({
-                single: mockSingle
-            })
-        })
-    })
+})
 
-    const mockSupabase = {
+const mockSupabase = {
+    from: jest.fn().mockImplementation((table: string) => ({
+        insert: mockInsert,
+        select: mockSelect,
+        update: mockUpdate,
+        delete: jest.fn(() => ({
+            eq: jest.fn()
+        }))
+    }))
+}
+
+// Mock Supabase с правильной структурой
+jest.mock('@/lib/supabase', () => ({
+    supabase: {
         from: jest.fn().mockImplementation((table: string) => ({
-            insert: mockInsert,
-            select: mockSelect,
-            update: mockUpdate,
+            insert: jest.fn().mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    single: jest.fn()
+                })
+            }),
+            select: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                    single: jest.fn()
+                })
+            }),
+            update: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                    select: jest.fn().mockReturnValue({
+                        single: jest.fn()
+                    })
+                })
+            }),
             delete: jest.fn(() => ({
                 eq: jest.fn()
             }))
         }))
     }
-
-    return {
-        supabase: mockSupabase
-    }
-})
+}))
 
 describe('Subscription Management', () => {
     beforeEach(() => {
@@ -62,8 +84,8 @@ describe('Subscription Management', () => {
                 trialEnd: undefined
             }
 
-            const mockSubscription = { 
-                id: 'sub-123', 
+            const mockSubscription = {
+                id: 'sub-123',
                 user_id: 'user-123',
                 tier: 'premium',
                 status: 'active',
@@ -77,6 +99,13 @@ describe('Subscription Management', () => {
                 updated_at: '2024-01-01T00:00:00.000Z'
             }
 
+            // Получаем мок Supabase
+            const { supabase } = require('@/lib/supabase')
+            const mockFrom = supabase.from as jest.MockedFunction<typeof supabase.from>
+            const mockInsert = mockFrom().insert as jest.MockedFunction<any>
+            const mockSelect = mockInsert().select as jest.MockedFunction<any>
+            const mockSingle = mockSelect().single as jest.MockedFunction<any>
+
             // Настраиваем мок для успешного создания
             mockSingle.mockResolvedValue({
                 data: mockSubscription,
@@ -88,7 +117,7 @@ describe('Subscription Management', () => {
             expect(result.success).toBe(true)
             expect(result.subscription).toBeDefined()
             expect(result.subscription?.tier).toBe('premium')
-            expect(mockSupabase.from).toHaveBeenCalledWith('user_subscriptions')
+            expect(mockFrom).toHaveBeenCalledWith('user_subscriptions')
         })
 
         it('должна обрабатывать ошибки создания подписки', async () => {

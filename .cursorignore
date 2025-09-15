@@ -130,8 +130,8 @@ pnpm-lock.yaml
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env.example
+# dotenv environment variables file (разрешаем .env.example для разработки)
+# .env.example
 
 # Storybook build outputs
 .out

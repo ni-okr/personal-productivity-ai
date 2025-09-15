@@ -32,7 +32,7 @@ describe('Тинькофф Integration', () => {
             expect(result.data).toHaveProperty('customerId')
             expect(result.data).toHaveProperty('email', 'test@example.com')
             expect(result.data).toHaveProperty('name', 'Test User')
-            expect(result.message).toContain('заглушка')
+            expect(result.message).toContain('банковских переводов')
         })
 
         it('должна обрабатывать ошибки создания клиента', async () => {
@@ -56,21 +56,20 @@ describe('Тинькофф Integration', () => {
             const paymentData = {
                 userId: 'user-123',
                 planId: 'plan-premium',
-                amount: 99900,
+                amount: 999,
                 currency: 'RUB',
                 description: 'Подписка Premium',
-                successUrl: 'https://app.com/success',
-                cancelUrl: 'https://app.com/cancel',
-                trialDays: 7
+                paymentMethod: 'bank_transfer' as const
             }
 
             const result = await createPaymentSession(paymentData)
 
             expect(result.success).toBe(true)
-            expect(result.data).toHaveProperty('sessionId')
-            expect(result.data).toHaveProperty('url')
             expect(result.data).toHaveProperty('paymentId')
-            expect(result.message).toContain('заглушка')
+            expect(result.data).toHaveProperty('paymentMethod', 'bank_transfer')
+            expect(result.data).toHaveProperty('amount', 999)
+            expect(result.data).toHaveProperty('currency', 'RUB')
+            expect(result.message).toContain('банковский перевод')
         })
 
         it('должна обрабатывать ошибки создания сессии', async () => {
@@ -78,11 +77,10 @@ describe('Тинькофф Integration', () => {
             const paymentData = {
                 userId: 'user-123',
                 planId: 'plan-premium',
-                amount: 99900,
+                amount: 999,
                 currency: 'RUB',
                 description: 'Подписка Premium',
-                successUrl: 'https://app.com/success',
-                cancelUrl: 'https://app.com/cancel'
+                paymentMethod: 'qr_code' as const
             }
 
             const result = await createPaymentSession(paymentData)
@@ -100,8 +98,8 @@ describe('Тинькофф Integration', () => {
             const result = await getPaymentStatus(paymentId)
 
             expect(result.success).toBe(true)
-            expect(result.data).toHaveProperty('status', 'CONFIRMED')
-            expect(result.message).toContain('заглушка')
+            expect(result.data).toHaveProperty('status', 'PENDING')
+            expect(result.message).toContain('ожидает подтверждения')
         })
 
         it('должна обрабатывать ошибки получения статуса', async () => {
@@ -131,7 +129,7 @@ describe('Тинькофф Integration', () => {
             const result = await handleTinkoffWebhook(payload)
 
             expect(result.success).toBe(true)
-            expect(result.message).toContain('заглушка')
+            expect(result.message).toContain('обработано')
         })
 
         it('должна обрабатывать ошибки webhook', async () => {
@@ -172,20 +170,20 @@ describe('Тинькофф Integration', () => {
             const invalidPlan = getTinkoffPriceId('invalid-plan')
 
             expect(premiumPlan).toEqual({
-                tinkoffPriceId: 'tinkoff_premium_monthly',
-                amount: 99900,
+                tinkoffPriceId: 'bank_transfer_premium_monthly',
+                amount: 999,
                 currency: 'RUB'
             })
 
             expect(proPlan).toEqual({
-                tinkoffPriceId: 'tinkoff_pro_monthly',
-                amount: 199900,
+                tinkoffPriceId: 'bank_transfer_pro_monthly',
+                amount: 1999,
                 currency: 'RUB'
             })
 
             expect(enterprisePlan).toEqual({
-                tinkoffPriceId: 'tinkoff_enterprise_monthly',
-                amount: 499900,
+                tinkoffPriceId: 'bank_transfer_enterprise_monthly',
+                amount: 4999,
                 currency: 'RUB'
             })
 
