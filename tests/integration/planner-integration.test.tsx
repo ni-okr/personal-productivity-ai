@@ -75,8 +75,6 @@ describe('Planner Integration with Supabase', () => {
             user: null,
             isLoading: false,
             isAuthenticated: false,
-            openAuthModal: jest.fn(),
-            closeAuthModal: jest.fn(),
             signOut: jest.fn(),
             requireAuth: jest.fn(),
             requireGuest: jest.fn()

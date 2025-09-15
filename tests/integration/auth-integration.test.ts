@@ -58,15 +58,15 @@ jest.mock('@/lib/supabase', () => ({
 
 describe('Auth Integration Tests', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        jest.clearAllMocks()
     })
 
     describe('Complete Auth Flow', () => {
         it('should complete full registration and login flow', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = vi.mocked(mockSupabase.supabase.auth.signUp)
-            const mockSignIn = vi.mocked(mockSupabase.supabase.auth.signInWithPassword)
-            const mockGetUser = vi.mocked(mockSupabase.supabase.auth.getUser)
+            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
+            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
+            const mockGetUser = jest.mocked(mockSupabase.supabase.auth.getUser)
 
             // Mock successful registration
             mockSignUp.mockResolvedValue({
@@ -131,7 +131,7 @@ describe('Auth Integration Tests', () => {
 
         it('should handle profile updates', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockUpdate = vi.mocked(mockSupabase.supabase.from)
+            const mockUpdate = jest.mocked(mockSupabase.supabase.from)
 
             // Mock successful profile update
             mockUpdate.mockReturnValue({
@@ -168,7 +168,7 @@ describe('Auth Integration Tests', () => {
     describe('Error Handling', () => {
         it('should handle network errors gracefully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignIn = vi.mocked(mockSupabase.supabase.auth.signInWithPassword)
+            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
 
             // Mock network error
             mockSignIn.mockRejectedValue(new Error('Network error'))
@@ -184,7 +184,7 @@ describe('Auth Integration Tests', () => {
 
         it('should handle database errors gracefully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockFrom = vi.mocked(mockSupabase.supabase.from)
+            const mockFrom = jest.mocked(mockSupabase.supabase.from)
 
             // Mock database error
             mockFrom.mockReturnValue({
@@ -207,8 +207,8 @@ describe('Auth Integration Tests', () => {
     describe('Data Consistency', () => {
         it('should maintain data consistency across operations', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = vi.mocked(mockSupabase.supabase.auth.signUp)
-            const mockGetUser = vi.mocked(mockSupabase.supabase.auth.getUser)
+            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
+            const mockGetUser = jest.mocked(mockSupabase.supabase.auth.getUser)
 
             // Mock successful registration
             mockSignUp.mockResolvedValue({
