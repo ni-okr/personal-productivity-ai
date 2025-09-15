@@ -16,7 +16,7 @@ export function getSupabaseClient() {
     supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
   }
 
-  return supabaseClient
+  return supabaseClient as any
 }
 
 // Для обратной совместимости
@@ -61,12 +61,12 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
       success: true,
       message: 'Спасибо за подписку! Мы уведомим вас о запуске.',
       data: {
-        id: data.id,
-        email: data.email,
-        source: data.source,
-        is_active: data.is_active,
-        created_at: data.created_at,
-        updated_at: data.updated_at
+        id: (data as any).id,
+        email: (data as any).email,
+        source: (data as any).source,
+        is_active: (data as any).is_active,
+        created_at: (data as any).created_at,
+        updated_at: (data as any).updated_at
       }
     }
   } catch (error: any) {

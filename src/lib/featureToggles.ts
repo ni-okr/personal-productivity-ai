@@ -37,7 +37,7 @@ class FeatureToggleManager {
       }
 
       // Загружаем из базы данных
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseClient() as any;
 
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -66,7 +66,7 @@ class FeatureToggleManager {
    */
   async getAllToggles(): Promise<FeatureToggleConfig> {
     try {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseClient() as any;
 
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -78,7 +78,7 @@ class FeatureToggleManager {
       }
 
       const config: FeatureToggleConfig = {};
-      data?.forEach((toggle) => {
+      data?.forEach((toggle: any) => {
         config[toggle.name] = toggle.enabled;
       });
 
@@ -94,7 +94,7 @@ class FeatureToggleManager {
    */
   async updateToggle(toggleName: string, enabled: boolean): Promise<boolean> {
     try {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseClient() as any;
 
       const updateData: FeatureToggleUpdate = {
         enabled,
@@ -137,7 +137,7 @@ class FeatureToggleManager {
     description?: string
   ): Promise<boolean> {
     try {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseClient() as any;
 
       const toggleData: FeatureToggleInsert = {
         name,

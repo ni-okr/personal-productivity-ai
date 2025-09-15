@@ -131,7 +131,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
  */
 export async function getSubscription(userId: string): Promise<SubscriptionResponse> {
     try {
-        const supabase = getSupabaseClient()
+        const supabase = getSupabaseClient() as any
 
         const { data, error } = await supabase
             .from('subscriptions')
@@ -198,7 +198,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
  */
 export async function createSubscription(data: CreateSubscriptionData): Promise<SubscriptionResponse> {
     try {
-        const supabase = getSupabaseClient()
+        const supabase = getSupabaseClient() as any
 
         const subscriptionData: SubscriptionInsert = {
             user_id: data.userId,
@@ -262,7 +262,7 @@ export async function updateSubscription(
     try {
         // Временно закомментировано для build
         /*
-        const supabase = getSupabaseClient()
+        const supabase = getSupabaseClient() as any
         
         const updateData: any = {
             updated_at: new Date().toISOString()
@@ -342,7 +342,7 @@ export async function cancelSubscription(subscriptionId: string): Promise<Subscr
     try {
         // Временно закомментировано для build
         /*
-        const supabase = getSupabaseClient()
+        const supabase = getSupabaseClient() as any
         
         const { data, error } = await supabase
             .from('user_subscriptions')
@@ -416,7 +416,7 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
     try {
         // Временно закомментировано для build
         /*
-        const supabase = getSupabaseClient()
+        const supabase = getSupabaseClient() as any
         
         const { data, error } = await supabase
             .from('user_subscriptions')

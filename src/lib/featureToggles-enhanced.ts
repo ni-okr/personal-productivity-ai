@@ -10,6 +10,8 @@
  */
 
 import { getSupabaseClient } from './supabase'
+import type { FeatureToggleUpdate, FeatureToggleInsert, Database } from '@/types/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // Типы для Feature Toggles
 export type ToggleType = 'hot' | 'cold'
@@ -99,6 +101,18 @@ class FeatureToggleCache {
   }
 }
 
+// Создаем типизированный Supabase клиент
+const getTypedSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+
+  return createClient<Database>(supabaseUrl, supabaseAnonKey)
+}
+
 // Менеджер Feature Toggles
 class FeatureToggleManager {
   private cache = new FeatureToggleCache()
@@ -115,22 +129,24 @@ class FeatureToggleManager {
       }
 
       // Получаем из базы данных
-      const supabase = getSupabaseClient()
+      const supabase = getSupabaseClient() as any
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('enabled, type')
         .eq('name', toggleName)
         .single()
 
-      if (error) {
+      if (error || !data) {
         console.warn(`Feature toggle ${toggleName} not found, using fallback`)
         return FALLBACK_TOGGLES[toggleName]
       }
 
-      const enabled = data?.enabled || false
+      // Явно типизируем результат запроса
+      const toggleData = data as { enabled: boolean; type: 'hot' | 'cold' }
+      const enabled = toggleData.enabled || false
 
       // Кешируем только hot toggles
-      if (data?.type === 'hot') {
+      if (toggleData.type === 'hot') {
         this.cache.set(toggleName, enabled)
       }
 
@@ -146,18 +162,19 @@ class FeatureToggleManager {
    */
   async getAllToggles(): Promise<FeatureToggleConfig> {
     try {
-      const supabase = getSupabaseClient()
+      const supabase = getSupabaseClient() as any
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('name, enabled, type')
 
-      if (error) {
+      if (error || !data) {
         console.error('Error fetching all feature toggles:', error)
         return FALLBACK_TOGGLES
       }
 
       const config: FeatureToggleConfig = {}
-      data?.forEach((toggle) => {
+      const toggles = data as Array<{ name: string; enabled: boolean; type: 'hot' | 'cold' }>
+      toggles.forEach((toggle) => {
         config[toggle.name] = toggle.enabled
         // Кешируем hot toggles
         if (toggle.type === 'hot') {
@@ -177,7 +194,7 @@ class FeatureToggleManager {
    */
   async updateToggle(toggleName: FeatureToggleName, enabled: boolean): Promise<boolean> {
     try {
-      const supabase = getSupabaseClient()
+      const supabase = getSupabaseClient() as any
 
       // Проверяем, что это hot toggle
       const { data: toggleData, error: checkError } = await supabase
@@ -186,14 +203,25 @@ class FeatureToggleManager {
         .eq('name', toggleName)
         .single()
 
-      if (checkError || toggleData?.type !== 'hot') {
+      if (checkError || !toggleData) {
+        console.warn(`Cannot update ${toggleName}: toggle not found`)
+        return false
+      }
+
+      const toggle = toggleData as { type: 'hot' | 'cold' }
+      if (toggle.type !== 'hot') {
         console.warn(`Cannot update ${toggleName}: not a hot toggle`)
         return false
       }
 
+      const updateData = {
+        enabled,
+        updated_at: new Date().toISOString()
+      }
+
       const { error } = await supabase
         .from('feature_toggles')
-        .update({ enabled, updated_at: new Date().toISOString() })
+        .update(updateData as any)
         .eq('name', toggleName)
         .eq('type', 'hot')
 
@@ -221,17 +249,19 @@ class FeatureToggleManager {
     description?: string
   ): Promise<boolean> {
     try {
-      const supabase = getSupabaseClient()
+      const supabase = getSupabaseClient() as any
+      const insertData = {
+        name,
+        enabled,
+        type,
+        description,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
       const { error } = await supabase
         .from('feature_toggles')
-        .insert({
-          name,
-          enabled,
-          type,
-          description,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert(insertData as any)
 
       if (error) {
         console.error(`Error creating feature toggle ${name}:`, error)
@@ -257,15 +287,16 @@ class FeatureToggleManager {
    */
   async isHotToggle(toggleName: FeatureToggleName): Promise<boolean> {
     try {
-      const supabase = getSupabaseClient()
+      const supabase = getSupabaseClient() as any
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('type')
         .eq('name', toggleName)
         .single()
 
-      if (error) return false
-      return data?.type === 'hot'
+      if (error || !data) return false
+      const toggle = data as { type: 'hot' | 'cold' }
+      return toggle.type === 'hot'
     } catch (error) {
       console.error(`Error checking toggle type for ${toggleName}:`, error)
       return false

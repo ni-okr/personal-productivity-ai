@@ -52,7 +52,7 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
     }
 
     // Преобразуем данные из Supabase в наш формат
-    const tasks: Task[] = (data || []).map((task) => ({
+    const tasks: Task[] = (data || []).map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description,
@@ -323,9 +323,9 @@ export async function getTasksStats(userId: string): Promise<{
 
     const now = new Date()
     const total = tasks?.length || 0
-    const completed = tasks?.filter((task) => task.status === 'completed').length || 0
-    const pending = tasks?.filter((task) => task.status === 'todo' || task.status === 'in_progress').length || 0
-    const overdue = tasks?.filter((task) =>
+    const completed = tasks?.filter((task: any) => task.status === 'completed').length || 0
+    const pending = tasks?.filter((task: any) => task.status === 'todo' || task.status === 'in_progress').length || 0
+    const overdue = tasks?.filter((task: any) =>
       (task.status === 'todo' || task.status === 'in_progress') &&
       task.due_date &&
       new Date(task.due_date) < now
@@ -333,9 +333,9 @@ export async function getTasksStats(userId: string): Promise<{
 
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
 
-    const completedTasks = tasks?.filter((task) => task.status === 'completed' && task.actual_duration) || []
+    const completedTasks = tasks?.filter((task: any) => task.status === 'completed' && task.actual_duration) || []
     const averageCompletionTime = completedTasks.length > 0
-      ? Math.round(completedTasks.reduce((sum, task) => sum + (task.actual_duration || 0), 0) / completedTasks.length)
+      ? Math.round(completedTasks.reduce((sum: number, task: any) => sum + (task.actual_duration || 0), 0) / completedTasks.length)
       : 0
 
     return {
@@ -378,7 +378,7 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
     }
 
     // Преобразуем данные из Supabase в наш формат
-    const tasks: Task[] = (data || []).map((task) => ({
+    const tasks: Task[] = (data || []).map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description,
