@@ -4,18 +4,18 @@ import { createClient } from '@supabase/supabase-js'
 let supabaseClient: ReturnType<typeof createClient> | null = null
 
 export function getSupabaseClient() {
-  if (!supabaseClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!supabaseClient) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
+        if (!supabaseUrl || !supabaseAnonKey) {
+            throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
+        }
+
+        supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
     }
 
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
-  }
-  
-  return supabaseClient
+    return supabaseClient
 }
 
 // Для обратной совместимости
@@ -37,7 +37,7 @@ export interface Subscriber {
 export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: Subscriber }> {
     try {
         const supabase = getSupabaseClient()
-        
+
         // Проверяем, существует ли уже такой email
         const { data: existingSubscriber, error: checkError } = await supabase
             .from('subscriptions')
@@ -106,7 +106,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
 export async function getActiveSubscribers(): Promise<Subscriber[]> {
     try {
         const supabase = getSupabaseClient()
-        
+
         const { data, error } = await supabase
             .from('subscriptions')
             .select('*')
@@ -130,7 +130,7 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
 export async function unsubscribe(email: string): Promise<{ success: boolean; message: string }> {
     try {
         const supabase = getSupabaseClient()
-        
+
         const { error } = await supabase
             .from('subscriptions')
             .update({ is_active: false })
