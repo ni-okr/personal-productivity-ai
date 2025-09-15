@@ -166,18 +166,18 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
         }
 
         const subscription: Subscription = {
-            id: data.id,
-            userId: data.user_id,
-            tier: data.tier,
-            status: data.status,
-            tinkoffCustomerId: data.tinkoff_customer_id,
-            tinkoffPaymentId: data.tinkoff_payment_id,
-            currentPeriodStart: new Date(data.current_period_start),
-            currentPeriodEnd: new Date(data.current_period_end),
-            cancelAtPeriodEnd: data.cancel_at_period_end,
-            trialEnd: data.trial_end ? new Date(data.trial_end) : undefined,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at)
+            id: (data as any).id,
+            userId: (data as any).user_id,
+            tier: (data as any).tier,
+            status: (data as any).status,
+            tinkoffCustomerId: (data as any).tinkoff_customer_id,
+            tinkoffPaymentId: (data as any).tinkoff_payment_id,
+            currentPeriodStart: new Date((data as any).current_period_start),
+            currentPeriodEnd: new Date((data as any).current_period_end),
+            cancelAtPeriodEnd: (data as any).cancel_at_period_end,
+            trialEnd: (data as any).trial_end ? new Date((data as any).trial_end) : undefined,
+            createdAt: new Date((data as any).created_at),
+            updatedAt: new Date((data as any).updated_at)
         }
 
         return {
@@ -212,7 +212,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
             cancel_at_period_end: false
         }
 
-        const { data: subscription, error } = await supabase
+        const { data: subscription, error } = await (supabase as any)
             .from('subscriptions')
             .insert(subscriptionData)
             .select()
@@ -274,7 +274,7 @@ export async function updateSubscription(
         if (updates.cancelAtPeriodEnd !== undefined) updateData.cancel_at_period_end = updates.cancelAtPeriodEnd
         if (updates.trialEnd) updateData.trial_end = updates.trialEnd.toISOString()
 
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
             .from('user_subscriptions')
             .update(updateData)
             .eq('id', subscriptionId)
@@ -344,7 +344,7 @@ export async function cancelSubscription(subscriptionId: string): Promise<Subscr
         /*
         const supabase = getSupabaseClient()
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
             .from('user_subscriptions')
             .update({
                 status: 'canceled',
@@ -432,7 +432,7 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
             }
         }
 
-        const subscriptions: Subscription[] = data.map(item => ({
+        const subscriptions: Subscription[] = (data as any[]).map(item => ({
             id: item.id,
             userId: item.user_id,
             tier: item.tier,

@@ -127,10 +127,10 @@ class FeatureToggleManager {
         return FALLBACK_TOGGLES[toggleName]
       }
 
-      const enabled = data?.enabled || false
+      const enabled = (data as { enabled: boolean; type: ToggleType })?.enabled || false
 
       // Кешируем только hot toggles
-      if (data?.type === 'hot') {
+      if ((data as { enabled: boolean; type: ToggleType })?.type === 'hot') {
         this.cache.set(toggleName, enabled)
       }
 
@@ -157,7 +157,8 @@ class FeatureToggleManager {
       }
 
       const config: FeatureToggleConfig = {}
-      data?.forEach((toggle) => {
+      const toggles = data as { name: FeatureToggleName; enabled: boolean; type: ToggleType }[]
+      toggles?.forEach((toggle) => {
         config[toggle.name] = toggle.enabled
         // Кешируем hot toggles
         if (toggle.type === 'hot') {
@@ -186,12 +187,12 @@ class FeatureToggleManager {
         .eq('name', toggleName)
         .single()
 
-      if (checkError || toggleData?.type !== 'hot') {
+      if (checkError || (toggleData as { type: ToggleType })?.type !== 'hot') {
         console.warn(`Cannot update ${toggleName}: not a hot toggle`)
         return false
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('feature_toggles')
         .update({ enabled, updated_at: new Date().toISOString() })
         .eq('name', toggleName)
@@ -222,7 +223,7 @@ class FeatureToggleManager {
   ): Promise<boolean> {
     try {
       const supabase = getSupabaseClient()
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('feature_toggles')
         .insert({
           name,
@@ -265,7 +266,7 @@ class FeatureToggleManager {
         .single()
 
       if (error) return false
-      return data?.type === 'hot'
+      return (data as { type: ToggleType })?.type === 'hot'
     } catch (error) {
       console.error(`Error checking toggle type for ${toggleName}:`, error)
       return false

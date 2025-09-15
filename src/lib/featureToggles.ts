@@ -54,7 +54,7 @@ class FeatureToggleManager {
       this.cache.set(toggleName, data);
       this.cacheExpiry.set(toggleName, Date.now() + this.CACHE_TTL);
 
-      return data?.enabled || false;
+      return (data as { enabled: boolean })?.enabled || false;
     } catch (error) {
       console.error(`Error in getToggle for ${toggleName}:`, error);
       return false;
@@ -78,7 +78,7 @@ class FeatureToggleManager {
       }
 
       const config: FeatureToggleConfig = {};
-      data?.forEach((toggle) => {
+      (data as { name: string; enabled: boolean }[])?.forEach((toggle) => {
         config[toggle.name] = toggle.enabled;
       });
 
@@ -101,7 +101,7 @@ class FeatureToggleManager {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('feature_toggles')
         .update(updateData)
         .eq('name', toggleName)
@@ -146,7 +146,7 @@ class FeatureToggleManager {
         description
       };
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('feature_toggles')
         .insert(toggleData);
 

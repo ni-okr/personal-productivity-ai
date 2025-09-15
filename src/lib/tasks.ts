@@ -52,7 +52,7 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
     }
 
     // Преобразуем данные из Supabase в наш формат
-    const tasks: Task[] = (data || []).map((task) => ({
+    const tasks: Task[] = ((data as any[]) || []).map((task) => ({
       id: task.id,
       title: task.title,
       description: task.description,
@@ -98,7 +98,7 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
       tags: taskData.tags || []
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .insert(taskInsert)
       .select()
@@ -114,20 +114,20 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
 
     // Преобразуем данные из Supabase в наш формат
     const task: Task = {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      dueDate: data.due_date ? new Date(data.due_date) : undefined,
-      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-      estimatedMinutes: data.estimated_duration,
-      actualMinutes: data.actual_duration,
-      source: data.source,
-      tags: data.tags || [],
-      userId: data.user_id,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
+      id: (data as any).id,
+      title: (data as any).title,
+      description: (data as any).description,
+      priority: (data as any).priority,
+      status: (data as any).status,
+      dueDate: (data as any).due_date ? new Date((data as any).due_date) : undefined,
+      completedAt: (data as any).completed_at ? new Date((data as any).completed_at) : undefined,
+      estimatedMinutes: (data as any).estimated_duration,
+      actualMinutes: (data as any).actual_duration,
+      source: (data as any).source,
+      tags: (data as any).tags || [],
+      userId: (data as any).user_id,
+      createdAt: new Date((data as any).created_at),
+      updatedAt: new Date((data as any).updated_at)
     }
 
     return {
@@ -158,7 +158,7 @@ export async function updateTask(taskId: string, updates: UpdateTaskData): Promi
       tags: updates.tags
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .update(taskUpdate)
       .eq('id', taskId)
@@ -175,20 +175,20 @@ export async function updateTask(taskId: string, updates: UpdateTaskData): Promi
 
     // Преобразуем данные из Supabase в наш формат
     const task: Task = {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      dueDate: data.due_date ? new Date(data.due_date) : undefined,
-      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-      estimatedMinutes: data.estimated_duration,
-      actualMinutes: data.actual_duration,
-      source: data.source,
-      tags: data.tags || [],
-      userId: data.user_id,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
+      id: (data as any).id,
+      title: (data as any).title,
+      description: (data as any).description,
+      priority: (data as any).priority,
+      status: (data as any).status,
+      dueDate: (data as any).due_date ? new Date((data as any).due_date) : undefined,
+      completedAt: (data as any).completed_at ? new Date((data as any).completed_at) : undefined,
+      estimatedMinutes: (data as any).estimated_duration,
+      actualMinutes: (data as any).actual_duration,
+      source: (data as any).source,
+      tags: (data as any).tags || [],
+      userId: (data as any).user_id,
+      createdAt: new Date((data as any).created_at),
+      updatedAt: new Date((data as any).updated_at)
     }
 
     return {
@@ -245,7 +245,7 @@ export async function completeTask(taskId: string, actualMinutes?: number): Prom
       actual_duration: actualMinutes
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .update(taskUpdate)
       .eq('id', taskId)
@@ -262,20 +262,20 @@ export async function completeTask(taskId: string, actualMinutes?: number): Prom
 
     // Преобразуем данные из Supabase в наш формат
     const task: Task = {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      dueDate: data.due_date ? new Date(data.due_date) : undefined,
-      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-      estimatedMinutes: data.estimated_duration,
-      actualMinutes: data.actual_duration,
-      source: data.source,
-      tags: data.tags || [],
-      userId: data.user_id,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
+      id: (data as any).id,
+      title: (data as any).title,
+      description: (data as any).description,
+      priority: (data as any).priority,
+      status: (data as any).status,
+      dueDate: (data as any).due_date ? new Date((data as any).due_date) : undefined,
+      completedAt: (data as any).completed_at ? new Date((data as any).completed_at) : undefined,
+      estimatedMinutes: (data as any).estimated_duration,
+      actualMinutes: (data as any).actual_duration,
+      source: (data as any).source,
+      tags: (data as any).tags || [],
+      userId: (data as any).user_id,
+      createdAt: new Date((data as any).created_at),
+      updatedAt: new Date((data as any).updated_at)
     }
 
     return {
@@ -322,18 +322,19 @@ export async function getTasksStats(userId: string): Promise<{
     }
 
     const now = new Date()
-    const total = tasks?.length || 0
-    const completed = tasks?.filter((task) => task.status === 'completed').length || 0
-    const pending = tasks?.filter((task) => task.status === 'todo' || task.status === 'in_progress').length || 0
-    const overdue = tasks?.filter((task) =>
+    const tasksArray = tasks as any[] || []
+    const total = tasksArray.length
+    const completed = tasksArray.filter((task) => task.status === 'completed').length
+    const pending = tasksArray.filter((task) => task.status === 'todo' || task.status === 'in_progress').length
+    const overdue = tasksArray.filter((task) =>
       (task.status === 'todo' || task.status === 'in_progress') &&
       task.due_date &&
       new Date(task.due_date) < now
-    ).length || 0
+    ).length
 
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
 
-    const completedTasks = tasks?.filter((task) => task.status === 'completed' && task.actual_duration) || []
+    const completedTasks = tasksArray.filter((task) => task.status === 'completed' && task.actual_duration)
     const averageCompletionTime = completedTasks.length > 0
       ? Math.round(completedTasks.reduce((sum, task) => sum + (task.actual_duration || 0), 0) / completedTasks.length)
       : 0
@@ -378,7 +379,7 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
     }
 
     // Преобразуем данные из Supabase в наш формат
-    const tasks: Task[] = (data || []).map((task) => ({
+    const tasks: Task[] = ((data as any[]) || []).map((task) => ({
       id: task.id,
       title: task.title,
       description: task.description,

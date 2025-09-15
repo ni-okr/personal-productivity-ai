@@ -43,7 +43,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
       is_active: true
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('subscribers')
       .insert(subscriberData)
       .select()
@@ -108,7 +108,7 @@ export async function unsubscribe(email: string): Promise<{ success: boolean; me
       is_active: false
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('subscribers')
       .update(updateData)
       .eq('email', email)
