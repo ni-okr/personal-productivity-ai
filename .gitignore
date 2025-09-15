@@ -71,3 +71,19 @@ pnpm-lock.yaml
 docker-compose.override.yml
 
 
+
+# Отчеты и результаты тестов
+reports/
+allure-report/
+allure-results/
+coverage/
+test-results/
+
+# Временные файлы
+temp/
+
+# База данных
+database/
+
+# Скрипты
+scripts/

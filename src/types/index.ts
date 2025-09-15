@@ -169,8 +169,8 @@ export interface Subscription {
   userId: string
   tier: SubscriptionTier
   status: SubscriptionStatus
-  stripeCustomerId?: string
-  stripeSubscriptionId?: string
+  tinkoffCustomerId?: string
+  tinkoffPaymentId?: string
   currentPeriodStart: Date
   currentPeriodEnd: Date
   cancelAtPeriodEnd: boolean
@@ -183,7 +183,7 @@ export interface SubscriptionPlan {
   id: string
   name: string
   tier: SubscriptionTier
-  price: number // in cents
+  price: number // in kopecks (копейки)
   currency: string
   interval: 'month' | 'year'
   features: string[]
@@ -192,11 +192,11 @@ export interface SubscriptionPlan {
     aiRequests: number
     storage: number // in MB
   }
-  stripePriceId: string
+  tinkoffPriceId: string
   isActive: boolean
 }
 
-export interface StripeWebhookEvent {
+export interface TinkoffWebhookEvent {
   id: string
   type: string
   data: {

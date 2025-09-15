@@ -1,6 +1,5 @@
-// 🏠 API для Stripe Customer Portal
+// 🏠 API для Тинькофф Customer Portal (заглушка)
 import { getCurrentUser } from '@/lib/auth'
-import { createCustomerPortalSession } from '@/lib/stripe'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -16,22 +15,22 @@ export async function POST(request: NextRequest) {
 
         const { returnUrl } = await request.json()
 
-        // Создаем portal сессию
-        const result = await createCustomerPortalSession({
+        // Заглушка для Тинькофф Customer Portal
+        // В реальной интеграции здесь будет вызов Тинькофф API
+        console.log('🔄 Тинькофф Customer Portal (заглушка):', {
             userId: user.id,
             returnUrl: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner`
         })
 
-        if (!result.success) {
-            return NextResponse.json(
-                { success: false, error: result.error },
-                { status: 400 }
-            )
-        }
+        // Имитация задержки API
+        await new Promise(resolve => setTimeout(resolve, 100))
 
         return NextResponse.json({
             success: true,
-            data: result.data
+            data: {
+                url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner`,
+                message: 'Customer Portal (заглушка)'
+            }
         })
     } catch (error: any) {
         console.error('Ошибка создания portal сессии:', error)

@@ -1,6 +1,6 @@
-// 💳 API для создания Stripe checkout сессии
+// 💳 API для создания Тинькофф checkout сессии
 import { getCurrentUser } from '@/lib/auth'
-import { createCheckoutSession } from '@/lib/stripe'
+import { createPaymentSession } from '@/lib/tinkoff'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -24,9 +24,12 @@ export async function POST(request: NextRequest) {
         }
 
         // Создаем checkout сессию
-        const result = await createCheckoutSession({
+        const result = await createPaymentSession({
             userId: user.id,
             planId,
+            amount: 0, // Будет получено из плана
+            currency: 'RUB',
+            description: `Подписка ${planId}`,
             successUrl: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner?success=true`,
             cancelUrl: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/planner?canceled=true`,
             trialDays: trialDays || 0

@@ -1,12 +1,12 @@
-// 💳 Система подписок с Stripe интеграцией
+// 💳 Система подписок с Тинькофф интеграцией
 import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } from '@/types'
 import { supabase } from './supabase'
 
 export interface CreateSubscriptionData {
     userId: string
     tier: SubscriptionTier
-    stripeCustomerId: string
-    stripeSubscriptionId: string
+    tinkoffCustomerId: string
+    tinkoffPaymentId: string
     currentPeriodStart: Date
     currentPeriodEnd: Date
     trialEnd?: Date
@@ -34,7 +34,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Free',
         tier: 'free',
         price: 0,
-        currency: 'usd',
+        currency: 'RUB',
         interval: 'month',
         features: [
             'До 50 задач',
@@ -47,15 +47,15 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
             aiRequests: 0,
             storage: 100
         },
-        stripePriceId: '',
+        tinkoffPriceId: '',
         isActive: true
     },
     {
         id: 'premium',
         name: 'Premium',
         tier: 'premium',
-        price: 999, // $9.99
-        currency: 'usd',
+        price: 99900, // 999 рублей в копейках
+        currency: 'RUB',
         interval: 'month',
         features: [
             'До 500 задач',
@@ -69,15 +69,15 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
             aiRequests: 1000,
             storage: 1000
         },
-        stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || '',
+        tinkoffPriceId: 'tinkoff_premium_monthly',
         isActive: true
     },
     {
         id: 'pro',
         name: 'Pro',
         tier: 'pro',
-        price: 1999, // $19.99
-        currency: 'usd',
+        price: 199900, // 1999 рублей в копейках
+        currency: 'RUB',
         interval: 'month',
         features: [
             'Неограниченные задачи',
@@ -91,15 +91,15 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
             aiRequests: 5000,
             storage: 5000
         },
-        stripePriceId: process.env.STRIPE_PRO_PRICE_ID || '',
+        tinkoffPriceId: 'tinkoff_pro_monthly',
         isActive: true
     },
     {
         id: 'enterprise',
         name: 'Enterprise',
         tier: 'enterprise',
-        price: 4999, // $49.99
-        currency: 'usd',
+        price: 499900, // 4999 рублей в копейках
+        currency: 'RUB',
         interval: 'month',
         features: [
             'Все функции Pro',
@@ -113,7 +113,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
             aiRequests: -1,
             storage: -1
         },
-        stripePriceId: process.env.STRIPE_ENTERPRISE_PRICE_ID || '',
+        tinkoffPriceId: 'tinkoff_enterprise_monthly',
         isActive: true
     }
 ]
@@ -160,8 +160,8 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
             userId: data.user_id,
             tier: data.tier,
             status: data.status,
-            stripeCustomerId: data.stripe_customer_id,
-            stripeSubscriptionId: data.stripe_subscription_id,
+            tinkoffCustomerId: data.tinkoff_customer_id,
+            tinkoffPaymentId: data.tinkoff_payment_id,
             currentPeriodStart: new Date(data.current_period_start),
             currentPeriodEnd: new Date(data.current_period_end),
             cancelAtPeriodEnd: data.cancel_at_period_end,
@@ -194,8 +194,8 @@ export async function createSubscription(subscriptionData: CreateSubscriptionDat
                 user_id: subscriptionData.userId,
                 tier: subscriptionData.tier,
                 status: 'active',
-                stripe_customer_id: subscriptionData.stripeCustomerId,
-                stripe_subscription_id: subscriptionData.stripeSubscriptionId,
+                tinkoff_customer_id: subscriptionData.tinkoffCustomerId,
+                tinkoff_payment_id: subscriptionData.tinkoffPaymentId,
                 current_period_start: subscriptionData.currentPeriodStart.toISOString(),
                 current_period_end: subscriptionData.currentPeriodEnd.toISOString(),
                 trial_end: subscriptionData.trialEnd?.toISOString(),
@@ -219,8 +219,8 @@ export async function createSubscription(subscriptionData: CreateSubscriptionDat
             userId: data.user_id,
             tier: data.tier,
             status: data.status,
-            stripeCustomerId: data.stripe_customer_id,
-            stripeSubscriptionId: data.stripe_subscription_id,
+            tinkoffCustomerId: data.tinkoff_customer_id,
+            tinkoffPaymentId: data.tinkoff_payment_id,
             currentPeriodStart: new Date(data.current_period_start),
             currentPeriodEnd: new Date(data.current_period_end),
             cancelAtPeriodEnd: data.cancel_at_period_end,
@@ -284,8 +284,8 @@ export async function updateSubscription(subscriptionId: string, updates: Update
             userId: data.user_id,
             tier: data.tier,
             status: data.status,
-            stripeCustomerId: data.stripe_customer_id,
-            stripeSubscriptionId: data.stripe_subscription_id,
+            tinkoffCustomerId: data.tinkoff_customer_id,
+            tinkoffPaymentId: data.tinkoff_payment_id,
             currentPeriodStart: new Date(data.current_period_start),
             currentPeriodEnd: new Date(data.current_period_end),
             cancelAtPeriodEnd: data.cancel_at_period_end,
@@ -337,8 +337,8 @@ export async function cancelSubscription(subscriptionId: string): Promise<Subscr
             userId: data.user_id,
             tier: data.tier,
             status: data.status,
-            stripeCustomerId: data.stripe_customer_id,
-            stripeSubscriptionId: data.stripe_subscription_id,
+            tinkoffCustomerId: data.tinkoff_customer_id,
+            tinkoffPaymentId: data.tinkoff_payment_id,
             currentPeriodStart: new Date(data.current_period_start),
             currentPeriodEnd: new Date(data.current_period_end),
             cancelAtPeriodEnd: data.cancel_at_period_end,
@@ -424,21 +424,21 @@ export function getUserLimits(subscription: Subscription | null) {
 }
 
 /**
- * 🔄 Синхронизация подписки с Stripe
+ * 🔄 Синхронизация подписки с Тинькофф
  */
-export async function syncSubscriptionWithStripe(stripeSubscriptionId: string): Promise<SubscriptionResponse> {
+export async function syncSubscriptionWithTinkoff(tinkoffPaymentId: string): Promise<SubscriptionResponse> {
     try {
-        // Здесь будет интеграция с Stripe API для получения актуальных данных
+        // Здесь будет интеграция с Тинькофф API для получения актуальных данных
         // Пока возвращаем успех
         return {
             success: true,
-            message: 'Подписка синхронизирована с Stripe'
+            message: 'Подписка синхронизирована с Тинькофф'
         }
     } catch (error) {
-        console.error('Ошибка синхронизации с Stripe:', error)
+        console.error('Ошибка синхронизации с Тинькофф:', error)
         return {
             success: false,
-            error: 'Произошла ошибка при синхронизации с Stripe'
+            error: 'Произошла ошибка при синхронизации с Тинькофф'
         }
     }
 }

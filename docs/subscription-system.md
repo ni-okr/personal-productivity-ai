@@ -2,15 +2,15 @@
 
 ## 📋 Обзор
 
-Система подписок интегрирована с Stripe для обработки платежей и управления подписками. Поддерживает несколько тарифных планов с разными возможностями ИИ.
+Система подписок интегрирована с Тинькофф Эквайринг для обработки платежей и управления подписками. Поддерживает несколько тарифных планов с разными возможностями ИИ.
 
 ## 🏗️ Архитектура
 
 ### Компоненты системы:
 
-1. **Stripe Integration** (`src/lib/stripe.ts`)
+1. **Тинькофф Integration** (`src/lib/tinkoff.ts`)
    - Создание клиентов
-   - Checkout сессии
+   - Payment сессии
    - Customer Portal
    - Webhook обработка
 
@@ -60,12 +60,12 @@
 
 ## 🔧 Настройка
 
-### 1. Stripe Configuration
+### 1. Тинькофф Configuration
 
 ```env
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+TINKOFF_TERMINAL_KEY=your_terminal_key
+TINKOFF_SECRET_KEY=your_secret_key
+TINKOFF_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 ### 2. Database Schema
@@ -77,8 +77,8 @@ CREATE TABLE subscriptions (
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   tier subscription_tier NOT NULL,
   status subscription_status NOT NULL,
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
+  tinkoff_customer_id TEXT,
+  tinkoff_payment_id TEXT,
   current_period_start TIMESTAMP WITH TIME ZONE,
   current_period_end TIMESTAMP WITH TIME ZONE,
   cancel_at_period_end BOOLEAN DEFAULT FALSE,
@@ -97,7 +97,7 @@ CREATE TABLE subscription_plans (
   interval TEXT NOT NULL, -- 'month' или 'year'
   features TEXT[] NOT NULL,
   limits JSONB NOT NULL,
-  stripe_price_id TEXT,
+  tinkoff_price_id TEXT,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
 
 ### Unit Tests
 - `tests/unit/subscriptions.test.ts` - тесты управления подписками
-- `tests/unit/stripe.test.ts` - тесты Stripe интеграции
+- `tests/unit/tinkoff.test.ts` - тесты Тинькофф интеграции
 
 ### Integration Tests
 - `tests/integration/subscription-integration.test.tsx` - тесты UI компонентов
@@ -238,7 +238,7 @@ npm run test
 ## 🔒 Безопасность
 
 ### 1. Webhook Verification
-- Проверка подписи Stripe
+- Проверка подписи Тинькофф
 - Валидация событий
 - Idempotency обработка
 
@@ -279,25 +279,25 @@ console.log('Subscription created:', {
 ### Частые проблемы:
 
 1. **Webhook не работает**
-   - Проверить URL в Stripe Dashboard
+   - Проверить URL в Тинькофф Dashboard
    - Проверить подпись webhook
    - Проверить логи сервера
 
-2. **Checkout не открывается**
-   - Проверить Stripe ключи
+2. **Payment не открывается**
+   - Проверить Тинькофф ключи
    - Проверить CORS настройки
    - Проверить валидность плана
 
 3. **Portal не работает**
    - Проверить customer ID
-   - Проверить настройки Portal в Stripe
+   - Проверить настройки Portal в Тинькофф
    - Проверить return URL
 
 ### Debug режим:
 
 ```typescript
 // Включить debug логи
-process.env.STRIPE_DEBUG = 'true'
+process.env.TINKOFF_DEBUG = 'true'
 ```
 
 ## 🔄 Обновления

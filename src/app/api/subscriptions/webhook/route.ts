@@ -1,15 +1,15 @@
-// 🔔 Stripe webhook для обработки событий подписок
-import { handleWebhookEvent, verifyWebhookSignature } from '@/lib/stripe'
+// 🔔 Тинькофф webhook для обработки событий подписок
+import { handleTinkoffWebhook, verifyTinkoffWebhookSignature } from '@/lib/tinkoff'
 import { headers } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.text()
-        const signature = headers().get('stripe-signature')
+        const signature = headers().get('tinkoff-signature')
 
         if (!signature) {
-            console.error('Отсутствует Stripe signature')
+            console.error('Отсутствует Тинькофф signature')
             return NextResponse.json(
                 { error: 'Отсутствует signature' },
                 { status: 400 }
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Проверяем подпись webhook
-        if (!verifyWebhookSignature(body, signature)) {
+        if (!verifyTinkoffWebhookSignature(body, signature)) {
             return NextResponse.json(
                 { error: 'Invalid signature' },
                 { status: 400 }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
         const event = JSON.parse(body)
 
         // Обрабатываем webhook
-        const result = await handleWebhookEvent(event)
+        const result = await handleTinkoffWebhook(event)
 
         if (!result.success) {
             console.error('Ошибка обработки webhook:', result.error)
