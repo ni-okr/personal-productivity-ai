@@ -19,7 +19,7 @@ jest.mock('@/lib/supabase', () => ({
         from: jest.fn(() => ({
             insert: jest.fn(() => ({
                 error: null
-            })),
+            } as any)),
             update: jest.fn(() => ({
                 eq: jest.fn(() => ({
                     select: jest.fn(() => ({
@@ -33,10 +33,10 @@ jest.mock('@/lib/supabase', () => ({
                                 last_login_at: '2024-01-01T00:00:00Z'
                             },
                             error: null
-                        }))
-                    }))
-                }))
-            })),
+                        } as any))
+                    } as any))
+                } as any))
+            } as any)),
             select: jest.fn(() => ({
                 eq: jest.fn(() => ({
                     single: jest.fn(() => ({
@@ -49,9 +49,9 @@ jest.mock('@/lib/supabase', () => ({
                             last_login_at: '2024-01-01T00:00:00Z'
                         },
                         error: null
-                    }))
-                }))
-            }))
+                    } as any))
+                } as any))
+            } as any))
         }))
     }
 }))
@@ -79,7 +79,7 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            })
+            } as any)
 
             // Mock successful login
             mockSignIn.mockResolvedValue({
@@ -91,7 +91,7 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            })
+            } as any)
 
             // Mock get current user
             mockGetUser.mockResolvedValue({
@@ -102,14 +102,14 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            })
+            } as any)
 
             // Test registration
             const signUpResult = await signUp({
                 email: 'test@example.com',
                 password: 'password123',
                 name: 'Test User'
-            })
+            } as any)
 
             expect(signUpResult.success).toBe(true)
             expect(signUpResult.user).toBeDefined()
@@ -118,7 +118,7 @@ describe('Auth Integration Tests', () => {
             const signInResult = await signIn({
                 email: 'test@example.com',
                 password: 'password123'
-            })
+            } as any)
 
             expect(signInResult.success).toBe(true)
             expect(signInResult.user).toBeDefined()
@@ -148,16 +148,16 @@ describe('Auth Integration Tests', () => {
                                     last_login_at: '2024-01-01T00:00:00Z'
                                 },
                                 error: null
-                            }))
-                        }))
-                    }))
-                }))
+                            } as any))
+                        } as any))
+                    } as any))
+                } as any))
             } as any)
 
             const result = await updateUserProfile('test-user-id', {
                 name: 'Updated Name',
                 subscription: 'premium'
-            })
+            } as any)
 
             expect(result.success).toBe(true)
             expect(result.user?.name).toBe('Updated Name')
@@ -176,7 +176,7 @@ describe('Auth Integration Tests', () => {
             const result = await signIn({
                 email: 'test@example.com',
                 password: 'password123'
-            })
+            } as any)
 
             expect(result.success).toBe(false)
             expect(result.error).toBe('Произошла ошибка при входе')
@@ -193,9 +193,9 @@ describe('Auth Integration Tests', () => {
                         single: jest.fn(() => ({
                             data: null,
                             error: { message: 'Database connection failed' }
-                        }))
-                    }))
-                }))
+                        } as any))
+                    } as any))
+                } as any))
             } as any)
 
             const result = await getUserProfile('test-user-id')
@@ -221,7 +221,7 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            })
+            } as any)
 
             // Mock get current user
             mockGetUser.mockResolvedValue({
@@ -232,14 +232,14 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            })
+            } as any)
 
             // Test registration
             const signUpResult = await signUp({
                 email: 'test@example.com',
                 password: 'password123',
                 name: 'Test User'
-            })
+            } as any)
 
             expect(signUpResult.success).toBe(true)
             expect(signUpResult.user?.id).toBe('test-user-id')

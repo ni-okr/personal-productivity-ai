@@ -4,6 +4,7 @@ import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus
 import { useSubscription } from '@/hooks/useSubscription'
 import { fireEvent, render, screen, waitFor, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from '@jest/globals'
+import '@testing-library/jest-dom'
 
 // Mock useSubscription hook
 jest.mock('@/hooks/useSubscription', () => ({
