@@ -127,10 +127,10 @@ class FeatureToggleManager {
         return FALLBACK_TOGGLES[toggleName]
       }
 
-      const enabled = (data as any)?.enabled || false
+      const enabled = data?.enabled || false
 
       // Кешируем только hot toggles
-      if ((data as any)?.type === 'hot') {
+      if (data?.type === 'hot') {
         this.cache.set(toggleName, enabled)
       }
 
@@ -157,7 +157,7 @@ class FeatureToggleManager {
       }
 
       const config: FeatureToggleConfig = {}
-      data?.forEach((toggle: any) => {
+      data?.forEach((toggle) => {
         config[toggle.name] = toggle.enabled
         // Кешируем hot toggles
         if (toggle.type === 'hot') {
@@ -186,14 +186,14 @@ class FeatureToggleManager {
         .eq('name', toggleName)
         .single()
 
-      if (checkError || (toggleData as any)?.type !== 'hot') {
+      if (checkError || toggleData?.type !== 'hot') {
         console.warn(`Cannot update ${toggleName}: not a hot toggle`)
         return false
       }
 
       const { error } = await supabase
         .from('feature_toggles')
-        .update({ enabled, updated_at: new Date().toISOString() } as any)
+        .update({ enabled, updated_at: new Date().toISOString() })
         .eq('name', toggleName)
         .eq('type', 'hot')
 
@@ -231,7 +231,7 @@ class FeatureToggleManager {
           description,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        } as any)
+        })
 
       if (error) {
         console.error(`Error creating feature toggle ${name}:`, error)
@@ -265,7 +265,7 @@ class FeatureToggleManager {
         .single()
 
       if (error) return false
-      return (data as any)?.type === 'hot'
+      return data?.type === 'hot'
     } catch (error) {
       console.error(`Error checking toggle type for ${toggleName}:`, error)
       return false

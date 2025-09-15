@@ -35,7 +35,7 @@ export interface AuthResponse {
 export async function signUp({ email, password, name }: SignUpData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
         const supabase = getSupabaseClient()
-        
+
         // 1. Создаем пользователя в Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
@@ -117,7 +117,7 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
 export async function signIn({ email, password }: SignInData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
         const supabase = getSupabaseClient()
-        
+
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
@@ -185,7 +185,7 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
 export async function signOut(): Promise<AuthResponse> {
     try {
         const supabase = getSupabaseClient()
-        
+
         const { error } = await supabase.auth.signOut()
 
         if (error) {
@@ -245,7 +245,7 @@ export async function getUserProfile(userId: string): Promise<User | null> {
             updatedAt: new Date(data.updated_at || data.created_at)
         }
         */
-        
+
         // Временная заглушка
         return {
             id: userId,
@@ -318,7 +318,7 @@ export async function updateUserProfile(
             }
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -374,7 +374,7 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
             message: 'Инструкции по сбросу пароля отправлены на email'
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -404,7 +404,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
         return await getUserProfile(user.id)
         */
-        
+
         // Временная заглушка
         return {
             id: 'test-user-id',
@@ -456,7 +456,7 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
             user: userProfile || undefined
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -494,7 +494,7 @@ export async function updatePassword(newPassword: string): Promise<AuthResponse>
             message: 'Пароль успешно обновлен'
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -524,7 +524,7 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
         }
     })
     */
-    
+
     // Временная заглушка
     return { data: { subscription: null } }
 }
@@ -555,7 +555,7 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
             message: 'Перенаправление на Google...'
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -596,7 +596,7 @@ export async function signInWithGitHub(): Promise<AuthResponse> {
             message: 'Перенаправление на GitHub...'
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,

@@ -76,7 +76,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignUp = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signUp: mockSignUp }
             } as any)
@@ -112,7 +112,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignUp = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signUp: mockSignUp }
             } as any)
@@ -144,7 +144,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignIn = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signInWithPassword: mockSignIn }
             } as any)
@@ -191,7 +191,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignIn = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signInWithPassword: mockSignIn }
             } as any)
@@ -222,7 +222,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignOut = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signOut: mockSignOut }
             } as any)
@@ -241,7 +241,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockResetPassword = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { resetPasswordForEmail: mockResetPassword }
             } as any)
@@ -260,7 +260,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignInWithOAuth = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signInWithOAuth: mockSignInWithOAuth }
             } as any)
@@ -282,7 +282,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockSignInWithOAuth = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { signInWithOAuth: mockSignInWithOAuth }
             } as any)
@@ -304,7 +304,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockGetUser = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { getUser: mockGetUser }
             } as any)
@@ -345,7 +345,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockVerifyOtp = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { verifyOtp: mockVerifyOtp }
             } as any)
@@ -377,7 +377,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
             const mockUpdateUser = jest.fn()
-            
+
             mockGetSupabaseClient.mockReturnValue({
                 auth: { updateUser: mockUpdateUser }
             } as any)

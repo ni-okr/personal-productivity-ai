@@ -413,7 +413,10 @@ describe('useAppStore with Supabase integration', () => {
 
             mockTasksApi.getTasksStats.mockResolvedValue({
                 success: true,
-                stats: mockStats
+                stats: {
+                    ...mockStats,
+                    averageCompletionTime: 25
+                }
             })
 
             const { result } = renderHook(() => useAppStore())

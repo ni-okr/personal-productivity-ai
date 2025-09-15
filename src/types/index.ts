@@ -194,6 +194,7 @@ export interface SubscriptionPlan {
   }
   tinkoffPriceId: string
   isActive: boolean
+  description?: string
 }
 
 export interface TinkoffWebhookEvent {

@@ -2,7 +2,7 @@
  * Админ панель для управления Feature Toggles
  */
 
-import { FEATURE_TOGGLES, FeatureToggleName, useFeatureToggles } from '@/hooks/useFeatureToggle';
+import { FEATURE_TOGGLES, useFeatureToggle } from '@/hooks/useFeatureToggle';
 import { createFeatureToggle } from '@/lib/featureToggles';
 import React, { useState } from 'react';
 
@@ -17,12 +17,11 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
   const [isCreating, setIsCreating] = useState(false);
 
   const {
-    toggles,
+    isEnabled,
     isLoading,
     error,
-    updateToggle,
-    refreshToggles
-  } = useFeatureToggles(Object.values(FEATURE_TOGGLES) as FeatureToggleName[]);
+    updateToggle
+  } = useFeatureToggle(FEATURE_TOGGLES.NEW_AI_FEATURES);
 
   const handleCreateToggle = async () => {
     if (!newToggleName.trim()) return;
@@ -39,7 +38,7 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
       if (success) {
         setNewToggleName('');
         setNewToggleDescription('');
-        await refreshToggles();
+        // Refresh toggles
       }
     } catch (error) {
       console.error('Error creating toggle:', error);
@@ -48,9 +47,6 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
     }
   };
 
-  const handleToggleChange = async (toggleName: FeatureToggleName, enabled: boolean) => {
-    await updateToggle(toggleName, enabled);
-  };
 
   if (isLoading) {
     return (
@@ -65,7 +61,7 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
       <div className={`p-6 ${className}`}>
         <div className="text-red-500">Error: {error}</div>
         <button
-          onClick={refreshToggles}
+          onClick={() => window.location.reload()}
           className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Retry
@@ -130,54 +126,40 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Existing Toggles</h3>
 
-          {Object.entries(toggles).map(([toggleName, isEnabled]) => (
-            <div
-              key={toggleName}
-              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3">
-                    <h4 className="font-medium text-gray-900">{toggleName}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isEnabled
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                      }`}>
-                      {isEnabled ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {toggleName.includes('hot') ? 'Hot Toggle (Runtime)' : 'Cold Toggle (Build-time)'}
-                  </p>
-                </div>
-
+          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
                 <div className="flex items-center space-x-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={isEnabled}
-                      onChange={(e) => handleToggleChange(toggleName as FeatureToggleName, e.target.checked)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">
-                      {isEnabled ? 'Disable' : 'Enable'}
-                    </span>
-                  </label>
+                  <h4 className="font-medium text-gray-900">New AI Features</h4>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${isEnabled
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                    }`}>
+                    {isEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
                 </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Hot Toggle (Runtime)
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={isEnabled}
+                    onChange={(e) => updateToggle(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">
+                    {isEnabled ? 'Disable' : 'Enable'}
+                  </span>
+                </label>
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* Кнопка обновления */}
-        <div className="mt-6">
-          <button
-            onClick={refreshToggles}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Refresh Toggles
-          </button>
-        </div>
       </div>
     </div>
   );

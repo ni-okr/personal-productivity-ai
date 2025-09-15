@@ -140,7 +140,7 @@ export const useAppStore = create<AppStore>()(
 
           if (result.success && result.task) {
             set((state) => ({
-              tasks: [result.task, ...state.tasks]
+              tasks: [result.task!, ...state.tasks]
             }))
           } else {
             set({ error: result.error || 'Ошибка создания задачи' })

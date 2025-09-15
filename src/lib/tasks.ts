@@ -1,9 +1,13 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
+import type { TaskInsert, TaskUpdate } from '@/types/supabase'
+import { getSupabaseClient } from './supabase'
 
 // Временные типы
 export interface TasksResponse {
   success: boolean
   tasks?: Task[]
+  task?: Task
+  message?: string
   error?: string
 }
 
@@ -31,28 +35,43 @@ export interface UpdateTaskData {
 // Временные заглушки для функций
 export async function getTasks(userId: string): Promise<TasksResponse> {
   try {
-    // Временная заглушка
-    console.log('📋 Получение задач (заглушка) для пользователя:', userId)
+    const supabase = getSupabaseClient()
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('🚨 Ошибка получения задач:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
+    const tasks: Task[] = (data || []).map((task) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.due_date ? new Date(task.due_date) : undefined,
+      completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
+      estimatedMinutes: task.estimated_duration,
+      actualMinutes: task.actual_duration,
+      source: task.source,
+      tags: task.tags || [],
+      userId: task.user_id,
+      createdAt: new Date(task.created_at),
+      updatedAt: new Date(task.updated_at)
+    }))
+
     return {
       success: true,
-      tasks: [
-        {
-          id: 'test-task-1',
-          userId,
-          title: 'Test Task 1',
-          description: 'Test Description 1',
-          priority: 'high',
-          status: 'todo',
-          dueDate: new Date('2024-01-01'),
-          estimatedMinutes: 30,
-          actualMinutes: undefined,
-          completedAt: undefined,
-          tags: ['work'],
-          source: 'manual',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ]
+      tasks
     }
   } catch (error) {
     console.error('🚨 Ошибка получения задач:', error)
@@ -65,27 +84,55 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
 
 export async function createTask(userId: string, taskData: CreateTaskData): Promise<TasksResponse> {
   try {
-    // Временная заглушка
-    console.log('➕ Создание задачи (заглушка):', taskData)
-    const newTask: Task = {
-      id: 'test-task-' + Date.now(),
-      userId,
+    const supabase = getSupabaseClient()
+
+    const taskInsert: TaskInsert = {
+      user_id: userId,
       title: taskData.title,
-      description: taskData.description || '',
+      description: taskData.description,
       priority: taskData.priority || 'medium',
       status: 'todo',
-      dueDate: taskData.dueDate,
-      estimatedMinutes: taskData.estimatedDuration || 30,
-      actualMinutes: undefined,
-      completedAt: undefined,
-      tags: taskData.tags || [],
+      due_date: taskData.dueDate?.toISOString(),
+      estimated_duration: taskData.estimatedMinutes || 30,
       source: 'manual',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      tags: taskData.tags || []
     }
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert(taskInsert)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка создания задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
+    const task: Task = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.due_date ? new Date(data.due_date) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedMinutes: data.estimated_duration,
+      actualMinutes: data.actual_duration,
+      source: data.source,
+      tags: data.tags || [],
+      userId: data.user_id,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    }
+
     return {
       success: true,
-      task: newTask,
+      task,
       message: 'Задача успешно создана'
     }
   } catch (error) {
@@ -99,27 +146,54 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
 
 export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse> {
   try {
-    // Временная заглушка
-    console.log('✏️ Обновление задачи (заглушка):', taskId, updates)
-    const updatedTask: Task = {
-      id: taskId,
-      userId: 'test-user-id',
-      title: updates.title || 'Updated Task',
-      description: 'Test Description',
-      priority: updates.priority || 'high',
-      status: updates.status || 'in_progress',
-      dueDate: new Date('2024-01-01'),
-      estimatedMinutes: 30,
-      actualMinutes: undefined,
-      completedAt: undefined,
-      tags: ['work'],
-      source: 'manual',
-      createdAt: new Date(),
-      updatedAt: new Date()
+    const supabase = getSupabaseClient()
+
+    const taskUpdate: TaskUpdate = {
+      title: updates.title,
+      description: updates.description,
+      priority: updates.priority,
+      status: updates.status,
+      due_date: updates.dueDate?.toISOString(),
+      estimated_duration: updates.estimatedMinutes,
+      tags: updates.tags
     }
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(taskUpdate)
+      .eq('id', taskId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка обновления задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
+    const task: Task = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.due_date ? new Date(data.due_date) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedMinutes: data.estimated_duration,
+      actualMinutes: data.actual_duration,
+      source: data.source,
+      tags: data.tags || [],
+      userId: data.user_id,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    }
+
     return {
       success: true,
-      task: updatedTask,
+      task,
       message: 'Задача успешно обновлена'
     }
   } catch (error) {
@@ -133,8 +207,21 @@ export async function updateTask(taskId: string, updates: UpdateTaskData): Promi
 
 export async function deleteTask(taskId: string): Promise<TasksResponse> {
   try {
-    // Временная заглушка
-    console.log('🗑️ Удаление задачи (заглушка):', taskId)
+    const supabase = getSupabaseClient()
+
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId)
+
+    if (error) {
+      console.error('🚨 Ошибка удаления задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
     return {
       success: true,
       message: 'Задача успешно удалена'
@@ -150,27 +237,50 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
 
 export async function completeTask(taskId: string, actualMinutes?: number): Promise<TasksResponse> {
   try {
-    // Временная заглушка
-    console.log('✅ Завершение задачи (заглушка):', taskId, actualMinutes)
-    const completedTask: Task = {
-      id: taskId,
-      userId: 'test-user-id',
-      title: 'Test Task',
-      description: 'Test Description',
-      priority: 'high',
+    const supabase = getSupabaseClient()
+
+    const taskUpdate: TaskUpdate = {
       status: 'completed',
-      dueDate: new Date('2024-01-01'),
-      estimatedMinutes: 30,
-      actualMinutes: actualMinutes || 25,
-      completedAt: new Date(),
-      tags: ['work'],
-      source: 'manual',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      completed_at: new Date().toISOString(),
+      actual_duration: actualMinutes
     }
+
+    const { data, error } = await supabase
+      .from('tasks')
+      .update(taskUpdate)
+      .eq('id', taskId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка завершения задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
+    const task: Task = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.due_date ? new Date(data.due_date) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedMinutes: data.estimated_duration,
+      actualMinutes: data.actual_duration,
+      source: data.source,
+      tags: data.tags || [],
+      userId: data.user_id,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    }
+
     return {
       success: true,
-      task: completedTask,
+      task,
       message: 'Задача успешно завершена'
     }
   } catch (error) {
@@ -195,17 +305,48 @@ export async function getTasksStats(userId: string): Promise<{
   error?: string
 }> {
   try {
-    // Временная заглушка
-    console.log('📊 Получение статистики задач (заглушка) для пользователя:', userId)
+    const supabase = getSupabaseClient()
+
+    // Получаем все задачи пользователя
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('status, due_date, actual_duration')
+      .eq('user_id', userId)
+
+    if (error) {
+      console.error('🚨 Ошибка получения статистики:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    const now = new Date()
+    const total = tasks?.length || 0
+    const completed = tasks?.filter((task) => task.status === 'completed').length || 0
+    const pending = tasks?.filter((task) => task.status === 'todo' || task.status === 'in_progress').length || 0
+    const overdue = tasks?.filter((task) =>
+      (task.status === 'todo' || task.status === 'in_progress') &&
+      task.due_date &&
+      new Date(task.due_date) < now
+    ).length || 0
+
+    const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
+
+    const completedTasks = tasks?.filter((task) => task.status === 'completed' && task.actual_duration) || []
+    const averageCompletionTime = completedTasks.length > 0
+      ? Math.round(completedTasks.reduce((sum, task) => sum + (task.actual_duration || 0), 0) / completedTasks.length)
+      : 0
+
     return {
       success: true,
       stats: {
-        total: 4,
-        completed: 2,
-        pending: 2,
-        overdue: 2,
-        completionRate: 50,
-        averageCompletionTime: 25
+        total,
+        completed,
+        pending,
+        overdue,
+        completionRate,
+        averageCompletionTime
       }
     }
   } catch (error) {
@@ -219,28 +360,44 @@ export async function getTasksStats(userId: string): Promise<{
 
 export async function syncTasks(userId: string): Promise<TasksResponse> {
   try {
-    // Временная заглушка
-    console.log('🔄 Синхронизация задач (заглушка) для пользователя:', userId)
+    const supabase = getSupabaseClient()
+
+    // Получаем все задачи пользователя для синхронизации
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+
+    if (error) {
+      console.error('🚨 Ошибка синхронизации задач:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
+    const tasks: Task[] = (data || []).map((task) => ({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.due_date ? new Date(task.due_date) : undefined,
+      completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
+      estimatedMinutes: task.estimated_duration,
+      actualMinutes: task.actual_duration,
+      source: task.source,
+      tags: task.tags || [],
+      userId: task.user_id,
+      createdAt: new Date(task.created_at),
+      updatedAt: new Date(task.updated_at)
+    }))
+
     return {
       success: true,
-      tasks: [
-        {
-          id: 'sync-task-1',
-          userId,
-          title: 'Synced Task',
-          description: 'Synced Description',
-          priority: 'medium',
-          status: 'todo',
-          dueDate: new Date('2024-01-01'),
-          estimatedMinutes: 45,
-          actualMinutes: undefined,
-          completedAt: undefined,
-          tags: ['sync'],
-          source: 'manual',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ],
+      tasks,
       message: 'Задачи успешно синхронизированы'
     }
   } catch (error) {

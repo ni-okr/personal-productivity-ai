@@ -3,7 +3,8 @@
  * Система управления функциональностью в продакшене
  */
 
-import { supabase } from './supabase';
+import type { FeatureToggleInsert, FeatureToggleUpdate } from '@/types/supabase';
+import { getSupabaseClient } from './supabase';
 
 export interface FeatureToggle {
   id: string;
@@ -36,6 +37,8 @@ class FeatureToggleManager {
       }
 
       // Загружаем из базы данных
+      const supabase = getSupabaseClient();
+
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('*')
@@ -51,7 +54,7 @@ class FeatureToggleManager {
       this.cache.set(toggleName, data);
       this.cacheExpiry.set(toggleName, Date.now() + this.CACHE_TTL);
 
-      return (data as any)?.enabled || false;
+      return data?.enabled || false;
     } catch (error) {
       console.error(`Error in getToggle for ${toggleName}:`, error);
       return false;
@@ -63,8 +66,8 @@ class FeatureToggleManager {
    */
   async getAllToggles(): Promise<FeatureToggleConfig> {
     try {
-      // Временно закомментировано для build
-      /*
+      const supabase = getSupabaseClient();
+
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('name, enabled');
@@ -75,20 +78,11 @@ class FeatureToggleManager {
       }
 
       const config: FeatureToggleConfig = {};
-      data?.forEach((toggle: any) => {
+      data?.forEach((toggle) => {
         config[toggle.name] = toggle.enabled;
       });
 
       return config;
-      */
-
-      // Временная заглушка
-      return {
-        'new-ai-features': false,
-        'advanced-analytics': false,
-        'pwa-features': false,
-        'beta-features': false
-      };
     } catch (error) {
       console.error('Error in getAllToggles:', error);
       return {};
@@ -100,11 +94,16 @@ class FeatureToggleManager {
    */
   async updateToggle(toggleName: string, enabled: boolean): Promise<boolean> {
     try {
-      // Временно закомментировано для build
-      /*
+      const supabase = getSupabaseClient();
+
+      const updateData: FeatureToggleUpdate = {
+        enabled,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('feature_toggles')
-        .update({ enabled, updated_at: new Date().toISOString() } as any)
+        .update(updateData)
         .eq('name', toggleName)
         .eq('type', 'hot'); // Только hot toggles можно обновлять
 
@@ -122,11 +121,6 @@ class FeatureToggleManager {
       }
 
       return true;
-      */
-
-      // Временная заглушка
-      console.log(`Feature toggle ${toggleName} updated to ${enabled}`);
-      return true;
     } catch (error) {
       console.error(`Error in updateToggle for ${toggleName}:`, error);
       return false;
@@ -143,29 +137,24 @@ class FeatureToggleManager {
     description?: string
   ): Promise<boolean> {
     try {
-      // Временно закомментировано для build
-      /*
+      const supabase = getSupabaseClient();
+
+      const toggleData: FeatureToggleInsert = {
+        name,
+        enabled,
+        type,
+        description
+      };
+
       const { error } = await supabase
         .from('feature_toggles')
-        .insert({
-          name,
-          enabled,
-          type,
-          description,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        .insert(toggleData);
 
       if (error) {
         console.error(`Error creating feature toggle ${name}:`, error);
         return false;
       }
 
-      return true;
-      */
-
-      // Временная заглушка
-      console.log(`Feature toggle ${name} created with enabled=${enabled}, type=${type}`);
       return true;
     } catch (error) {
       console.error(`Error in createToggle for ${name}:`, error);

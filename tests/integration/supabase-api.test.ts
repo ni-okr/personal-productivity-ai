@@ -99,7 +99,7 @@ describe('🗄️ Supabase API Integration', () => {
                 .eq('email', testEmail)
                 .single()
 
-            expect(data?.is_active).toBe(false)
+            expect((data as any)?.is_active).toBe(false)
         }, 10000)
     })
 

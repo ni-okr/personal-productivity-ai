@@ -77,12 +77,12 @@ export const withFeatureToggle = <P extends object>(
   toggleName: FeatureToggleName,
   fallback?: React.ComponentType<P>
 ) => {
-  const WrappedComponent: React.FC<P> = (props) => {
+  const WrappedComponent = (props: P) => {
     const { isEnabled, isLoading, error } = useFeatureToggle(toggleName);
 
     if (error) {
       console.error(`Feature toggle error for ${toggleName}:`, error);
-      return fallback ? React.createElement(fallback, props) : null;
+      return fallback || null;
     }
 
     if (isLoading) {
@@ -90,7 +90,7 @@ export const withFeatureToggle = <P extends object>(
     }
 
     if (!isEnabled) {
-      return fallback ? React.createElement(fallback, props) : null;
+      return fallback || null;
     }
 
     return <Component {...props} />;
@@ -98,7 +98,7 @@ export const withFeatureToggle = <P extends object>(
 
   WrappedComponent.displayName = `withFeatureToggle(${Component.displayName || Component.name})`;
 
-  return WrappedComponent;
+  return WrappedComponent as React.FC<P>;
 };
 
 /**

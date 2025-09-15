@@ -1,7 +1,8 @@
+import type { Database, SubscriberInsert, SubscriberUpdate } from '@/types/supabase'
 import { createClient } from '@supabase/supabase-js'
 
 // Ленивая инициализация Supabase клиента
-let supabaseClient: ReturnType<typeof createClient> | null = null
+let supabaseClient: ReturnType<typeof createClient<Database>> | null = null
 
 export function getSupabaseClient() {
   if (!supabaseClient) {
@@ -12,7 +13,7 @@ export function getSupabaseClient() {
       throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
     }
 
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+    supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
   }
 
   return supabaseClient
@@ -34,18 +35,38 @@ export interface Subscriber {
 // Временные заглушки для функций
 export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: Subscriber }> {
   try {
-    // Временная заглушка
-    console.log('✅ Подписчик добавлен (заглушка):', email)
+    const supabase = getSupabaseClient()
+
+    const subscriberData: SubscriberInsert = {
+      email,
+      source: 'landing_page',
+      is_active: true
+    }
+
+    const { data, error } = await supabase
+      .from('subscribers')
+      .insert(subscriberData)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка добавления подписчика:', error)
+      return {
+        success: false,
+        message: 'Ошибка при добавлении подписчика'
+      }
+    }
+
     return {
       success: true,
       message: 'Спасибо за подписку! Мы уведомим вас о запуске.',
       data: {
-        id: 'temp-' + Date.now(),
-        email,
-        source: 'landing_page',
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        id: data.id,
+        email: data.email,
+        source: data.source,
+        is_active: data.is_active,
+        created_at: data.created_at,
+        updated_at: data.updated_at
       }
     }
   } catch (error: any) {
@@ -59,9 +80,20 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
 
 export async function getActiveSubscribers(): Promise<Subscriber[]> {
   try {
-    // Временная заглушка
-    console.log('📊 Получение активных подписчиков (заглушка)')
-    return []
+    const supabase = getSupabaseClient()
+
+    const { data, error } = await supabase
+      .from('subscribers')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('🚨 Ошибка получения подписчиков:', error)
+      return []
+    }
+
+    return data || []
   } catch (error) {
     console.error('🚨 Ошибка получения подписчиков:', error)
     return []
@@ -70,8 +102,25 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
 
 export async function unsubscribe(email: string): Promise<{ success: boolean; message: string }> {
   try {
-    // Временная заглушка
-    console.log('📧 Отписка от рассылки (заглушка):', email)
+    const supabase = getSupabaseClient()
+
+    const updateData: SubscriberUpdate = {
+      is_active: false
+    }
+
+    const { error } = await supabase
+      .from('subscribers')
+      .update(updateData)
+      .eq('email', email)
+
+    if (error) {
+      console.error('🚨 Ошибка отписки:', error)
+      return {
+        success: false,
+        message: 'Произошла ошибка при отписке.'
+      }
+    }
+
     return {
       success: true,
       message: 'Вы успешно отписались от рассылки.'
