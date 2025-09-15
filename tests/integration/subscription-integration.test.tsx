@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { useSubscription } from '@/hooks/useSubscription'
-import { fireEvent, render, screen, waitFor, renderHook } from '@testing-library/react'
+import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock useSubscription hook
