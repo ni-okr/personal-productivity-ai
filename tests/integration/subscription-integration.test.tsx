@@ -2,20 +2,20 @@
 import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { useSubscription } from '@/hooks/useSubscription'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen, waitFor, renderHook } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock useSubscription hook
-vi.mock('@/hooks/useSubscription', () => ({
-    useSubscription: vi.fn()
+jest.mock('@/hooks/useSubscription', () => ({
+    useSubscription: jest.fn()
 }))
 
 // Mock fetch
-global.fetch = vi.fn()
+global.fetch = jest.fn()
 
 describe('Subscription Integration', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        jest.clearAllMocks()
     })
 
     describe('SubscriptionModal', () => {
@@ -52,8 +52,8 @@ describe('Subscription Integration', () => {
                 json: () => Promise.resolve({ success: true, data: mockPlans })
             })
 
-            const mockOnSelectPlan = vi.fn()
-            const mockOnClose = vi.fn()
+            const mockOnSelectPlan = jest.fn()
+            const mockOnClose = jest.fn()
 
             render(
                 <SubscriptionModal
@@ -81,8 +81,8 @@ describe('Subscription Integration', () => {
                 json: () => Promise.resolve({ success: true, data: mockPlans })
             })
 
-            const mockOnSelectPlan = vi.fn()
-            const mockOnClose = vi.fn()
+            const mockOnSelectPlan = jest.fn()
+            const mockOnClose = jest.fn()
 
             render(
                 <SubscriptionModal
@@ -111,8 +111,8 @@ describe('Subscription Integration', () => {
                 json: () => Promise.resolve({ success: true, data: mockPlans })
             })
 
-            const mockOnSelectPlan = vi.fn()
-            const mockOnClose = vi.fn()
+            const mockOnSelectPlan = jest.fn()
+            const mockOnClose = jest.fn()
 
             render(
                 <SubscriptionModal
@@ -170,7 +170,7 @@ describe('Subscription Integration', () => {
                 })
             })
 
-            const mockOnUpgrade = vi.fn()
+            const mockOnUpgrade = jest.fn()
 
             render(
                 <SubscriptionStatus
@@ -210,7 +210,7 @@ describe('Subscription Integration', () => {
                     })
                 })
 
-            const mockOnUpgrade = vi.fn()
+            const mockOnUpgrade = jest.fn()
 
             render(
                 <SubscriptionStatus
@@ -240,7 +240,7 @@ describe('Subscription Integration', () => {
                 })
             })
 
-            const mockOnUpgrade = vi.fn()
+            const mockOnUpgrade = jest.fn()
 
             render(
                 <SubscriptionStatus

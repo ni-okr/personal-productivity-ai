@@ -4,6 +4,7 @@ import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from '@jest/globals'
+import '@testing-library/jest-dom'
 
 // Mock auth functions
 jest.mock('@/lib/auth', () => ({

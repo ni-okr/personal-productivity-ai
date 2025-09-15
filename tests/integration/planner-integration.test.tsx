@@ -3,7 +3,7 @@ import PlannerPage from '@/app/planner/page'
 import { useAuth } from '@/hooks/useAuth'
 import * as tasksApi from '@/lib/tasks'
 import { useAppStore } from '@/stores/useAppStore'
-import { User, SubscriptionStatus } from '@/types'
+import { User } from '@/types'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 // Mock hooks
@@ -22,7 +22,7 @@ describe('Planner Integration with Supabase', () => {
         id: 'test-user-id',
         email: 'test@example.com',
         name: 'Test User',
-        avatar: null,
+        avatar: undefined,
         timezone: 'Europe/Moscow',
         subscription: 'free',
         subscriptionStatus: 'active',
