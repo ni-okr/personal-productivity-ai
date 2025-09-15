@@ -81,6 +81,77 @@
             "auto_format": true,
             "auto_docs": true
         },
+        "background_agents": {
+            "test_fixer": {
+                "enabled": true,
+                "description": "Автоматически исправляет ошибки в тестах",
+                "triggers": [
+                    "test_failure",
+                    "typescript_error_in_tests",
+                    "jest_error",
+                    "testing_library_error"
+                ],
+                "actions": [
+                    "fix_import_errors",
+                    "fix_type_errors",
+                    "fix_mock_issues",
+                    "fix_assertion_errors",
+                    "update_test_configuration"
+                ],
+                "patterns": [
+                    "Property 'toBeInTheDocument' does not exist",
+                    "Cannot find module 'vitest'",
+                    "Cannot find name 'renderHook'",
+                    "Type 'null' is not assignable to type 'string | undefined'",
+                    "Argument of type.*is not assignable to parameter"
+                ]
+            },
+            "typescript_fixer": {
+                "enabled": true,
+                "description": "Автоматически исправляет ошибки TypeScript",
+                "triggers": [
+                    "typescript_error",
+                    "compilation_error",
+                    "type_error"
+                ],
+                "actions": [
+                    "fix_type_annotations",
+                    "add_missing_imports",
+                    "fix_interface_mismatches",
+                    "resolve_type_conflicts"
+                ]
+            },
+            "jest_configurator": {
+                "enabled": true,
+                "description": "Автоматически настраивает Jest конфигурацию",
+                "triggers": [
+                    "jest_setup_error",
+                    "testing_library_error",
+                    "jest_dom_error"
+                ],
+                "actions": [
+                    "fix_jest_setup",
+                    "update_jest_config",
+                    "fix_test_imports",
+                    "configure_testing_library"
+                ]
+            },
+            "github_actions_monitor": {
+                "enabled": true,
+                "description": "Мониторит GitHub Actions и исправляет ошибки",
+                "triggers": [
+                    "github_actions_failure",
+                    "workflow_error",
+                    "ci_cd_error"
+                ],
+                "actions": [
+                    "analyze_workflow_logs",
+                    "fix_configuration_errors",
+                    "update_dependencies",
+                    "fix_environment_issues"
+                ]
+            }
+        },
         "templates": {
             "component": {
                 "path": "src/components/",

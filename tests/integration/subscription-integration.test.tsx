@@ -1,10 +1,10 @@
 // 🧪 Integration тесты для системы подписок
-import '@testing-library/jest-dom'
 import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { useSubscription } from '@/hooks/useSubscription'
-import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from '@jest/globals'
+import '@testing-library/jest-dom'
+import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 
 // Mock useSubscription hook
 jest.mock('@/hooks/useSubscription', () => ({
