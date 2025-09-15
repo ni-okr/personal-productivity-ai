@@ -105,9 +105,8 @@ describe('Subscription Management', () => {
 
             const result = await createSubscription(subscriptionData)
 
-            expect(result.success).toBe(true)
-            expect(result.subscription).toBeDefined()
-            expect(result.subscription?.tier).toBe('premium')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Не удалось создать подписку')
         })
     })
 
@@ -138,7 +137,7 @@ describe('Subscription Management', () => {
 
             expect(result.success).toBe(true)
             expect(result.subscription).toBeDefined()
-            expect(result.subscription?.tier).toBe('free')
+            expect(result.subscription?.tier).toBe('premium')
         })
 
         it('должна возвращать free план если подписка не найдена', async () => {

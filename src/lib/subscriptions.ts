@@ -166,18 +166,18 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
         }
 
         const subscription: Subscription = {
-            id: data.id,
-            userId: data.user_id,
-            tier: data.tier,
-            status: data.status,
-            tinkoffCustomerId: data.tinkoff_customer_id,
-            tinkoffPaymentId: data.tinkoff_payment_id,
-            currentPeriodStart: new Date(data.current_period_start),
-            currentPeriodEnd: new Date(data.current_period_end),
-            cancelAtPeriodEnd: data.cancel_at_period_end,
-            trialEnd: data.trial_end ? new Date(data.trial_end) : undefined,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at)
+            id: (data as any).id,
+            userId: (data as any).user_id,
+            tier: (data as any).tier,
+            status: (data as any).status,
+            tinkoffCustomerId: (data as any).tinkoff_customer_id,
+            tinkoffPaymentId: (data as any).tinkoff_payment_id,
+            currentPeriodStart: new Date((data as any).current_period_start),
+            currentPeriodEnd: new Date((data as any).current_period_end),
+            cancelAtPeriodEnd: (data as any).cancel_at_period_end,
+            trialEnd: (data as any).trial_end ? new Date((data as any).trial_end) : undefined,
+            createdAt: new Date((data as any).created_at),
+            updatedAt: new Date((data as any).updated_at)
         }
 
         return {
@@ -214,7 +214,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
 
         const { data: subscription, error } = await supabase
             .from('subscriptions')
-            .insert(subscriptionData)
+            .insert(subscriptionData as any)
             .select()
             .single()
 
@@ -229,18 +229,18 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
         return {
             success: true,
             subscription: {
-                id: subscription.id,
-                userId: subscription.user_id,
-                tier: subscription.tier,
-                status: subscription.status,
-                tinkoffCustomerId: subscription.tinkoff_customer_id,
-                tinkoffPaymentId: subscription.tinkoff_payment_id,
-                currentPeriodStart: new Date(subscription.current_period_start),
-                currentPeriodEnd: new Date(subscription.current_period_end),
-                cancelAtPeriodEnd: subscription.cancel_at_period_end,
-                trialEnd: subscription.trial_end ? new Date(subscription.trial_end) : undefined,
-                createdAt: new Date(subscription.created_at),
-                updatedAt: new Date(subscription.updated_at)
+                id: (subscription as any).id,
+                userId: (subscription as any).user_id,
+                tier: (subscription as any).tier,
+                status: (subscription as any).status,
+                tinkoffCustomerId: (subscription as any).tinkoff_customer_id,
+                tinkoffPaymentId: (subscription as any).tinkoff_payment_id,
+                currentPeriodStart: new Date((subscription as any).current_period_start),
+                currentPeriodEnd: new Date((subscription as any).current_period_end),
+                cancelAtPeriodEnd: (subscription as any).cancel_at_period_end,
+                trialEnd: (subscription as any).trial_end ? new Date((subscription as any).trial_end) : undefined,
+                createdAt: new Date((subscription as any).created_at),
+                updatedAt: new Date((subscription as any).updated_at)
             }
         }
     } catch (error) {
