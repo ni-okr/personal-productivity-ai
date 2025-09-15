@@ -11,6 +11,12 @@ if ! command -v cursor &> /dev/null; then
     exit 1
 fi
 
+# Загружаем переменные из .env.local
+if [ -f ".env.local" ]; then
+    source .env.local
+    echo "✅ Переменные загружены из .env.local"
+fi
+
 # Проверяем наличие API ключа
 if [ -z "$CURSOR_API_KEY" ]; then
     echo "⚠️  CURSOR_API_KEY не установлен. Установите переменную окружения."
