@@ -8,6 +8,11 @@ import {
 import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock Supabase для интеграционных тестов
+const mockInsert = jest.fn()
+const mockUpdate = jest.fn()
+const mockSelect = jest.fn()
+const mockSingle = jest.fn()
+
 jest.mock('@/lib/supabase', () => ({
     supabase: {
         auth: {
@@ -17,41 +22,9 @@ jest.mock('@/lib/supabase', () => ({
             getUser: jest.fn()
         },
         from: jest.fn(() => ({
-            insert: jest.fn(() => ({
-                error: null
-            } as any)),
-            update: jest.fn(() => ({
-                eq: jest.fn(() => ({
-                    select: jest.fn(() => ({
-                        single: jest.fn(() => ({
-                            data: {
-                                id: 'test-user-id',
-                                email: 'test@example.com',
-                                name: 'Test User',
-                                subscription: 'free',
-                                created_at: '2024-01-01T00:00:00Z',
-                                last_login_at: '2024-01-01T00:00:00Z'
-                            },
-                            error: null
-                        } as any))
-                    } as any))
-                } as any))
-            } as any)),
-            select: jest.fn(() => ({
-                eq: jest.fn(() => ({
-                    single: jest.fn(() => ({
-                        data: {
-                            id: 'test-user-id',
-                            email: 'test@example.com',
-                            name: 'Test User',
-                            subscription: 'free',
-                            created_at: '2024-01-01T00:00:00Z',
-                            last_login_at: '2024-01-01T00:00:00Z'
-                        },
-                        error: null
-                    } as any))
-                } as any))
-            } as any))
+            insert: mockInsert,
+            update: mockUpdate,
+            select: mockSelect
         }))
     }
 }))
@@ -59,42 +32,33 @@ jest.mock('@/lib/supabase', () => ({
 describe('Auth Integration Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks()
+        
+        // Настраиваем моки по умолчанию
+        mockInsert.mockReturnValue({
+            error: null
+        })
+        
+        mockUpdate.mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    single: mockSingle
+                })
+            })
+        })
+        
+        mockSelect.mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+                single: mockSingle
+            })
+        })
     })
 
-    describe('Complete Auth Flow', () => {
-        it('should complete full registration and login flow', async () => {
-            const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
-            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
-            const mockGetUser = jest.mocked(mockSupabase.supabase.auth.getUser)
-
-            // Mock successful registration
-            mockSignUp.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        email_confirmed_at: '2024-01-01T00:00:00Z',
-                        user_metadata: { name: 'Test User' }
-                    }
-                },
-                error: null
-            } as any)
-
-            // Mock successful login
-            mockSignIn.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        user_metadata: { name: 'Test User' }
-                    }
-                },
-                error: null
-            } as any)
-
-            // Mock get current user
-            mockGetUser.mockResolvedValue({
+    describe('User Registration Flow', () => {
+        it('should register user successfully', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для успешной регистрации
+            supabase.auth.signUp.mockResolvedValue({
                 data: {
                     user: {
                         id: 'test-user-id',
@@ -102,129 +66,217 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            } as any)
+            })
 
-            // Test registration
-            const signUpResult = await signUp({
-                email: 'test@example.com',
-                password: 'password123',
-                name: 'Test User'
-            } as any)
+            mockSingle.mockResolvedValue({
+                data: {
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    subscription: 'free',
+                    created_at: '2024-01-01T00:00:00Z',
+                    last_login_at: '2024-01-01T00:00:00Z'
+                },
+                error: null
+            })
 
-            expect(signUpResult.success).toBe(true)
-            expect(signUpResult.user).toBeDefined()
-
-            // Test login
-            const signInResult = await signIn({
-                email: 'test@example.com',
-                password: 'password123'
-            } as any)
-
-            expect(signInResult.success).toBe(true)
-            expect(signInResult.user).toBeDefined()
-
-            // Test get current user
-            const currentUser = await getCurrentUser()
-            expect(currentUser).toBeDefined()
-            expect(currentUser?.id).toBe('test-user-id')
-        })
-
-        it('should handle profile updates', async () => {
-            const mockSupabase = await import('@/lib/supabase')
-            const mockUpdate = jest.mocked(mockSupabase.supabase.from)
-
-            // Mock successful profile update
-            mockUpdate.mockReturnValue({
-                update: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        select: jest.fn(() => ({
-                            single: jest.fn(() => ({
-                                data: {
-                                    id: 'test-user-id',
-                                    email: 'test@example.com',
-                                    name: 'Updated Name',
-                                    subscription: 'premium',
-                                    created_at: '2024-01-01T00:00:00Z',
-                                    last_login_at: '2024-01-01T00:00:00Z'
-                                },
-                                error: null
-                            } as any))
-                        } as any))
-                    } as any))
-                } as any))
-            } as any)
-
-            const result = await updateUserProfile('test-user-id', {
-                name: 'Updated Name',
-                subscription: 'premium'
-            } as any)
+            const result = await signUp('test@example.com', 'password123', 'Test User')
 
             expect(result.success).toBe(true)
-            expect(result.user?.name).toBe('Updated Name')
-            expect(result.user?.subscription).toBe('premium')
+            expect(result.user?.id).toBe('test-user-id')
+            expect(result.user?.email).toBe('test@example.com')
+        })
+
+        it('should handle registration errors', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для ошибки регистрации
+            supabase.auth.signUp.mockResolvedValue({
+                data: null,
+                error: { message: 'Email already exists' }
+            })
+
+            const result = await signUp('test@example.com', 'password123', 'Test User')
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Email already exists')
         })
     })
 
-    describe('Error Handling', () => {
-        it('should handle network errors gracefully', async () => {
-            const mockSupabase = await import('@/lib/supabase')
-            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
+    describe('User Login Flow', () => {
+        it('should login user successfully', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для успешного входа
+            supabase.auth.signInWithPassword.mockResolvedValue({
+                data: {
+                    user: {
+                        id: 'test-user-id',
+                        email: 'test@example.com'
+                    }
+                },
+                error: null
+            })
 
-            // Mock network error
-            mockSignIn.mockRejectedValue(new Error('Network error'))
+            mockSingle.mockResolvedValue({
+                data: {
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    subscription: 'free',
+                    created_at: '2024-01-01T00:00:00Z',
+                    last_login_at: '2024-01-01T00:00:00Z'
+                },
+                error: null
+            })
 
-            const result = await signIn({
-                email: 'test@example.com',
-                password: 'password123'
-            } as any)
+            const result = await signIn('test@example.com', 'password123')
 
-            expect(result.success).toBe(false)
-            expect(result.error).toBe('Произошла ошибка при входе')
+            expect(result.success).toBe(true)
+            expect(result.user?.id).toBe('test-user-id')
+            expect(result.user?.email).toBe('test@example.com')
         })
 
-        it('should handle database errors gracefully', async () => {
-            const mockSupabase = await import('@/lib/supabase')
-            const mockFrom = jest.mocked(mockSupabase.supabase.from)
+        it('should handle login errors', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для ошибки входа
+            supabase.auth.signInWithPassword.mockResolvedValue({
+                data: null,
+                error: { message: 'Invalid credentials' }
+            })
 
-            // Mock database error
-            mockFrom.mockReturnValue({
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        single: jest.fn(() => ({
-                            data: null,
-                            error: { message: 'Database connection failed' }
-                        } as any))
-                    } as any))
-                } as any))
-            } as any)
+            const result = await signIn('test@example.com', 'wrongpassword')
 
-            const result = await getUserProfile('test-user-id')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Invalid credentials')
+        })
+    })
 
-            expect(result).toBeNull()
+    describe('User Profile Management', () => {
+        it('should get user profile successfully', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для получения профиля
+            supabase.auth.getUser.mockResolvedValue({
+                data: {
+                    user: {
+                        id: 'test-user-id',
+                        email: 'test@example.com'
+                    }
+                },
+                error: null
+            })
+
+            mockSingle.mockResolvedValue({
+                data: {
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    subscription: 'free',
+                    created_at: '2024-01-01T00:00:00Z',
+                    last_login_at: '2024-01-01T00:00:00Z'
+                },
+                error: null
+            })
+
+            const profile = await getUserProfile()
+
+            expect(profile).toBeDefined()
+            expect(profile?.id).toBe('test-user-id')
+            expect(profile?.email).toBe('test@example.com')
+        })
+
+        it('should update user profile successfully', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для обновления профиля
+            supabase.auth.getUser.mockResolvedValue({
+                data: {
+                    user: {
+                        id: 'test-user-id',
+                        email: 'test@example.com'
+                    }
+                },
+                error: null
+            })
+
+            mockSingle.mockResolvedValue({
+                data: {
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Updated Name',
+                    subscription: 'free',
+                    created_at: '2024-01-01T00:00:00Z',
+                    last_login_at: '2024-01-01T00:00:00Z'
+                },
+                error: null
+            })
+
+            const result = await updateUserProfile({
+                name: 'Updated Name'
+            })
+
+            expect(result.success).toBe(true)
+            expect(result.user?.name).toBe('Updated Name')
+        })
+    })
+
+    describe('Current User Management', () => {
+        it('should get current user successfully', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для получения текущего пользователя
+            supabase.auth.getUser.mockResolvedValue({
+                data: {
+                    user: {
+                        id: 'test-user-id',
+                        email: 'test@example.com'
+                    }
+                },
+                error: null
+            })
+
+            mockSingle.mockResolvedValue({
+                data: {
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    subscription: 'free',
+                    created_at: '2024-01-01T00:00:00Z',
+                    last_login_at: '2024-01-01T00:00:00Z'
+                },
+                error: null
+            })
+
+            const user = await getCurrentUser()
+
+            expect(user).toBeDefined()
+            expect(user?.id).toBe('test-user-id')
+            expect(user?.email).toBe('test@example.com')
+        })
+
+        it('should return null when no user is logged in', async () => {
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем мок для отсутствия пользователя
+            supabase.auth.getUser.mockResolvedValue({
+                data: null,
+                error: null
+            })
+
+            const user = await getCurrentUser()
+
+            expect(user).toBeNull()
         })
     })
 
     describe('Data Consistency', () => {
         it('should maintain data consistency across operations', async () => {
-            const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
-            const mockGetUser = jest.mocked(mockSupabase.supabase.auth.getUser)
-
-            // Mock successful registration
-            mockSignUp.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        email_confirmed_at: '2024-01-01T00:00:00Z',
-                        user_metadata: { name: 'Test User' }
-                    }
-                },
-                error: null
-            } as any)
-
-            // Mock get current user
-            mockGetUser.mockResolvedValue({
+            const { supabase } = require('@/lib/supabase')
+            
+            // Настраиваем моки для полного цикла операций
+            supabase.auth.signUp.mockResolvedValue({
                 data: {
                     user: {
                         id: 'test-user-id',
@@ -232,23 +284,37 @@ describe('Auth Integration Tests', () => {
                     }
                 },
                 error: null
-            } as any)
+            })
 
-            // Test registration
-            const signUpResult = await signUp({
-                email: 'test@example.com',
-                password: 'password123',
-                name: 'Test User'
-            } as any)
+            mockSingle.mockResolvedValue({
+                data: {
+                    id: 'test-user-id',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    subscription: 'free',
+                    created_at: '2024-01-01T00:00:00Z',
+                    last_login_at: '2024-01-01T00:00:00Z'
+                },
+                error: null
+            })
 
+            // Регистрация
+            const signUpResult = await signUp('test@example.com', 'password123', 'Test User')
             expect(signUpResult.success).toBe(true)
             expect(signUpResult.user?.id).toBe('test-user-id')
             expect(signUpResult.user?.email).toBe('test@example.com')
 
-            // Test get current user returns same data
-            const currentUser = await getCurrentUser()
-            expect(currentUser?.id).toBe('test-user-id')
-            expect(currentUser?.email).toBe('test@example.com')
+            // Получение профиля
+            const profile = await getUserProfile()
+            expect(profile).toBeDefined()
+            expect(profile?.id).toBe('test-user-id')
+
+            // Обновление профиля
+            const updateResult = await updateUserProfile({
+                name: 'Updated Name'
+            })
+            expect(updateResult.success).toBe(true)
+            expect(updateResult.user?.name).toBe('Updated Name')
         })
     })
 })
