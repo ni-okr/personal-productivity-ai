@@ -24,7 +24,6 @@ describe('Planner Integration with Supabase', () => {
         avatar: null,
         timezone: 'Europe/Moscow',
         subscription: 'free' as const,
-        subscriptionStatus: 'active' as const,
         preferences: {
             workingHours: { start: '09:00', end: '18:00' },
             focusTime: 25,
@@ -75,7 +74,6 @@ describe('Planner Integration with Supabase', () => {
             user: null,
             isLoading: false,
             isAuthenticated: false,
-            signOut: jest.fn(),
             requireAuth: jest.fn(),
             requireGuest: jest.fn()
         })
@@ -97,7 +95,6 @@ describe('Planner Integration with Supabase', () => {
                 user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
@@ -116,7 +113,6 @@ describe('Planner Integration with Supabase', () => {
                 user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
@@ -157,7 +153,6 @@ describe('Planner Integration with Supabase', () => {
                 user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
@@ -226,7 +221,6 @@ describe('Planner Integration with Supabase', () => {
                 user: null,
                 isLoading: false,
                 isAuthenticated: false,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
@@ -244,7 +238,6 @@ describe('Planner Integration with Supabase', () => {
                 user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
@@ -290,7 +283,6 @@ describe('Planner Integration with Supabase', () => {
                 user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
@@ -349,7 +341,6 @@ describe('Planner Integration with Supabase', () => {
                 user: mockUser,
                 isLoading: false,
                 isAuthenticated: true,
-                signOut: jest.fn(),
                 requireAuth: jest.fn(),
                 requireGuest: jest.fn()
             })
