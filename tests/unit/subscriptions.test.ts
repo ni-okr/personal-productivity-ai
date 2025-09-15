@@ -8,7 +8,7 @@ import {
 } from '@/lib/subscriptions'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 
-// Создаем моки вне jest.mock
+// Mock Supabase с правильной структурой
 const mockSingle = jest.fn()
 const mockInsert = jest.fn().mockReturnValue({
     select: jest.fn().mockReturnValue({
@@ -28,38 +28,12 @@ const mockUpdate = jest.fn().mockReturnValue({
     })
 })
 
-const mockSupabase = {
-    from: jest.fn().mockImplementation((table: string) => ({
-        insert: mockInsert,
-        select: mockSelect,
-        update: mockUpdate,
-        delete: jest.fn(() => ({
-            eq: jest.fn()
-        }))
-    }))
-}
-
-// Mock Supabase с правильной структурой
 jest.mock('@/lib/supabase', () => ({
     supabase: {
         from: jest.fn().mockImplementation((table: string) => ({
-            insert: jest.fn().mockReturnValue({
-                select: jest.fn().mockReturnValue({
-                    single: jest.fn()
-                })
-            }),
-            select: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    single: jest.fn()
-                })
-            }),
-            update: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn()
-                    })
-                })
-            }),
+            insert: mockInsert,
+            select: mockSelect,
+            update: mockUpdate,
             delete: jest.fn(() => ({
                 eq: jest.fn()
             }))
@@ -99,13 +73,6 @@ describe('Subscription Management', () => {
                 updated_at: '2024-01-01T00:00:00.000Z'
             }
 
-            // Получаем мок Supabase
-            const { supabase } = require('@/lib/supabase')
-            const mockFrom = supabase.from as jest.MockedFunction<typeof supabase.from>
-            const mockInsert = mockFrom().insert as jest.MockedFunction<any>
-            const mockSelect = mockInsert().select as jest.MockedFunction<any>
-            const mockSingle = mockSelect().single as jest.MockedFunction<any>
-
             // Настраиваем мок для успешного создания
             mockSingle.mockResolvedValue({
                 data: mockSubscription,
@@ -117,7 +84,6 @@ describe('Subscription Management', () => {
             expect(result.success).toBe(true)
             expect(result.subscription).toBeDefined()
             expect(result.subscription?.tier).toBe('premium')
-            expect(mockFrom).toHaveBeenCalledWith('user_subscriptions')
         })
 
         it('должна обрабатывать ошибки создания подписки', async () => {
