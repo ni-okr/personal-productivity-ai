@@ -1,38 +1,110 @@
 {
-  "mcpServers": {
-    "supabase": {
-      "command": "npx",
-      "args": ["@supabase/mcp-server"],
-      "env": {
-        "SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
-        "SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
-      }
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem", "/home/ni/Projects/personal-productivity-ai-clean"]
-    },
-    "git": {
-      "command": "npx", 
-      "args": ["@modelcontextprotocol/server-git", "--repository", "/home/ni/Projects/personal-productivity-ai-clean"]
-    },
-    "github": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
-    },
-    "web-search": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
-      }
-    },
-    "memory": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-memory"]
+    "mcpServers": {
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "@supabase/mcp-server"
+            ],
+            "env": {
+                "SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
+                "SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+            }
+        },
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-filesystem",
+                "/home/ni/Projects/personal-productivity-ai-clean"
+            ]
+        },
+        "git": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-git",
+                "--repository",
+                "/home/ni/Projects/personal-productivity-ai-clean"
+            ]
+        },
+        "github": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-github"
+            ],
+            "env": {
+                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+            }
+        },
+        "web-search": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-brave-search"
+            ],
+            "env": {
+                "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+            }
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-memory"
+            ]
+        },
+        "postgres": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-postgres"
+            ],
+            "env": {
+                "POSTGRES_CONNECTION_STRING": "postgresql://postgres:${DB_PASSWORD}@db.zpgkzvflmgxrlgkecscg.supabase.co:5432/postgres"
+            }
+        },
+        "docker": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-docker"
+            ]
+        },
+        "puppeteer": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-puppeteer"
+            ]
+        },
+        "linear": {
+            "command": "npx",
+            "args": [
+                "linear-mcp-server"
+            ],
+            "env": {
+                "LINEAR_API_KEY": "${LINEAR_API_KEY}"
+            }
+        },
+        "notion": {
+            "command": "npx",
+            "args": [
+                "@notion-mcp/server"
+            ],
+            "env": {
+                "NOTION_API_KEY": "${NOTION_API_KEY}"
+            }
+        },
+        "openai": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-openai"
+            ],
+            "env": {
+                "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+            }
+        },
+        "anthropic": {
+            "command": "npx",
+            "args": [
+                "@modelcontextprotocol/server-anthropic"
+            ],
+            "env": {
+                "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+            }
+        }
     }
-  }
 }

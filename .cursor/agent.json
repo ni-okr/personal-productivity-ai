@@ -1,60 +1,122 @@
 {
-  "agentConfig": {
-    "name": "Personal Productivity AI Assistant",
-    "description": "Специализированный ИИ ассистент для разработки Personal Productivity AI MVP",
-    "capabilities": [
-      "code-generation",
-      "testing",
-      "documentation", 
-      "debugging",
-      "architecture-planning",
-      "database-operations",
-      "api-integration"
-    ],
-    "context": {
-      "project": "Personal Productivity AI",
-      "stage": "MVP Development",
-      "tech_stack": ["Next.js 14", "TypeScript", "Tailwind CSS", "Supabase", "Zustand"],
-      "priorities": ["stability", "testing", "security", "performance"]
-    },
-    "rules": [
-      "Always use TypeScript with strict typing",
-      "Write tests for all new functionality",
-      "Follow security best practices (RLS, validation)",
-      "Update documentation when making changes",
-      "Use Error Boundaries for React components",
-      "Prefer functional programming style",
-      "Use Tailwind CSS for styling"
-    ],
-    "workflows": {
-      "feature-development": [
-        "Analyze requirements",
-        "Design architecture", 
-        "Write tests first (TDD)",
-        "Implement functionality",
-        "Update documentation",
-        "Run full test suite"
-      ],
-      "bug-fixing": [
-        "Reproduce the issue",
-        "Write failing test",
-        "Fix the bug",
-        "Ensure test passes",
-        "Check for regressions"
-      ],
-      "refactoring": [
-        "Ensure test coverage",
-        "Refactor incrementally",
-        "Run tests after each change",
-        "Update documentation if needed"
-      ]
-    },
-    "integrations": {
-      "database": "Supabase PostgreSQL with RLS",
-      "auth": "Supabase Auth",
-      "testing": "Jest + Playwright + Allure",
-      "deployment": "Vercel",
-      "ai": "OpenAI GPT-4o Mini (planned)"
+    "agentConfig": {
+        "name": "Personal Productivity AI Assistant",
+        "description": "Специализированный ИИ ассистент для разработки Personal Productivity AI MVP",
+        "capabilities": [
+            "code-generation",
+            "testing",
+            "documentation",
+            "debugging",
+            "architecture-planning",
+            "database-operations",
+            "api-integration"
+        ],
+        "context": {
+            "project": "Personal Productivity AI",
+            "stage": "MVP Development",
+            "tech_stack": [
+                "Next.js 14",
+                "TypeScript",
+                "Tailwind CSS",
+                "Supabase",
+                "Zustand"
+            ],
+            "priorities": [
+                "stability",
+                "testing",
+                "security",
+                "performance"
+            ]
+        },
+        "rules": [
+            "Always use TypeScript with strict typing",
+            "Write tests for all new functionality",
+            "Follow security best practices (RLS, validation)",
+            "Update documentation when making changes",
+            "Use Error Boundaries for React components",
+            "Prefer functional programming style",
+            "Use Tailwind CSS for styling"
+        ],
+        "workflows": {
+            "feature-development": [
+                "Analyze requirements",
+                "Design architecture",
+                "Write tests first (TDD)",
+                "Implement functionality",
+                "Update documentation",
+                "Run full test suite"
+            ],
+            "bug-fixing": [
+                "Reproduce the issue",
+                "Write failing test",
+                "Fix the bug",
+                "Ensure test passes",
+                "Check for regressions"
+            ],
+            "refactoring": [
+                "Ensure test coverage",
+                "Refactor incrementally",
+                "Run tests after each change",
+                "Update documentation if needed"
+            ]
+        },
+        "integrations": {
+            "database": "Supabase PostgreSQL with RLS",
+            "auth": "Supabase Auth",
+            "testing": "Jest + Playwright + Allure",
+            "deployment": "Vercel",
+            "ai": "OpenAI GPT-4o Mini (planned)"
+        },
+        "planning": {
+            "auto_breakdown": true,
+            "task_estimation": true,
+            "dependency_tracking": true,
+            "progress_reporting": true,
+            "risk_assessment": true
+        },
+        "automation": {
+            "auto_commit": false,
+            "auto_test": true,
+            "auto_lint": true,
+            "auto_format": true,
+            "auto_docs": true
+        },
+        "templates": {
+            "component": {
+                "path": "src/components/",
+                "includes": [
+                    "tsx",
+                    "test",
+                    "stories"
+                ],
+                "style": "functional"
+            },
+            "api": {
+                "path": "src/app/api/",
+                "includes": [
+                    "route",
+                    "test",
+                    "schema"
+                ],
+                "validation": "zod"
+            },
+            "page": {
+                "path": "src/app/",
+                "includes": [
+                    "page",
+                    "layout",
+                    "loading",
+                    "error"
+                ],
+                "metadata": true
+            }
+        },
+        "quality_gates": {
+            "min_test_coverage": 80,
+            "max_complexity": 10,
+            "no_console_logs": true,
+            "typescript_strict": true,
+            "security_scan": true
+        }
     }
-  }
 }

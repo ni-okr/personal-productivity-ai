@@ -1,4 +1,4 @@
-// 🤖 Система интеграции с ИИ моделями (ФАЗА 3)
+// 🤖 Система интеграции с ИИ моделями с Premium подписками
 import { Task, TaskForm, UserPreferences } from '@/types'
 
 export type AIProvider = 'openai' | 'anthropic' | 'google' | 'local' | 'mock'
@@ -401,9 +401,65 @@ export class AIPlanner {
         }
     }
 
-    // Заглушки для реальных API (TODO: реализовать)
+    // Реальная интеграция с OpenAI API
     private async callOpenAI(request: AIRequest): Promise<AIResponse> {
-        throw new Error('OpenAI интеграция в разработке')
+        try {
+            const apiKey = this.apiKey || process.env.OPENAI_API_KEY
+            if (!apiKey) {
+                throw new Error('OpenAI API ключ не найден')
+            }
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: this.model.id,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Ты - персональный ИИ-ассистент для планирования задач и повышения продуктивности. Отвечай на русском языке.'
+                        },
+                        {
+                            role: 'user',
+                            content: request.prompt
+                        }
+                    ],
+                    max_tokens: request.maxTokens || this.model.maxTokens,
+                    temperature: request.temperature || 0.7,
+                }),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(`OpenAI API ошибка: ${errorData.error?.message || 'Неизвестная ошибка'}`)
+            }
+
+            const data = await response.json()
+            const usage = data.usage
+
+            return {
+                success: true,
+                content: data.choices[0].message.content,
+                model: this.model.id,
+                usage: {
+                    promptTokens: usage.prompt_tokens,
+                    completionTokens: usage.completion_tokens,
+                    totalTokens: usage.total_tokens,
+                    cost: usage.total_tokens * this.model.costPerRequest
+                }
+            }
+        } catch (error: any) {
+            console.error('Ошибка OpenAI API:', error)
+            return {
+                success: false,
+                content: '',
+                model: this.model.id,
+                error: error.message || 'Ошибка OpenAI API'
+            }
+        }
     }
 
     private async callClaude(request: AIRequest): Promise<AIResponse> {
