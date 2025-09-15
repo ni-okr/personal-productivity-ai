@@ -138,9 +138,9 @@ export const useAppStore = create<AppStore>()(
           set({ isLoading: true, error: null })
           const result = await createTask(user.id, taskData)
 
-          if (result.success && result.task) {
+          if (result.success && result.tasks && result.tasks.length > 0) {
             set((state) => ({
-              tasks: [result.task!, ...state.tasks]
+              tasks: [result.tasks![0], ...state.tasks]
             }))
           } else {
             set({ error: result.error || 'Ошибка создания задачи' })
@@ -157,10 +157,10 @@ export const useAppStore = create<AppStore>()(
           set({ isLoading: true, error: null })
           const result = await updateTaskApi(id, updates)
 
-          if (result.success && result.task) {
+          if (result.success && result.tasks && result.tasks.length > 0) {
             set((state) => ({
               tasks: state.tasks.map(task =>
-                task.id === id ? result.task! : task
+                task.id === id ? result.tasks![0] : task
               )
             }))
           } else {
@@ -197,10 +197,10 @@ export const useAppStore = create<AppStore>()(
           set({ isLoading: true, error: null })
           const result = await completeTask(id, actualDuration)
 
-          if (result.success && result.task) {
+          if (result.success && result.tasks && result.tasks.length > 0) {
             set((state) => ({
               tasks: state.tasks.map(task =>
-                task.id === id ? result.task! : task
+                task.id === id ? result.tasks![0] : task
               )
             }))
           } else {
@@ -238,12 +238,9 @@ export const useAppStore = create<AppStore>()(
         if (!user) return
 
         try {
-          const result = await getTasksStats(user.id)
-
-          if (result.success && result.stats) {
-            // Можно добавить статистику в store или использовать для обновления метрик
-            console.log('Tasks stats:', result.stats)
-          }
+          const stats = await getTasksStats(user.id)
+          // Можно добавить статистику в store или использовать для обновления метрик
+          console.log('Tasks stats:', stats)
         } catch (error: any) {
           console.error('Ошибка загрузки статистики задач:', error)
         }

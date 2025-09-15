@@ -34,31 +34,31 @@ export interface SubscriptionListResponse {
 
 // Планы подписок
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-    {
-        id: 'free',
-        name: 'Бесплатный',
-        description: 'Базовый функционал для начала работы',
-        price: 0,
-        currency: 'RUB',
-        interval: 'month',
-        features: [
-            'До 50 задач в месяц',
-            'Базовое планирование',
-            'Уведомления по email',
-            'Мобильное приложение'
-        ],
-        limits: {
-            tasks: 50,
-            aiRequests: 10,
-            storage: 100 // MB
-        },
-        tinkoffPriceId: '',
-        isActive: true
+  {
+    id: 'free',
+    name: 'Бесплатный',
+    tier: 'free',
+    price: 0,
+    currency: 'RUB',
+    interval: 'month',
+    features: [
+      'До 50 задач в месяц',
+      'Базовое планирование',
+      'Уведомления по email',
+      'Мобильное приложение'
+    ],
+    limits: {
+      tasks: 50,
+      aiRequests: 10,
+      storage: 100 // MB
     },
+    tinkoffPriceId: '',
+    isActive: true
+  },
     {
         id: 'premium',
         name: 'Премиум',
-        description: 'Расширенные возможности для активных пользователей',
+        tier: 'premium',
         price: 999,
         currency: 'RUB',
         interval: 'month',
@@ -80,7 +80,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 'pro',
         name: 'Профессиональный',
-        description: 'Максимальная продуктивность для профессионалов',
+        tier: 'pro',
         price: 1999,
         currency: 'RUB',
         interval: 'month',
@@ -103,7 +103,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 'enterprise',
         name: 'Корпоративный',
-        description: 'Решение для команд и организаций',
+        tier: 'enterprise',
         price: 4999,
         currency: 'RUB',
         interval: 'month',

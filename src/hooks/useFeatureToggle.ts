@@ -2,8 +2,13 @@
  * React Hook для работы с Feature Toggles
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { featureToggleManager, FeatureToggleName } from '@/lib/featureToggles';
+import { featureToggleManager, FeatureToggleName, FEATURE_TOGGLES } from '@/lib/featureToggles';
+import { useCallback, useEffect, useState } from 'react';
+
+export type { FeatureToggleName };
+export { FEATURE_TOGGLES };
+
+// useFeatureToggles уже определен выше
 
 export interface UseFeatureToggleReturn {
   isEnabled: boolean;
@@ -25,7 +30,7 @@ export const useFeatureToggle = (toggleName: FeatureToggleName): UseFeatureToggl
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const enabled = await featureToggleManager.getToggle(toggleName);
       setIsEnabled(enabled);
     } catch (err) {
@@ -41,7 +46,7 @@ export const useFeatureToggle = (toggleName: FeatureToggleName): UseFeatureToggl
   const updateToggle = useCallback(async (enabled: boolean): Promise<boolean> => {
     try {
       setError(null);
-      
+
       const success = await featureToggleManager.updateToggle(toggleName, enabled);
       if (success) {
         setIsEnabled(enabled);
@@ -86,14 +91,14 @@ export const useFeatureToggles = (toggleNames: FeatureToggleName[]) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const allToggles = await featureToggleManager.getAllToggles();
       const filteredToggles: Record<string, boolean> = {};
-      
+
       toggleNames.forEach(name => {
         filteredToggles[name] = allToggles[name] || false;
       });
-      
+
       setToggles(filteredToggles);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -108,7 +113,7 @@ export const useFeatureToggles = (toggleNames: FeatureToggleName[]) => {
   const updateToggle = useCallback(async (toggleName: FeatureToggleName, enabled: boolean): Promise<boolean> => {
     try {
       setError(null);
-      
+
       const success = await featureToggleManager.updateToggle(toggleName, enabled);
       if (success) {
         setToggles(prev => ({

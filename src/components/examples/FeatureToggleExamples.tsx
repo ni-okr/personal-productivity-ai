@@ -2,16 +2,16 @@
  * Примеры использования Feature Toggles
  */
 
+import { ConditionalRender, FeatureToggle, withFeatureToggle } from '@/components/FeatureToggle';
+import { FEATURE_TOGGLES, useFeatureToggle } from '@/hooks/useFeatureToggle';
 import React from 'react';
-import { FeatureToggle, ConditionalRender, withFeatureToggle } from '@/components/FeatureToggle';
-import { useFeatureToggle, FEATURE_TOGGLES } from '@/hooks/useFeatureToggle';
 
 // Пример 1: Простое условное рендеринг
 export const SimpleFeatureToggleExample: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Feature Toggle Examples</h2>
-      
+
       {/* Новые ИИ функции */}
       <FeatureToggle
         toggleName={FEATURE_TOGGLES.NEW_AI_FEATURES}
@@ -52,7 +52,7 @@ export const HookBasedExample: React.FC = () => {
   return (
     <div className="p-4">
       <h3 className="font-semibold mb-2">Beta Features</h3>
-      
+
       {isEnabled ? (
         <div className="bg-yellow-50 p-4 rounded-lg">
           <p className="text-yellow-800">Бета функции включены!</p>
@@ -105,7 +105,7 @@ export const ConditionalRenderExample: React.FC = () => {
   return (
     <div className="p-4">
       <h3 className="font-semibold mb-2">PWA Features</h3>
-      
+
       <ConditionalRender
         toggleName={FEATURE_TOGGLES.PWA_FEATURES}
         fallback={<div className="text-gray-500">PWA функции недоступны</div>}
@@ -124,21 +124,17 @@ export const ConditionalRenderExample: React.FC = () => {
   );
 };
 
-// Пример 5: Комплексный пример с несколькими toggles
+// Пример 5: Комплексный пример с одним toggle
 export const ComplexExample: React.FC = () => {
   const {
-    toggles,
+    isEnabled,
     isLoading,
     error,
     updateToggle
-  } = useFeatureToggles([
-    FEATURE_TOGGLES.NEW_AI_FEATURES,
-    FEATURE_TOGGLES.ADVANCED_ANALYTICS,
-    FEATURE_TOGGLES.PWA_FEATURES
-  ]);
+  } = useFeatureToggle(FEATURE_TOGGLES.NEW_AI_FEATURES);
 
   if (isLoading) {
-    return <div>Loading feature toggles...</div>;
+    return <div>Loading feature toggle...</div>;
   }
 
   if (error) {
@@ -147,38 +143,26 @@ export const ComplexExample: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h3 className="font-semibold mb-4">Feature Toggles Dashboard</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Object.entries(toggles).map(([toggleName, isEnabled]) => (
-          <div
-            key={toggleName}
-            className={`p-4 rounded-lg border-2 ${
-              isEnabled
-                ? 'border-green-200 bg-green-50'
-                : 'border-red-200 bg-red-50'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">{toggleName}</h4>
-                <p className="text-sm text-gray-600">
-                  {isEnabled ? 'Включено' : 'Отключено'}
-                </p>
-              </div>
-              <button
-                onClick={() => updateToggle(toggleName as any, !isEnabled)}
-                className={`px-3 py-1 rounded text-sm ${
-                  isEnabled
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'bg-green-500 text-white hover:bg-green-600'
-                }`}
-              >
-                {isEnabled ? 'Отключить' : 'Включить'}
-              </button>
-            </div>
+      <h3 className="font-semibold mb-4">Feature Toggle Dashboard</h3>
+
+      <div className="p-4 rounded-lg border-2 bg-gray-50">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="font-medium">New AI Features</h4>
+            <p className="text-sm text-gray-600">
+              {isEnabled ? 'Включено' : 'Отключено'}
+            </p>
           </div>
-        ))}
+          <button
+            onClick={() => updateToggle(!isEnabled)}
+            className={`px-3 py-1 rounded text-sm ${isEnabled
+                ? 'bg-red-500 text-white hover:bg-red-600'
+                : 'bg-green-500 text-white hover:bg-green-600'
+              }`}
+          >
+            {isEnabled ? 'Отключить' : 'Включить'}
+          </button>
+        </div>
       </div>
     </div>
   );

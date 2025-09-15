@@ -2,8 +2,8 @@
  * Компонент для условного рендеринга на основе Feature Toggle
  */
 
+import { FeatureToggleName, useConditionalRender, useFeatureToggle } from '@/hooks/useFeatureToggle';
 import React from 'react';
-import { useFeatureToggle, useConditionalRender, FeatureToggleName } from '@/hooks/useFeatureToggle';
 
 interface FeatureToggleProps {
   toggleName: FeatureToggleName;
@@ -82,7 +82,7 @@ export const withFeatureToggle = <P extends object>(
 
     if (error) {
       console.error(`Feature toggle error for ${toggleName}:`, error);
-      return fallback ? <fallback {...props} /> : null;
+      return fallback ? React.createElement(fallback, props) : null;
     }
 
     if (isLoading) {
@@ -90,14 +90,14 @@ export const withFeatureToggle = <P extends object>(
     }
 
     if (!isEnabled) {
-      return fallback ? <fallback {...props} /> : null;
+      return fallback ? React.createElement(fallback, props) : null;
     }
 
     return <Component {...props} />;
   };
 
   WrappedComponent.displayName = `withFeatureToggle(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };
 
@@ -129,14 +129,13 @@ export const FeatureToggleStatus: React.FC<FeatureToggleStatusProps> = ({
 
   return (
     <div className="flex items-center space-x-2">
-      <span className={`px-2 py-1 rounded text-sm ${
-        isEnabled 
-          ? 'bg-green-100 text-green-800' 
+      <span className={`px-2 py-1 rounded text-sm ${isEnabled
+          ? 'bg-green-100 text-green-800'
           : 'bg-red-100 text-red-800'
-      }`}>
+        }`}>
         {isEnabled ? 'Enabled' : 'Disabled'}
       </span>
-      
+
       {showUpdateButton && (
         <button
           onClick={handleToggle}
