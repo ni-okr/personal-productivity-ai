@@ -135,10 +135,10 @@ describe('Auth Integration Tests', () => {
 
             // Mock successful profile update
             mockUpdate.mockReturnValue({
-                update: vi.fn(() => ({
-                    eq: vi.fn(() => ({
-                        select: vi.fn(() => ({
-                            single: vi.fn(() => ({
+                update: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        select: jest.fn(() => ({
+                            single: jest.fn(() => ({
                                 data: {
                                     id: 'test-user-id',
                                     email: 'test@example.com',
@@ -188,9 +188,9 @@ describe('Auth Integration Tests', () => {
 
             // Mock database error
             mockFrom.mockReturnValue({
-                select: vi.fn(() => ({
-                    eq: vi.fn(() => ({
-                        single: vi.fn(() => ({
+                select: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        single: jest.fn(() => ({
                             data: null,
                             error: { message: 'Database connection failed' }
                         }))
