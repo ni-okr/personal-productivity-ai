@@ -1,0 +1,38 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": ["@supabase/mcp-server"],
+      "env": {
+        "SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
+        "SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+      }
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "/home/ni/Projects/personal-productivity-ai-clean"]
+    },
+    "git": {
+      "command": "npx", 
+      "args": ["@modelcontextprotocol/server-git", "--repository", "/home/ni/Projects/personal-productivity-ai-clean"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "web-search": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-memory"]
+    }
+  }
+}

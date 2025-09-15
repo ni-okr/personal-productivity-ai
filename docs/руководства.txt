@@ -1,0 +1,22 @@
+https://docs.cursor.com/ru/guides/working-with-context
+https://docs.cursor.com/ru/guides/tutorials/web-development
+https://docs.cursor.com/ru/guides/tutorials/architectural-diagrams
+https://docs.cursor.com/ru/guides/tutorials/building-mcp-server
+
+https://docs.cursor.com/ru/guides/advanced/large-codebases
+https://docs.cursor.com/ru/guides/advanced/working-with-documentation
+https://docs.cursor.com/ru/guides/advanced/datascience
+
+https://docs.cursor.com/ru/guides/migration/vscode
+https://docs.cursor.com/ru/guides/migration/jetbrains
+
+https://docs.cursor.com/ru/guides/languages/python
+https://docs.cursor.com/ru/guides/languages/javascript
+https://docs.cursor.com/ru/guides/languages/swift
+https://docs.cursor.com/ru/guides/languages/java
+
+https://docs.cursor.com/ru/tools/mcp
+https://docs.cursor.com/ru/tools/developers
+
+собранная коллекция MCP серверов:
+https://github.com/punkpeye/awesome-mcp-servers

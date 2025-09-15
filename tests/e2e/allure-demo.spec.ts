@@ -9,7 +9,7 @@ test.describe('🎯 Демонстрация Allure отчетов', () => {
         await allure.story('Базовая функциональность')
         await allure.severity('critical')
         await allure.description('Демонстрирует возможности Allure отчетов с детальными шагами')
-        await allure.tag('demo', 'allure', 'success')
+        await allure.tag('demo')
 
         await allure.step('Переходим на главную страницу', async () => {
             await page.goto('https://playwright.dev')
@@ -34,7 +34,7 @@ test.describe('🎯 Демонстрация Allure отчетов', () => {
         await allure.story('Проверка устойчивости')
         await allure.severity('normal')
         await allure.description('Демонстрирует корректную обработку различных сценариев')
-        await allure.tag('demo', 'allure', 'resilience')
+        await allure.tag('resilience')
 
         await allure.step('Переходим на страницу', async () => {
             await page.goto('https://playwright.dev')
@@ -52,7 +52,7 @@ test.describe('🎯 Демонстрация Allure отчетов', () => {
         await allure.story('Тест с предупреждениями')
         await allure.severity('normal')
         await allure.description('Демонстрирует тест с предупреждениями')
-        await allure.tag('demo', 'allure', 'warning')
+        await allure.tag('warning')
 
         await allure.step('Выполняем базовые проверки', async () => {
             await page.goto('https://playwright.dev')
@@ -70,7 +70,7 @@ test.describe('🎯 Демонстрация Allure отчетов', () => {
         await allure.story('Скриншоты и данные')
         await allure.severity('normal')
         await allure.description('Демонстрирует работу с вложениями в Allure')
-        await allure.tag('demo', 'allure', 'attachments')
+        await allure.tag('attachments')
 
         await allure.step('Открываем страницу и делаем скриншот', async () => {
             await page.goto('https://playwright.dev')

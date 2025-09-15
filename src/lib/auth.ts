@@ -134,7 +134,7 @@ export async function signIn({ email, password }: SignInData): Promise<AuthRespo
         return {
             success: true,
             message: 'Добро пожаловать!',
-            user: userProfile || {
+            user: userProfile ?? {
                 id: data.user.id,
                 email: data.user.email!,
                 name: data.user.user_metadata?.name || 'Пользователь',
@@ -316,10 +316,11 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
             }
         }
 
+        const userProfile = data.user ? await getUserProfile(data.user.id) : null
         return {
             success: true,
             message: 'Email успешно подтвержден!',
-            user: data.user ? await getUserProfile(data.user.id) : undefined
+            user: userProfile || undefined
         }
     } catch (error) {
         console.error('Ошибка подтверждения email:', error)
