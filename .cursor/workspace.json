@@ -1,0 +1,32 @@
+{
+  "name": "Personal Productivity AI",
+  "type": "nextjs",
+  "agents": {
+    "enabled": true,
+    "autoStart": true,
+    "showInSidebar": true,
+    "filter": "all",
+    "categories": [
+      {
+        "name": "Background Agents",
+        "agents": [
+          "test-fixer-agent",
+          "typescript-fixer-agent", 
+          "jest-configurator-agent",
+          "github-actions-monitor-agent"
+        ]
+      }
+    ]
+  },
+  "project": {
+    "root": "/home/ni/Projects/personal-productivity-ai-clean",
+    "framework": "nextjs",
+    "language": "typescript"
+  },
+  "settings": {
+    "showAgents": true,
+    "showBackgroundAgents": true,
+    "showAgentStatus": true,
+    "showAgentLogs": true
+  }
+}

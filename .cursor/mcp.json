@@ -28,10 +28,10 @@
         "github": {
             "command": "npx",
             "args": [
-                "@modelcontextprotocol/server-github"
+                "github-mcp-server"
             ],
             "env": {
-                "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+                "GITHUB_TOKEN": "${GITHUB_TOKEN}"
             }
         },
         "web-search": {
@@ -104,6 +104,27 @@
             ],
             "env": {
                 "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+            }
+        },
+        "time": {
+            "command": "npx",
+            "args": [
+                "time-mcp"
+            ]
+        },
+        "playwright": {
+            "command": "npx",
+            "args": [
+                "@playwright/mcp"
+            ]
+        },
+        "firecrawl": {
+            "command": "npx",
+            "args": [
+                "firecrawl-mcp"
+            ],
+            "env": {
+                "FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"
             }
         }
     }

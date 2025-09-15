@@ -33,18 +33,21 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
             const emailValidation = validateEmail(email)
             if (!emailValidation.isValid) {
                 setError(emailValidation.errors[0])
+                setIsLoading(false)
                 return
             }
 
             // Валидация пароля
             if (!password || password.length < 6) {
                 setError('Пароль должен содержать минимум 6 символов')
+                setIsLoading(false)
                 return
             }
 
             // Проверка совпадения паролей
             if (password !== confirmPassword) {
                 setError('Пароли не совпадают')
+                setIsLoading(false)
                 return
             }
 

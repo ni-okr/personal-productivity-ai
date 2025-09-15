@@ -32,8 +32,8 @@ npm install @pyroprompts/any-chat-completions-mcp
 
 ### 🛠️ Разработка и Git
 ```bash
-# GitHub интеграция
-npm install @modelcontextprotocol/server-github
+# GitHub интеграция (обновлено)
+npm install github-mcp-server
 
 # Git операции
 npm install @modelcontextprotocol/server-git
@@ -74,8 +74,14 @@ npm install @modelcontextprotocol/server-gmail
 # Memory для контекста
 npm install @modelcontextprotocol/server-memory
 
-# Time utilities
-npm install @TheoBrigitte/mcp-time
+# Time utilities (обновлено)
+npm install time-mcp
+
+# Playwright для E2E тестирования
+npm install @playwright/mcp
+
+# Web scraping с Firecrawl
+npm install firecrawl-mcp
 
 # System monitoring
 npm install @modelcontextprotocol/server-system
@@ -86,7 +92,7 @@ npm install @modelcontextprotocol/server-system
 ### 1. Установка базовых серверов
 ```bash
 # Устанавливаем приоритетные серверы
-npm install @supabase/mcp-server @modelcontextprotocol/server-github @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-memory
+npm install @supabase/mcp-server github-mcp-server @modelcontextprotocol/server-filesystem @modelcontextprotocol/server-memory time-mcp @playwright/mcp firecrawl-mcp
 ```
 
 ### 2. Конфигурация в .cursor/mcp.json
@@ -111,13 +117,17 @@ OPENAI_API_KEY=your_openai_key
 - ✅ **Filesystem** - доступ к файлам проекта
 - ✅ **Git** - операции с репозиторием  
 - ✅ **Memory** - сохранение контекста между сессиями
-- 🔄 **Supabase** - прямая работа с БД
+- ✅ **Supabase** - прямая работа с БД
+- ✅ **GitHub** - автоматизация PR, Issues, Actions
+- ✅ **Time** - работа с датами и временем
+- ✅ **Playwright** - E2E тестирование
 
 ### 📈 Фаза 2 (Ближайшие недели)
-- **GitHub** - автоматизация PR, Issues, Actions
 - **OpenAI** - интеграция с реальным ИИ API
 - **Linear** - управление задачами проекта
 - **Web Search** - поиск информации для разработки
+- **Firecrawl** - веб-скрапинг и анализ контента
+- **Notion** - документация и планирование
 
 ### 🚀 Фаза 3 (Будущее развитие)
 - **Notion** - документация и планирование

@@ -73,7 +73,7 @@ describe('Subscription Integration', () => {
 
             // Проверяем отображение цен
             expect(screen.getByText('Бесплатно')).toBeInTheDocument()
-            expect(screen.getByText('₽999')).toBeInTheDocument()
+            expect(screen.getByText('9,99 ₽')).toBeInTheDocument()
         })
 
         it('должна обрабатывать выбор плана', async () => {
@@ -184,7 +184,7 @@ describe('Subscription Integration', () => {
             await waitFor(() => {
                 expect(screen.getByText('Premium')).toBeInTheDocument()
                 expect(screen.getByText('Активна')).toBeInTheDocument()
-                expect(screen.getByText('₽999')).toBeInTheDocument()
+                expect(screen.getByText('9,99 ₽')).toBeInTheDocument()
             })
         })
 

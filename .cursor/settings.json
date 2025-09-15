@@ -1,0 +1,42 @@
+{
+  "cursor": {
+    "agents": {
+      "enabled": true,
+      "autoStart": true,
+      "backgroundMode": true,
+      "showInSidebar": true,
+      "filter": "all"
+    },
+    "api": {
+      "key": "key_36ff40697d2efc9b5373f37b8f7e38e76714d725bf16c6505edc34518d928d2e",
+      "endpoint": "https://api.cursor.sh"
+    },
+    "project": {
+      "name": "personal-productivity-ai",
+      "type": "nextjs",
+      "framework": "react"
+    }
+  },
+  "backgroundAgents": {
+    "testFixer": {
+      "enabled": true,
+      "autoFix": true,
+      "notifications": true
+    },
+    "typescriptFixer": {
+      "enabled": true,
+      "autoFix": true,
+      "notifications": true
+    },
+    "jestConfigurator": {
+      "enabled": true,
+      "autoFix": true,
+      "notifications": true
+    },
+    "githubActionsMonitor": {
+      "enabled": true,
+      "autoFix": true,
+      "notifications": true
+    }
+  }
+}

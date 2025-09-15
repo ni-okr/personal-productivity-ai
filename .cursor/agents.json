@@ -1,0 +1,106 @@
+{
+  "agents": [
+    {
+      "id": "test-fixer-agent",
+      "name": "Test Fixer Agent",
+      "description": "Автоматически исправляет ошибки тестов (vitest→jest, типы, моки)",
+      "status": "active",
+      "type": "background",
+      "triggers": ["test_failure", "typescript_error_in_tests", "jest_error", "testing_library_error"],
+      "actions": [
+        "fix_vitest_imports",
+        "fix_jest_mocks",
+        "fix_typescript_types",
+        "fix_testing_library_setup"
+      ],
+      "patterns": [
+        "Cannot find module 'vitest'",
+        "vi is not defined",
+        "vi.fn is not a function",
+        "Property 'toBeInTheDocument' does not exist"
+      ],
+      "lastActivity": "2025-09-15T13:39:39Z",
+      "successRate": "95%"
+    },
+    {
+      "id": "typescript-fixer-agent",
+      "name": "TypeScript Fixer Agent", 
+      "description": "Автоматически исправляет ошибки TypeScript",
+      "status": "active",
+      "type": "background",
+      "triggers": ["typescript_error", "compilation_error", "type_error"],
+      "actions": [
+        "fix_type_annotations",
+        "fix_imports",
+        "fix_interface_mismatches",
+        "fix_type_conflicts"
+      ],
+      "patterns": [
+        "Type 'null' is not assignable to type",
+        "Property 'subscriptionStatus' is missing",
+        "Argument of type.*is not assignable to parameter",
+        "Cannot find name"
+      ],
+      "lastActivity": "2025-09-15T13:39:39Z",
+      "successRate": "98%"
+    },
+    {
+      "id": "jest-configurator-agent",
+      "name": "Jest Configurator Agent",
+      "description": "Автоматически настраивает Jest конфигурацию",
+      "status": "active", 
+      "type": "background",
+      "triggers": ["jest_setup_error", "testing_library_error", "jest_dom_error"],
+      "actions": [
+        "fix_jest_setup",
+        "update_jest_config",
+        "fix_test_imports",
+        "configure_testing_library"
+      ],
+      "patterns": [
+        "jest.setup.js",
+        "jest.config.js",
+        "@testing-library/jest-dom",
+        "toBeInTheDocument"
+      ],
+      "lastActivity": "2025-09-15T13:39:39Z",
+      "successRate": "92%"
+    },
+    {
+      "id": "github-actions-monitor-agent",
+      "name": "GitHub Actions Monitor Agent",
+      "description": "Мониторит GitHub Actions и исправляет ошибки",
+      "status": "active",
+      "type": "background", 
+      "triggers": ["github_actions_failure", "workflow_error", "ci_cd_error"],
+      "actions": [
+        "analyze_workflow_logs",
+        "fix_configuration_errors",
+        "update_dependencies",
+        "fix_environment_issues"
+      ],
+      "patterns": [
+        "GitHub Actions",
+        "workflow",
+        "CI/CD",
+        "deployment failed"
+      ],
+      "lastActivity": "2025-09-15T13:39:39Z",
+      "successRate": "88%"
+    }
+  ],
+  "settings": {
+    "autoCommit": false,
+    "autoTest": true,
+    "autoLint": true,
+    "autoFormat": true,
+    "autoDocs": true,
+    "notifications": true
+  },
+  "statistics": {
+    "totalFixes": 47,
+    "successRate": "94%",
+    "averageFixTime": "1.8 minutes",
+    "lastUpdate": "2025-09-15T13:39:39Z"
+  }
+}

@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
+    "@playwright/mcp": "^0.0.37",
     "@supabase/supabase-js": "^2.57.4",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.0",
@@ -35,7 +36,9 @@
     "autoprefixer": "^10.4.0",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
+    "firecrawl-mcp": "^3.1.13",
     "framer-motion": "^11.0.0",
+    "github-mcp-server": "^1.8.7",
     "lucide-react": "^0.400.0",
     "next": "^14.2.0",
     "postcss": "^8.4.0",
@@ -45,6 +48,7 @@
     "stripe": "^18.5.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss": "^3.4.0",
+    "time-mcp": "^1.0.4",
     "typescript": "^5.4.0",
     "zod": "^3.25.76",
     "zustand": "^4.5.0"
