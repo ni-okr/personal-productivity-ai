@@ -24,6 +24,7 @@ describe('Planner Integration with Supabase', () => {
         avatar: null,
         timezone: 'Europe/Moscow',
         subscription: 'free' as const,
+        subscriptionStatus: 'active' as const,
         preferences: {
             workingHours: { start: '09:00', end: '18:00' },
             focusTime: 25,
@@ -92,7 +93,7 @@ describe('Planner Integration with Supabase', () => {
 
         it('должен показать планировщик для авторизованных пользователей', () => {
             mockUseAuth.mockReturnValue({
-                user: mockUser,
+                user: { ...mockUser, subscriptionStatus: 'active' as const },
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -110,7 +111,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Task Management', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: mockUser,
+                user: { ...mockUser, subscriptionStatus: 'active' as const },
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -150,7 +151,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Add Task Modal', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: mockUser,
+                user: { ...mockUser, subscriptionStatus: 'active' as const },
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -199,7 +200,7 @@ describe('Planner Integration with Supabase', () => {
                     description: 'Task Description',
                     priority: 'medium',
                     dueDate: undefined,
-                    estimatedDuration: 30,
+                    estimatedMinutes: 30,
                     tags: []
                 })
             })
@@ -235,7 +236,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Task Actions', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: mockUser,
+                user: { ...mockUser, subscriptionStatus: 'active' as const },
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -259,7 +260,7 @@ describe('Planner Integration with Supabase', () => {
             fireEvent.click(taskCheckbox)
 
             await waitFor(() => {
-                expect(mockStoreState.completeTaskAsync).toHaveBeenCalledWith(mockTask.id, mockTask.estimatedDuration)
+                expect(mockStoreState.completeTaskAsync).toHaveBeenCalledWith(mockTask.id, mockTask.estimatedMinutes)
             })
         })
 
@@ -280,7 +281,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Task Display', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: mockUser,
+                user: { ...mockUser, subscriptionStatus: 'active' as const },
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
@@ -338,7 +339,7 @@ describe('Planner Integration with Supabase', () => {
     describe('Error Handling', () => {
         beforeEach(() => {
             mockUseAuth.mockReturnValue({
-                user: mockUser,
+                user: { ...mockUser, subscriptionStatus: 'active' as const },
                 isLoading: false,
                 isAuthenticated: true,
                 requireAuth: jest.fn(),
