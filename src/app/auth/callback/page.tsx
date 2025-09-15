@@ -3,7 +3,7 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
 import { getUserProfile } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { useAppStore } from '@/stores/useAppStore'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -18,6 +18,7 @@ export default function AuthCallbackPage() {
         const handleAuthCallback = async () => {
             try {
                 // Получаем URL параметры
+                const supabase = getSupabaseClient()
                 const { data, error } = await supabase.auth.getSession()
 
                 if (error) {

@@ -1,0 +1,122 @@
+name: 🧪 Простое тестирование
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-test:
+    name: 🏗️ Build тест
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🏗️ Build приложения
+      run: npm run build
+      env:
+        NODE_ENV: production
+        NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
+
+  unit-tests:
+    name: 🔧 Unit тесты
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🔧 Запуск Unit тестов
+      run: npm run test:unit:ci
+      env:
+        NODE_ENV: test
+        NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
+
+  integration-tests:
+    name: 🔗 Интеграционные тесты
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🔗 Запуск интеграционных тестов
+      run: npm run test:integration:ci
+      env:
+        NODE_ENV: test
+        NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
+
+  e2e-tests:
+    name: 🎭 E2E тесты
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🎭 Установка Playwright браузеров
+      run: npx playwright install --with-deps
+      
+    - name: 🏗️ Сборка приложения
+      run: npm run build
+      env:
+        NODE_ENV: production
+        NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
+      
+    - name: 🎭 Запуск E2E тестов
+      run: npm run test:e2e:ci
+      env:
+        NODE_ENV: test
+        NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
+      
+    - name: 📸 Загрузка скриншотов при ошибках
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
