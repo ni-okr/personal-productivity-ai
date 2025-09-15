@@ -7,6 +7,49 @@ on:
     branches: [ main, develop ]
 
 jobs:
+  build-test:
+    name: 🏗️ Build тест
+    runs-on: ubuntu-latest
+    
+    env:
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 📦 Установка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci
+      
+    - name: 🏗️ Build приложения
+      run: npm run build
+      
+    - name: 🔍 Проверка секретов
+      run: |
+        echo "Проверяем что нет случайно закоммиченных секретов"
+        # Проверяем только настоящие секреты, исключая тестовые данные
+        if grep -r "sk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports; then
+          echo "❌ Найдены live секреты!"
+          exit 1
+        fi
+        if grep -r "pk_live_" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports; then
+          echo "❌ Найдены live секреты!"
+          exit 1
+        fi
+        if grep -r "SUPABASE_SERVICE_ROLE_KEY" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports; then
+          echo "❌ Найдены service role ключи!"
+          exit 1
+        fi
+        echo "✅ Секреты не найдены"
+
   unit-tests:
     name: 🔧 Unit тесты
     runs-on: ubuntu-latest
