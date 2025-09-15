@@ -138,9 +138,9 @@ export const useAppStore = create<AppStore>()(
           set({ isLoading: true, error: null })
           const result = await createTask(user.id, taskData)
 
-          if (result.success && result.tasks && result.tasks.length > 0) {
+          if (result.success && result.task) {
             set((state) => ({
-              tasks: [result.tasks![0], ...state.tasks]
+              tasks: [result.task, ...state.tasks]
             }))
           } else {
             set({ error: result.error || 'Ошибка создания задачи' })
@@ -157,10 +157,10 @@ export const useAppStore = create<AppStore>()(
           set({ isLoading: true, error: null })
           const result = await updateTaskApi(id, updates)
 
-          if (result.success && result.tasks && result.tasks.length > 0) {
+          if (result.success && result.task) {
             set((state) => ({
               tasks: state.tasks.map(task =>
-                task.id === id ? result.tasks![0] : task
+                task.id === id ? result.task! : task
               )
             }))
           } else {
@@ -197,10 +197,10 @@ export const useAppStore = create<AppStore>()(
           set({ isLoading: true, error: null })
           const result = await completeTask(id, actualDuration)
 
-          if (result.success && result.tasks && result.tasks.length > 0) {
+          if (result.success && result.task) {
             set((state) => ({
               tasks: state.tasks.map(task =>
-                task.id === id ? result.tasks![0] : task
+                task.id === id ? result.task! : task
               )
             }))
           } else {

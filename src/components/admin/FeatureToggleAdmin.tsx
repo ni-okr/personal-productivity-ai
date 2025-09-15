@@ -2,9 +2,9 @@
  * Админ панель для управления Feature Toggles
  */
 
-import React, { useState, useEffect } from 'react';
-import { useFeatureToggles, FeatureToggleName, FEATURE_TOGGLES } from '@/hooks/useFeatureToggle';
+import { FEATURE_TOGGLES, FeatureToggleName, useFeatureToggles } from '@/hooks/useFeatureToggle';
 import { createFeatureToggle } from '@/lib/featureToggles';
+import React, { useState } from 'react';
 
 interface FeatureToggleAdminProps {
   className?: string;
@@ -78,7 +78,7 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
     <div className={`p-6 ${className}`}>
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-4">Feature Toggles Management</h2>
-        
+
         {/* Создание нового toggle */}
         <div className="bg-gray-50 p-4 rounded-lg mb-6">
           <h3 className="text-lg font-semibold mb-3">Create New Toggle</h3>
@@ -129,7 +129,7 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
         {/* Список существующих toggles */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Existing Toggles</h3>
-          
+
           {Object.entries(toggles).map(([toggleName, isEnabled]) => (
             <div
               key={toggleName}
@@ -139,11 +139,10 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
                 <div className="flex-1">
                   <div className="flex items-center space-x-3">
                     <h4 className="font-medium text-gray-900">{toggleName}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      isEnabled
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${isEnabled
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
-                    }`}>
+                      }`}>
                       {isEnabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
@@ -151,7 +150,7 @@ export const FeatureToggleAdmin: React.FC<FeatureToggleAdminProps> = ({ classNam
                     {toggleName.includes('hot') ? 'Hot Toggle (Runtime)' : 'Cold Toggle (Build-time)'}
                   </p>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <label className="flex items-center">
                     <input

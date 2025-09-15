@@ -1,6 +1,5 @@
 // 💳 Система подписок с Тинькофф интеграцией
 import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } from '@/types'
-import { getSupabaseClient } from './supabase'
 
 export interface CreateSubscriptionData {
     userId: string
@@ -34,44 +33,44 @@ export interface SubscriptionListResponse {
 
 // Планы подписок
 export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  {
-    id: 'free',
-    name: 'Бесплатный',
-    tier: 'free',
-    price: 0,
-    currency: 'RUB',
-    interval: 'month',
-    features: [
-      'До 50 задач в месяц',
-      'Базовое планирование',
-      'Уведомления по email',
-      'Мобильное приложение'
-    ],
-    limits: {
-      tasks: 50,
-      aiRequests: 10,
-      storage: 100 // MB
+    {
+        id: 'free',
+        name: 'Free',
+        tier: 'free',
+        price: 0,
+        currency: 'RUB',
+        interval: 'month',
+        features: [
+            'До 50 задач',
+            'Базовый планировщик',
+            'Псевдо-ИИ рекомендации',
+            'Мобильное приложение'
+        ],
+        limits: {
+            tasks: 50,
+            aiRequests: 0,
+            storage: 100 // MB
+        },
+        tinkoffPriceId: '',
+        isActive: true
     },
-    tinkoffPriceId: '',
-    isActive: true
-  },
     {
         id: 'premium',
-        name: 'Премиум',
+        name: 'Premium',
         tier: 'premium',
-        price: 999,
+        price: 99900, // 999 рублей в копейках
         currency: 'RUB',
         interval: 'month',
         features: [
             'До 500 задач в месяц',
-            'ИИ-планировщик',
+            'OpenAI GPT-4o Mini',
             'Приоритетная поддержка',
-            'Экспорт данных',
-            'Интеграции с календарем'
+            'Расширенная аналитика',
+            'Экспорт данных'
         ],
         limits: {
             tasks: 500,
-            aiRequests: 100,
+            aiRequests: 1000,
             storage: 1000 // MB
         },
         tinkoffPriceId: 'tinkoff_premium_monthly',
@@ -79,9 +78,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     },
     {
         id: 'pro',
-        name: 'Профессиональный',
+        name: 'Pro',
         tier: 'pro',
-        price: 1999,
+        price: 199900, // 1999 рублей в копейках
         currency: 'RUB',
         interval: 'month',
         features: [
@@ -102,9 +101,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     },
     {
         id: 'enterprise',
-        name: 'Корпоративный',
+        name: 'Enterprise',
         tier: 'enterprise',
-        price: 4999,
+        price: 499900, // 4999 рублей в копейках
         currency: 'RUB',
         interval: 'month',
         features: [
@@ -186,7 +185,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
             subscription
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -263,7 +262,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
             }
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -346,7 +345,7 @@ export async function updateSubscription(
             }
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -420,7 +419,7 @@ export async function cancelSubscription(subscriptionId: string): Promise<Subscr
             }
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,
@@ -491,7 +490,7 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
             subscriptions
         }
         */
-        
+
         // Временная заглушка
         return {
             success: true,

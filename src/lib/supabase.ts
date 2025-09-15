@@ -14,7 +14,7 @@ export function getSupabaseClient() {
 
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
   }
-  
+
   return supabaseClient
 }
 

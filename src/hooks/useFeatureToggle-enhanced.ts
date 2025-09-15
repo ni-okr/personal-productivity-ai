@@ -9,11 +9,11 @@
  * - Error handling
  */
 
-import { featureToggleManager, FeatureToggleName, FEATURE_TOGGLES } from '@/lib/featureToggles-enhanced'
+import { FEATURE_TOGGLES, featureToggleManager, FeatureToggleName } from '@/lib/featureToggles-enhanced'
 import { useCallback, useEffect, useState } from 'react'
 
-export type { FeatureToggleName }
 export { FEATURE_TOGGLES }
+export type { FeatureToggleName }
 
 // Интерфейс для возвращаемого значения хука
 export interface UseFeatureToggleReturn {
@@ -52,7 +52,7 @@ export const useFeatureToggle = (toggleName: FeatureToggleName): UseFeatureToggl
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const enabled = await featureToggleManager.getToggle(toggleName)
       setIsEnabled(enabled)
     } catch (err) {
@@ -67,14 +67,14 @@ export const useFeatureToggle = (toggleName: FeatureToggleName): UseFeatureToggl
   const updateToggle = useCallback(async (enabled: boolean): Promise<boolean> => {
     try {
       setError(null)
-      
+
       const success = await featureToggleManager.updateToggle(toggleName, enabled)
       if (success) {
         setIsEnabled(enabled)
         // Обновляем кеш
         featureToggleManager.clearCache(toggleName)
       }
-      
+
       return success
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -113,14 +113,14 @@ export const useFeatureToggles = (toggleNames: FeatureToggleName[]): UseFeatureT
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const allToggles = await featureToggleManager.getAllToggles()
       const filteredToggles: Record<string, boolean> = {}
-      
+
       toggleNames.forEach(name => {
         filteredToggles[name] = allToggles[name] || false
       })
-      
+
       setToggles(filteredToggles)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -134,7 +134,7 @@ export const useFeatureToggles = (toggleNames: FeatureToggleName[]): UseFeatureT
   const updateToggle = useCallback(async (toggleName: string, enabled: boolean): Promise<boolean> => {
     try {
       setError(null)
-      
+
       const success = await featureToggleManager.updateToggle(toggleName as FeatureToggleName, enabled)
       if (success) {
         setToggles(prev => ({
@@ -144,7 +144,7 @@ export const useFeatureToggles = (toggleNames: FeatureToggleName[]): UseFeatureT
         // Обновляем кеш
         featureToggleManager.clearCache(toggleName as FeatureToggleName)
       }
-      
+
       return success
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -176,7 +176,7 @@ export const useFeatureToggles = (toggleNames: FeatureToggleName[]): UseFeatureT
  */
 export const useConditionalRender = (toggleName: FeatureToggleName): UseConditionalRenderReturn => {
   const { isEnabled, isLoading, error } = useFeatureToggle(toggleName)
-  
+
   return {
     shouldRender: isEnabled,
     isLoading,
@@ -228,16 +228,16 @@ export const useHotToggles = () => {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const allToggles = await featureToggleManager.getAllToggles()
       const hotToggles: Record<string, boolean> = {}
-      
+
       for (const [name, enabled] of Object.entries(allToggles)) {
         if (await featureToggleManager.isHotToggle(name as FeatureToggleName)) {
           hotToggles[name] = enabled
         }
       }
-      
+
       setHotToggles(hotToggles)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -251,7 +251,7 @@ export const useHotToggles = () => {
   const updateToggle = useCallback(async (toggleName: string, enabled: boolean): Promise<boolean> => {
     try {
       setError(null)
-      
+
       const success = await featureToggleManager.updateToggle(toggleName as FeatureToggleName, enabled)
       if (success) {
         setHotToggles(prev => ({
@@ -260,7 +260,7 @@ export const useHotToggles = () => {
         }))
         featureToggleManager.clearCache(toggleName as FeatureToggleName)
       }
-      
+
       return success
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
@@ -299,16 +299,16 @@ export const useColdToggles = () => {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const allToggles = await featureToggleManager.getAllToggles()
       const coldToggles: Record<string, boolean> = {}
-      
+
       for (const [name, enabled] of Object.entries(allToggles)) {
         if (!(await featureToggleManager.isHotToggle(name as FeatureToggleName))) {
           coldToggles[name] = enabled
         }
       }
-      
+
       setColdToggles(coldToggles)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'

@@ -81,7 +81,7 @@ class FeatureToggleManager {
 
       return config;
       */
-      
+
       // Временная заглушка
       return {
         'new-ai-features': false,
@@ -123,7 +123,7 @@ class FeatureToggleManager {
 
       return true;
       */
-      
+
       // Временная заглушка
       console.log(`Feature toggle ${toggleName} updated to ${enabled}`);
       return true;
@@ -163,7 +163,7 @@ class FeatureToggleManager {
 
       return true;
       */
-      
+
       // Временная заглушка
       console.log(`Feature toggle ${name} created with enabled=${enabled}, type=${type}`);
       return true;

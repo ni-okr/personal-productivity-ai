@@ -2,11 +2,11 @@
  * React Hook для работы с Feature Toggles
  */
 
-import { featureToggleManager, FeatureToggleName, FEATURE_TOGGLES } from '@/lib/featureToggles';
+import { FEATURE_TOGGLES, featureToggleManager, FeatureToggleName } from '@/lib/featureToggles';
 import { useCallback, useEffect, useState } from 'react';
 
-export type { FeatureToggleName };
 export { FEATURE_TOGGLES };
+export type { FeatureToggleName };
 
 // useFeatureToggles уже определен выше
 

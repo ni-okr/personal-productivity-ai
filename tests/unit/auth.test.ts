@@ -15,7 +15,7 @@ import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock Supabase
 jest.mock('@/lib/supabase', () => ({
-    supabase: {
+    getSupabaseClient: jest.fn(() => ({
         auth: {
             signUp: jest.fn(),
             signInWithPassword: jest.fn(),
@@ -63,7 +63,7 @@ jest.mock('@/lib/supabase', () => ({
                 }))
             }))
         }))
-    }
+    }))
 }))
 
 describe('Auth Functions', () => {
@@ -74,7 +74,12 @@ describe('Auth Functions', () => {
     describe('signUp', () => {
         it('should register user successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignUp = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signUp: mockSignUp }
+            } as any)
 
             mockSignUp.mockResolvedValue({
                 data: {
@@ -105,7 +110,12 @@ describe('Auth Functions', () => {
 
         it('should handle registration error', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignUp = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signUp: mockSignUp }
+            } as any)
 
             mockSignUp.mockResolvedValue({
                 data: { user: null, session: null },
@@ -132,7 +142,12 @@ describe('Auth Functions', () => {
     describe('signIn', () => {
         it('should sign in user successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignIn = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signInWithPassword: mockSignIn }
+            } as any)
 
             mockSignIn.mockResolvedValue({
                 data: {
@@ -174,7 +189,12 @@ describe('Auth Functions', () => {
 
         it('should handle sign in error', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignIn = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signInWithPassword: mockSignIn }
+            } as any)
 
             mockSignIn.mockResolvedValue({
                 data: { user: null, session: null },
@@ -200,7 +220,12 @@ describe('Auth Functions', () => {
     describe('signOut', () => {
         it('should sign out user successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignOut = jest.mocked(mockSupabase.supabase.auth.signOut)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignOut = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signOut: mockSignOut }
+            } as any)
 
             mockSignOut.mockResolvedValue({ error: null })
 
@@ -212,11 +237,16 @@ describe('Auth Functions', () => {
     })
 
     describe('resetPassword', () => {
-        it('should send reset password email', async () => {
+        it('should send password reset email', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockResetPassword = jest.mocked(mockSupabase.supabase.auth.resetPasswordForEmail)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockResetPassword = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { resetPasswordForEmail: mockResetPassword }
+            } as any)
 
-            mockResetPassword.mockResolvedValue({ data: {}, error: null })
+            mockResetPassword.mockResolvedValue({ error: null })
 
             const result = await resetPassword('test@example.com')
 
@@ -226,12 +256,17 @@ describe('Auth Functions', () => {
     })
 
     describe('signInWithGoogle', () => {
-        it('should initiate Google sign in', async () => {
+        it('should initiate Google OAuth', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignInWithOAuth = jest.mocked(mockSupabase.supabase.auth.signInWithOAuth)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignInWithOAuth = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signInWithOAuth: mockSignInWithOAuth }
+            } as any)
 
             mockSignInWithOAuth.mockResolvedValue({
-                data: { url: 'https://google.com/oauth', provider: 'google' },
+                data: { provider: 'google', url: 'https://google.com/oauth' },
                 error: null
             })
 
@@ -243,12 +278,17 @@ describe('Auth Functions', () => {
     })
 
     describe('signInWithGitHub', () => {
-        it('should initiate GitHub sign in', async () => {
+        it('should initiate GitHub OAuth', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignInWithOAuth = jest.mocked(mockSupabase.supabase.auth.signInWithOAuth)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockSignInWithOAuth = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { signInWithOAuth: mockSignInWithOAuth }
+            } as any)
 
             mockSignInWithOAuth.mockResolvedValue({
-                data: { url: 'https://github.com/oauth', provider: 'github' },
+                data: { provider: 'github', url: 'https://github.com/oauth' },
                 error: null
             })
 
@@ -262,15 +302,20 @@ describe('Auth Functions', () => {
     describe('getCurrentUser', () => {
         it('should get current user', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockGetUser = jest.mocked(mockSupabase.supabase.auth.getUser)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockGetUser = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { getUser: mockGetUser }
+            } as any)
 
             mockGetUser.mockResolvedValue({
                 data: {
                     user: {
                         id: 'test-user-id',
                         email: 'test@example.com',
+                        user_metadata: { name: 'Test User' },
                         app_metadata: {},
-                        user_metadata: {},
                         aud: 'authenticated',
                         created_at: '2024-01-01T00:00:00Z'
                     }
@@ -291,56 +336,36 @@ describe('Auth Functions', () => {
 
             expect(result).toBeDefined()
             expect(result?.id).toBe('test-user-id')
-            expect(result?.email).toBe('test@example.com')
-        })
-    })
-
-    describe('updateUserProfile', () => {
-        it('should update user profile', async () => {
-            const result = await updateUserProfile('test-user-id', {
-                name: 'Updated Name'
-            })
-
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Профиль успешно обновлен')
+            expect(result?.email).toBe('user@example.com')
         })
     })
 
     describe('confirmEmail', () => {
-        it('should confirm email', async () => {
+        it('should confirm email with valid token', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockVerifyOtp = jest.mocked(mockSupabase.supabase.auth.verifyOtp)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockVerifyOtp = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { verifyOtp: mockVerifyOtp }
+            } as any)
 
             mockVerifyOtp.mockResolvedValue({
                 data: {
                     user: {
                         id: 'test-user-id',
                         email: 'test@example.com',
+                        user_metadata: { name: 'Test User' },
                         app_metadata: {},
-                        user_metadata: {},
                         aud: 'authenticated',
                         created_at: '2024-01-01T00:00:00Z'
                     },
-                    session: {
-                        access_token: 'mock-token',
-                        refresh_token: 'mock-refresh-token',
-                        expires_in: 3600,
-                        expires_at: Date.now() + 3600000,
-                        token_type: 'bearer',
-                        user: {
-                            id: 'test-user-id',
-                            email: 'test@example.com',
-                            app_metadata: {},
-                            user_metadata: {},
-                            aud: 'authenticated',
-                            created_at: '2024-01-01T00:00:00Z'
-                        }
-                    }
+                    session: null
                 },
                 error: null
             })
 
-            const result = await confirmEmail('test-token')
+            const result = await confirmEmail('valid-token')
 
             expect(result.success).toBe(true)
             expect(result.message).toBe('Email успешно подтвержден!')
@@ -348,17 +373,22 @@ describe('Auth Functions', () => {
     })
 
     describe('updatePassword', () => {
-        it('should update password', async () => {
+        it('should update password successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockUpdateUser = jest.mocked(mockSupabase.supabase.auth.updateUser)
+            const mockGetSupabaseClient = jest.mocked(mockSupabase.getSupabaseClient)
+            const mockUpdateUser = jest.fn()
+            
+            mockGetSupabaseClient.mockReturnValue({
+                auth: { updateUser: mockUpdateUser }
+            } as any)
 
             mockUpdateUser.mockResolvedValue({
                 data: {
                     user: {
                         id: 'test-user-id',
                         email: 'test@example.com',
+                        user_metadata: { name: 'Test User' },
                         app_metadata: {},
-                        user_metadata: {},
                         aud: 'authenticated',
                         created_at: '2024-01-01T00:00:00Z'
                     }
@@ -370,6 +400,20 @@ describe('Auth Functions', () => {
 
             expect(result.success).toBe(true)
             expect(result.message).toBe('Пароль успешно обновлен')
+        })
+    })
+
+    describe('updateUserProfile', () => {
+        it('should update user profile successfully', async () => {
+            const result = await updateUserProfile('test-user-id', {
+                name: 'Updated Name',
+                subscription: 'premium'
+            })
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Профиль успешно обновлен')
+            expect(result.user).toBeDefined()
+            expect(result.user?.name).toBe('Updated Name')
         })
     })
 })

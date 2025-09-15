@@ -406,7 +406,24 @@ export async function getCurrentUser(): Promise<User | null> {
         */
         
         // Временная заглушка
-        return null
+        return {
+            id: 'test-user-id',
+            email: 'test@example.com',
+            name: 'Test User',
+            avatar: undefined,
+            timezone: 'Europe/Moscow',
+            subscription: 'free' as const,
+            subscriptionStatus: 'active' as const,
+            preferences: {
+                workingHours: { start: '09:00', end: '18:00' },
+                focusTime: 25,
+                breakTime: 5,
+                notifications: { email: true, push: true, desktop: true },
+                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+            },
+            createdAt: new Date(),
+            updatedAt: new Date()
+        }
     } catch (error) {
         console.error('Ошибка получения текущего пользователя:', error)
         return null

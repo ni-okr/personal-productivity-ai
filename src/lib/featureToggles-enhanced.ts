@@ -13,9 +13,9 @@ import { getSupabaseClient } from './supabase'
 
 // Типы для Feature Toggles
 export type ToggleType = 'hot' | 'cold'
-export type FeatureToggleName = 
+export type FeatureToggleName =
   | 'new-ai-features'
-  | 'advanced-analytics' 
+  | 'advanced-analytics'
   | 'pwa-features'
   | 'beta-features'
   | 'debug-mode'
@@ -44,7 +44,7 @@ export const FEATURE_TOGGLES = {
   ADVANCED_ANALYTICS: 'advanced-analytics' as const,
   PWA_FEATURES: 'pwa-features' as const,
   BETA_FEATURES: 'beta-features' as const,
-  
+
   // Cold toggles (только при сборке)
   DEBUG_MODE: 'debug-mode' as const,
   EXPERIMENTAL_UI: 'experimental-ui' as const,
@@ -128,7 +128,7 @@ class FeatureToggleManager {
       }
 
       const enabled = (data as any)?.enabled || false
-      
+
       // Кешируем только hot toggles
       if ((data as any)?.type === 'hot') {
         this.cache.set(toggleName, enabled)
@@ -178,7 +178,7 @@ class FeatureToggleManager {
   async updateToggle(toggleName: FeatureToggleName, enabled: boolean): Promise<boolean> {
     try {
       const supabase = getSupabaseClient()
-      
+
       // Проверяем, что это hot toggle
       const { data: toggleData, error: checkError } = await supabase
         .from('feature_toggles')
@@ -279,7 +279,7 @@ export const featureToggleManager = new FeatureToggleManager()
 // Экспортируем удобные функции
 export const getFeatureToggle = (name: FeatureToggleName) => featureToggleManager.getToggle(name)
 export const getAllFeatureToggles = () => featureToggleManager.getAllToggles()
-export const updateFeatureToggle = (name: FeatureToggleName, enabled: boolean) => 
+export const updateFeatureToggle = (name: FeatureToggleName, enabled: boolean) =>
   featureToggleManager.updateToggle(name, enabled)
 export const createFeatureToggle = (
   name: FeatureToggleName,
@@ -287,9 +287,9 @@ export const createFeatureToggle = (
   type: ToggleType = 'hot',
   description?: string
 ) => featureToggleManager.createToggle(name, enabled, type, description)
-export const clearFeatureToggleCache = (name?: FeatureToggleName) => 
+export const clearFeatureToggleCache = (name?: FeatureToggleName) =>
   featureToggleManager.clearCache(name)
-export const isHotToggle = (name: FeatureToggleName) => 
+export const isHotToggle = (name: FeatureToggleName) =>
   featureToggleManager.isHotToggle(name)
 
 // Утилиты для работы с toggles
@@ -305,13 +305,13 @@ export const isToggleDisabled = async (name: FeatureToggleName): Promise<boolean
 export const getHotToggles = async (): Promise<FeatureToggleConfig> => {
   const allToggles = await getAllFeatureToggles()
   const hotToggles: FeatureToggleConfig = {}
-  
+
   for (const [name, enabled] of Object.entries(allToggles)) {
     if (await isHotToggle(name as FeatureToggleName)) {
       hotToggles[name] = enabled
     }
   }
-  
+
   return hotToggles
 }
 
@@ -319,12 +319,12 @@ export const getHotToggles = async (): Promise<FeatureToggleConfig> => {
 export const getColdToggles = async (): Promise<FeatureToggleConfig> => {
   const allToggles = await getAllFeatureToggles()
   const coldToggles: FeatureToggleConfig = {}
-  
+
   for (const [name, enabled] of Object.entries(allToggles)) {
     if (!(await isHotToggle(name as FeatureToggleName))) {
       coldToggles[name] = enabled
     }
   }
-  
+
   return coldToggles
 }
