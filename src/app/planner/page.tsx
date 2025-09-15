@@ -713,6 +713,7 @@ function TaskCard({ task, onToggle, onDelete, completed }: TaskCardProps) {
                         ? 'bg-green-500 border-green-500 text-white'
                         : 'border-gray-300 hover:border-green-500'
                         }`}
+                    aria-label={`Toggle task ${task.title}`}
                 >
                     {task.status === 'completed' && <CheckCircleIcon className="w-3 h-3" />}
                 </button>

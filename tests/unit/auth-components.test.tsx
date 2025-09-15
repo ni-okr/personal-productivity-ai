@@ -40,10 +40,10 @@ describe('Auth Components', () => {
         it('should render login form', () => {
             render(<LoginForm />)
 
-            expect(screen.getByText('Вход в аккаунт')).toBeInTheDocument()
-            expect(screen.getByLabelText('Email')).toBeInTheDocument()
-            expect(screen.getByLabelText('Пароль')).toBeInTheDocument()
-            expect(screen.getByRole('button', { name: 'Войти' })).toBeInTheDocument()
+            expect(screen.getByText('Вход в аккаунт')).toBeTruthy()
+            expect(screen.getByLabelText('Email')).toBeTruthy()
+            expect(screen.getByLabelText('Пароль')).toBeTruthy()
+            expect(screen.getByRole('button', { name: 'Войти' })).toBeTruthy()
         })
 
         it('should handle form submission', async () => {
@@ -51,7 +51,24 @@ describe('Auth Components', () => {
             const mockSignIn = jest.mocked(signIn)
             mockSignIn.mockResolvedValue({
                 success: true,
-                user: { id: '1', email: 'test@example.com', name: 'Test User' }
+                user: {
+                    id: '1',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    avatar: undefined,
+                    timezone: 'Europe/Moscow',
+                    subscription: 'free',
+                    subscriptionStatus: 'active',
+                    preferences: {
+                        workingHours: { start: '09:00', end: '18:00' },
+                        focusTime: 25,
+                        breakTime: 5,
+                        notifications: { email: true, push: true, desktop: true },
+                        aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                    },
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
             })
 
             render(<LoginForm />)
@@ -90,7 +107,7 @@ describe('Auth Components', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Войти' }))
 
             await waitFor(() => {
-                expect(screen.getByText('Неверный email или пароль')).toBeInTheDocument()
+                expect(screen.getByText('Неверный email или пароль')).toBeTruthy()
             })
         })
     })
@@ -99,12 +116,12 @@ describe('Auth Components', () => {
         it('should render register form', () => {
             render(<RegisterForm />)
 
-            expect(screen.getByText('Создать аккаунт')).toBeInTheDocument()
-            expect(screen.getByLabelText('Имя')).toBeInTheDocument()
-            expect(screen.getByLabelText('Email')).toBeInTheDocument()
-            expect(screen.getByLabelText('Пароль')).toBeInTheDocument()
-            expect(screen.getByLabelText('Подтвердите пароль')).toBeInTheDocument()
-            expect(screen.getByRole('button', { name: 'Зарегистрироваться' })).toBeInTheDocument()
+            expect(screen.getByText('Создать аккаунт')).toBeTruthy()
+            expect(screen.getByLabelText('Имя')).toBeTruthy()
+            expect(screen.getByLabelText('Email')).toBeTruthy()
+            expect(screen.getByLabelText('Пароль')).toBeTruthy()
+            expect(screen.getByLabelText('Подтвердите пароль')).toBeTruthy()
+            expect(screen.getByRole('button', { name: 'Зарегистрироваться' })).toBeTruthy()
         })
 
         it('should handle form submission', async () => {
@@ -112,7 +129,24 @@ describe('Auth Components', () => {
             const mockSignUp = jest.mocked(signUp)
             mockSignUp.mockResolvedValue({
                 success: true,
-                user: { id: '1', email: 'test@example.com', name: 'Test User' }
+                user: {
+                    id: '1',
+                    email: 'test@example.com',
+                    name: 'Test User',
+                    avatar: undefined,
+                    timezone: 'Europe/Moscow',
+                    subscription: 'free',
+                    subscriptionStatus: 'active',
+                    preferences: {
+                        workingHours: { start: '09:00', end: '18:00' },
+                        focusTime: 25,
+                        breakTime: 5,
+                        notifications: { email: true, push: true, desktop: true },
+                        aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                    },
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
             })
 
             render(<RegisterForm />)
@@ -159,7 +193,7 @@ describe('Auth Components', () => {
             // Ждем немного для обновления состояния
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            expect(screen.getByText('Пароли не совпадают')).toBeInTheDocument()
+            expect(screen.getByText('Пароли не совпадают')).toBeTruthy()
         })
     })
 
@@ -167,9 +201,9 @@ describe('Auth Components', () => {
         it('should render reset password form', () => {
             render(<ResetPasswordForm />)
 
-            expect(screen.getByText('Восстановление пароля')).toBeInTheDocument()
-            expect(screen.getByLabelText('Email')).toBeInTheDocument()
-            expect(screen.getByRole('button', { name: 'Отправить ссылку' })).toBeInTheDocument()
+            expect(screen.getByText('Восстановление пароля')).toBeTruthy()
+            expect(screen.getByLabelText('Email')).toBeTruthy()
+            expect(screen.getByRole('button', { name: 'Отправить ссылку' })).toBeTruthy()
         })
 
         it('should handle form submission', async () => {
@@ -198,7 +232,7 @@ describe('Auth Components', () => {
         it('should render auth modal', () => {
             render(<AuthModal isOpen={true} onClose={jest.fn()} />)
 
-            expect(screen.getByText('Вход в аккаунт')).toBeInTheDocument()
+            expect(screen.getByText('Вход в аккаунт')).toBeTruthy()
         })
 
         it('should close modal when close button is clicked', () => {

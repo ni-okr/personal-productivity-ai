@@ -31,7 +31,7 @@ export function SubscriptionStatus({ userId, onUpgrade }: SubscriptionStatusProp
     const loadSubscriptionStatus = async () => {
         try {
             setIsLoading(true)
-            const response = await fetch('/api/subscriptions/status')
+            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/status`)
             const result = await response.json()
 
             if (result.success) {

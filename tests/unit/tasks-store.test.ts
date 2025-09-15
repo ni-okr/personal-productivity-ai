@@ -21,7 +21,17 @@ describe('useAppStore with Supabase integration', () => {
         id: 'test-user-id',
         email: 'test@example.com',
         name: 'Test User',
-        avatar: null,
+        avatar: undefined,
+        timezone: 'Europe/Moscow',
+        subscription: 'free' as const,
+        subscriptionStatus: 'active' as const,
+        preferences: {
+            workingHours: { start: '09:00', end: '18:00' },
+            focusTime: 25,
+            breakTime: 5,
+            notifications: { email: true, push: true, desktop: true },
+            aiCoaching: { enabled: true, frequency: 'medium' as const, style: 'gentle' as const }
+        },
         createdAt: new Date(),
         updatedAt: new Date()
     }
@@ -34,8 +44,10 @@ describe('useAppStore with Supabase integration', () => {
         status: 'todo' as const,
         dueDate: new Date('2024-01-01'),
         completedAt: undefined,
-        estimatedDuration: 30,
-        actualDuration: undefined,
+        estimatedMinutes: 30,
+        actualMinutes: undefined,
+        source: 'manual' as const,
+        userId: 'test-user-id',
         tags: ['work'],
         createdAt: new Date(),
         updatedAt: new Date()
@@ -111,7 +123,7 @@ describe('useAppStore with Supabase integration', () => {
                 title: 'New Task',
                 description: 'New Description',
                 priority: 'medium' as const,
-                estimatedDuration: 60,
+                estimatedMinutes: 60,
                 tags: ['personal']
             }
 
@@ -142,7 +154,7 @@ describe('useAppStore with Supabase integration', () => {
                 title: 'New Task',
                 description: 'New Description',
                 priority: 'medium' as const,
-                estimatedDuration: 60,
+                estimatedMinutes: 60,
                 tags: ['personal']
             }
 
@@ -171,7 +183,7 @@ describe('useAppStore with Supabase integration', () => {
                 title: 'New Task',
                 description: 'New Description',
                 priority: 'medium' as const,
-                estimatedDuration: 60,
+                estimatedMinutes: 60,
                 tags: ['personal']
             }
 
@@ -192,7 +204,7 @@ describe('useAppStore with Supabase integration', () => {
                 priority: 'urgent' as const
             }
 
-            const updatedTask = { ...mockTask, title: 'Updated Task', priority: 'urgent' as const }
+            const updatedTask = { ...mockTask, title: 'Updated Task', priority: 'urgent' as const, source: 'manual' as const, userId: 'test-user-id' }
 
             mockTasksApi.updateTask.mockResolvedValue({
                 success: true,
@@ -288,7 +300,7 @@ describe('useAppStore with Supabase integration', () => {
 
     describe('completeTaskAsync', () => {
         it('должен успешно завершить задачу', async () => {
-            const completedTask = { ...mockTask, status: 'completed' as const, actualDuration: 25 }
+            const completedTask = { ...mockTask, status: 'completed' as const, actualMinutes: 25, source: 'manual' as const, userId: 'test-user-id' }
 
             mockTasksApi.completeTask.mockResolvedValue({
                 success: true,

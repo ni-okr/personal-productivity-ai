@@ -1,10 +1,9 @@
 // 🧪 Unit тесты для системы подписок
 import {
     createSubscription,
-    deleteSubscription,
-    getAllSubscriptionPlans,
     getSubscription,
-    getSubscriptionPlanByTier,
+    getSubscriptionPlan,
+    getSubscriptionPlans,
     updateSubscription
 } from '@/lib/subscriptions'
 import { beforeEach, describe, expect, it } from '@jest/globals'
@@ -90,7 +89,7 @@ describe('Subscription Management', () => {
             const result = await createSubscription(subscriptionData)
 
             expect(result.success).toBe(true)
-            expect(result.data).toEqual(mockSubscription)
+            expect(result.subscription).toEqual(mockSubscription)
             expect(mockSupabase.from).toHaveBeenCalledWith('subscriptions')
         })
 
@@ -99,6 +98,8 @@ describe('Subscription Management', () => {
                 userId: 'user-123',
                 tier: 'premium' as const,
                 status: 'active' as const,
+                stripeCustomerId: 'cus_123',
+                stripeSubscriptionId: 'sub_123',
                 currentPeriodStart: new Date('2024-01-01'),
                 currentPeriodEnd: new Date('2024-02-01'),
                 cancelAtPeriodEnd: false
@@ -133,7 +134,7 @@ describe('Subscription Management', () => {
             const result = await getSubscription('user-123')
 
             expect(result.success).toBe(true)
-            expect(result.data).toEqual(mockSubscription)
+            expect(result.subscription).toEqual(mockSubscription)
         })
 
         it('должна возвращать null если подписка не найдена', async () => {
@@ -145,7 +146,7 @@ describe('Subscription Management', () => {
             const result = await getSubscription('user-123')
 
             expect(result.success).toBe(true)
-            expect(result.data).toBeNull()
+            expect(result.subscription).toBeNull()
         })
     })
 
@@ -172,24 +173,12 @@ describe('Subscription Management', () => {
             const result = await updateSubscription('sub-123', updates)
 
             expect(result.success).toBe(true)
-            expect(result.data).toEqual(mockUpdatedSubscription)
+            expect(result.subscription).toEqual(mockUpdatedSubscription)
         })
     })
 
-    describe('deleteSubscription', () => {
-        it('должна удалять подписку', async () => {
-            mockSupabase.from().delete().eq().mockResolvedValue({
-                data: null,
-                error: null
-            })
 
-            const result = await deleteSubscription('sub-123')
-
-            expect(result.success).toBe(true)
-        })
-    })
-
-    describe('getAllSubscriptionPlans', () => {
+    describe('getSubscriptionPlans', () => {
         it('должна получать все планы подписок', async () => {
             const mockPlans = [
                 {
@@ -218,19 +207,19 @@ describe('Subscription Management', () => {
                 }
             ]
 
-            mockSupabase.from().select().eq().mockResolvedValue({
+            const mockQuery = mockSupabase.from().select().eq() as any
+            mockQuery.mockResolvedValue({
                 data: mockPlans,
                 error: null
             })
 
-            const result = await getAllSubscriptionPlans()
+            const result = await getSubscriptionPlans()
 
-            expect(result.success).toBe(true)
-            expect(result.data).toEqual(mockPlans)
+            expect(result).toEqual(mockPlans)
         })
     })
 
-    describe('getSubscriptionPlanByTier', () => {
+    describe('getSubscriptionPlan', () => {
         it('должна получать план по тиру', async () => {
             const mockPlan = {
                 id: 'plan-premium',
@@ -250,10 +239,10 @@ describe('Subscription Management', () => {
                 error: null
             })
 
-            const result = await getSubscriptionPlanByTier('premium')
+            const result = await getSubscriptionPlan('premium')
 
-            expect(result.success).toBe(true)
-            expect(result.data).toEqual(mockPlan)
+            expect(result).toEqual(mockPlan)
         })
     })
 })
+

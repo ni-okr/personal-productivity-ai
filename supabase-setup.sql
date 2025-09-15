@@ -77,7 +77,34 @@ CREATE INDEX IF NOT EXISTS productivity_metrics_user_date_idx ON public.producti
 CREATE INDEX IF NOT EXISTS productivity_metrics_date_idx ON public.productivity_metrics(date);
 
 -- =====================================
--- 4. ТАБЛИЦА ИИ РЕКОМЕНДАЦИЙ
+-- 4. ТАБЛИЦА ПОДПИСОК
+-- =====================================
+
+-- Создаем таблицу для хранения подписок пользователей
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+    tier TEXT NOT NULL CHECK (tier IN ('free', 'premium', 'pro')),
+    status TEXT NOT NULL CHECK (status IN ('active', 'inactive', 'cancelled', 'past_due', 'unpaid')),
+    stripe_customer_id TEXT,
+    stripe_subscription_id TEXT,
+    current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+    trial_end TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id) -- Один пользователь = одна подписка
+);
+
+-- Индексы для подписок
+CREATE INDEX IF NOT EXISTS subscriptions_user_id_idx ON public.subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS subscriptions_tier_idx ON public.subscriptions(tier);
+CREATE INDEX IF NOT EXISTS subscriptions_status_idx ON public.subscriptions(status);
+CREATE INDEX IF NOT EXISTS subscriptions_stripe_customer_id_idx ON public.subscriptions(stripe_customer_id);
+
+-- =====================================
+-- 5. ТАБЛИЦА ИИ РЕКОМЕНДАЦИЙ
 -- =====================================
 
 -- Создаем таблицу для хранения рекомендаций ИИ
@@ -100,13 +127,14 @@ CREATE INDEX IF NOT EXISTS ai_suggestions_type_idx ON public.ai_suggestions(type
 CREATE INDEX IF NOT EXISTS ai_suggestions_expires_at_idx ON public.ai_suggestions(expires_at);
 
 -- =====================================
--- 5. RLS (ROW LEVEL SECURITY) ПОЛИТИКИ
+-- 6. RLS (ROW LEVEL SECURITY) ПОЛИТИКИ
 -- =====================================
 
 -- Включаем RLS для всех таблиц
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.productivity_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_suggestions ENABLE ROW LEVEL SECURITY;
 
 -- Политики для таблицы users
@@ -142,6 +170,16 @@ CREATE POLICY "Users can insert own metrics" ON public.productivity_metrics
 CREATE POLICY "Users can update own metrics" ON public.productivity_metrics
     FOR UPDATE USING (auth.uid() = user_id);
 
+-- Политики для таблицы subscriptions
+CREATE POLICY "Users can view own subscription" ON public.subscriptions
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own subscription" ON public.subscriptions
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own subscription" ON public.subscriptions
+    FOR UPDATE USING (auth.uid() = user_id);
+
 -- Политики для таблицы ai_suggestions
 CREATE POLICY "Users can view own suggestions" ON public.ai_suggestions
     FOR SELECT USING (auth.uid() = user_id);
@@ -150,7 +188,7 @@ CREATE POLICY "Users can update own suggestions" ON public.ai_suggestions
     FOR UPDATE USING (auth.uid() = user_id);
 
 -- =====================================
--- 6. ФУНКЦИИ И ТРИГГЕРЫ
+-- 7. ФУНКЦИИ И ТРИГГЕРЫ
 -- =====================================
 
 -- Функция для автоматического обновления updated_at
@@ -172,8 +210,11 @@ CREATE TRIGGER update_tasks_updated_at BEFORE UPDATE ON public.tasks
 CREATE TRIGGER update_productivity_metrics_updated_at BEFORE UPDATE ON public.productivity_metrics
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON public.subscriptions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- =====================================
--- 7. ФУНКЦИЯ СОЗДАНИЯ ПРОФИЛЯ ПРИ РЕГИСТРАЦИИ
+-- 8. ФУНКЦИЯ СОЗДАНИЯ ПРОФИЛЯ ПРИ РЕГИСТРАЦИИ
 -- =====================================
 
 -- Функция для автоматического создания профиля пользователя
@@ -196,7 +237,7 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- =====================================
--- 8. ПРЕДСТАВЛЕНИЯ ДЛЯ АНАЛИТИКИ
+-- 9. ПРЕДСТАВЛЕНИЯ ДЛЯ АНАЛИТИКИ
 -- =====================================
 
 -- Представление для статистики пользователя
@@ -218,7 +259,7 @@ LEFT JOIN public.productivity_metrics pm ON u.id = pm.user_id
 GROUP BY u.id, u.name, u.email, u.subscription;
 
 -- =====================================
--- 9. НАЧАЛЬНЫЕ ДАННЫЕ
+-- 10. НАЧАЛЬНЫЕ ДАННЫЕ
 -- =====================================
 
 -- Можно добавить начальные данные, например, шаблоны задач

@@ -124,7 +124,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 export async function getSubscription(userId: string): Promise<SubscriptionResponse> {
     try {
         const { data, error } = await supabase
-            .from('subscriptions')
+            .from('user_subscriptions')
             .select('*')
             .eq('user_id', userId)
             .single()
@@ -189,7 +189,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
 export async function createSubscription(subscriptionData: CreateSubscriptionData): Promise<SubscriptionResponse> {
     try {
         const { data, error } = await supabase
-            .from('subscriptions')
+            .from('user_subscriptions')
             .insert({
                 user_id: subscriptionData.userId,
                 tier: subscriptionData.tier,
@@ -265,7 +265,7 @@ export async function updateSubscription(subscriptionId: string, updates: Update
         }
 
         const { data, error } = await supabase
-            .from('subscriptions')
+            .from('user_subscriptions')
             .update(updateData)
             .eq('id', subscriptionId)
             .select()
@@ -314,7 +314,7 @@ export async function updateSubscription(subscriptionId: string, updates: Update
 export async function cancelSubscription(subscriptionId: string): Promise<SubscriptionResponse> {
     try {
         const { data, error } = await supabase
-            .from('subscriptions')
+            .from('user_subscriptions')
             .update({
                 status: 'canceled',
                 cancel_at_period_end: true,
@@ -410,7 +410,11 @@ export function hasFeatureAccess(subscription: Subscription, feature: string): b
 /**
  * 📈 Получение лимитов пользователя
  */
-export function getUserLimits(subscription: Subscription) {
+export function getUserLimits(subscription: Subscription | null) {
+    if (!subscription) {
+        return SUBSCRIPTION_PLANS[0].limits // Free plan limits
+    }
+
     const plan = getSubscriptionPlan(subscription.tier)
     if (!plan) {
         return SUBSCRIPTION_PLANS[0].limits // Free plan limits

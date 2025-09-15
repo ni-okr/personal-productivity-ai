@@ -5,7 +5,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 describe('Button Component', () => {
     test('рендерится с текстом', () => {
         render(<Button>Тестовая кнопка</Button>)
-        expect(screen.getByText('Тестовая кнопка')).toBeInTheDocument()
+        expect(screen.getByText('Тестовая кнопка')).toBeTruthy()
     })
 
     test('обрабатывает клики', () => {
@@ -23,7 +23,7 @@ describe('Button Component', () => {
         expect(screen.getByRole('button')).toBeDisabled()
 
         // Должен быть спиннер
-        expect(document.querySelector('.animate-spin')).toBeInTheDocument()
+        expect(document.querySelector('.animate-spin')).toBeTruthy()
     })
 
     test('применяет правильные варианты стилей', () => {
@@ -63,7 +63,7 @@ describe('Button Component', () => {
             </Button>
         )
 
-        expect(screen.getByTestId('left-icon')).toBeInTheDocument()
-        expect(screen.getByTestId('right-icon')).toBeInTheDocument()
+        expect(screen.getByTestId('left-icon')).toBeTruthy()
+        expect(screen.getByTestId('right-icon')).toBeTruthy()
     })
 })

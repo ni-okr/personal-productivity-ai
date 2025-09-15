@@ -82,8 +82,12 @@ describe('Auth Functions', () => {
                         id: 'test-user-id',
                         email: 'test@example.com',
                         email_confirmed_at: '2024-01-01T00:00:00Z',
-                        user_metadata: { name: 'Test User' }
-                    }
+                        user_metadata: { name: 'Test User' },
+                        app_metadata: {},
+                        aud: 'authenticated',
+                        created_at: '2024-01-01T00:00:00Z'
+                    },
+                    session: null
                 },
                 error: null
             })
@@ -104,8 +108,14 @@ describe('Auth Functions', () => {
             const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
 
             mockSignUp.mockResolvedValue({
-                data: { user: null },
-                error: { message: 'User already registered' }
+                data: { user: null, session: null },
+                error: {
+                    message: 'User already registered',
+                    code: 'user_already_registered',
+                    status: 400,
+                    __isAuthError: true,
+                    name: 'AuthError'
+                } as any
             })
 
             const result = await signUp({
@@ -129,7 +139,25 @@ describe('Auth Functions', () => {
                     user: {
                         id: 'test-user-id',
                         email: 'test@example.com',
-                        user_metadata: { name: 'Test User' }
+                        user_metadata: { name: 'Test User' },
+                        app_metadata: {},
+                        aud: 'authenticated',
+                        created_at: '2024-01-01T00:00:00Z'
+                    },
+                    session: {
+                        access_token: 'mock-token',
+                        refresh_token: 'mock-refresh-token',
+                        expires_in: 3600,
+                        expires_at: Date.now() + 3600000,
+                        token_type: 'bearer',
+                        user: {
+                            id: 'test-user-id',
+                            email: 'test@example.com',
+                            user_metadata: { name: 'Test User' },
+                            app_metadata: {},
+                            aud: 'authenticated',
+                            created_at: '2024-01-01T00:00:00Z'
+                        }
                     }
                 },
                 error: null
@@ -149,8 +177,14 @@ describe('Auth Functions', () => {
             const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
 
             mockSignIn.mockResolvedValue({
-                data: { user: null },
-                error: { message: 'Invalid login credentials' }
+                data: { user: null, session: null },
+                error: {
+                    message: 'Invalid login credentials',
+                    code: 'invalid_credentials',
+                    status: 400,
+                    __isAuthError: true,
+                    name: 'AuthError'
+                } as any
             })
 
             const result = await signIn({
@@ -182,7 +216,7 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockResetPassword = jest.mocked(mockSupabase.supabase.auth.resetPasswordForEmail)
 
-            mockResetPassword.mockResolvedValue({ error: null })
+            mockResetPassword.mockResolvedValue({ data: {}, error: null })
 
             const result = await resetPassword('test@example.com')
 
@@ -197,7 +231,7 @@ describe('Auth Functions', () => {
             const mockSignInWithOAuth = jest.mocked(mockSupabase.supabase.auth.signInWithOAuth)
 
             mockSignInWithOAuth.mockResolvedValue({
-                data: { url: 'https://google.com/oauth' },
+                data: { url: 'https://google.com/oauth', provider: 'google' },
                 error: null
             })
 
@@ -214,7 +248,7 @@ describe('Auth Functions', () => {
             const mockSignInWithOAuth = jest.mocked(mockSupabase.supabase.auth.signInWithOAuth)
 
             mockSignInWithOAuth.mockResolvedValue({
-                data: { url: 'https://github.com/oauth' },
+                data: { url: 'https://github.com/oauth', provider: 'github' },
                 error: null
             })
 
@@ -234,7 +268,11 @@ describe('Auth Functions', () => {
                 data: {
                     user: {
                         id: 'test-user-id',
-                        email: 'test@example.com'
+                        email: 'test@example.com',
+                        app_metadata: {},
+                        user_metadata: {},
+                        aud: 'authenticated',
+                        created_at: '2024-01-01T00:00:00Z'
                     }
                 },
                 error: null
@@ -277,7 +315,26 @@ describe('Auth Functions', () => {
                 data: {
                     user: {
                         id: 'test-user-id',
-                        email: 'test@example.com'
+                        email: 'test@example.com',
+                        app_metadata: {},
+                        user_metadata: {},
+                        aud: 'authenticated',
+                        created_at: '2024-01-01T00:00:00Z'
+                    },
+                    session: {
+                        access_token: 'mock-token',
+                        refresh_token: 'mock-refresh-token',
+                        expires_in: 3600,
+                        expires_at: Date.now() + 3600000,
+                        token_type: 'bearer',
+                        user: {
+                            id: 'test-user-id',
+                            email: 'test@example.com',
+                            app_metadata: {},
+                            user_metadata: {},
+                            aud: 'authenticated',
+                            created_at: '2024-01-01T00:00:00Z'
+                        }
                     }
                 },
                 error: null
@@ -295,7 +352,19 @@ describe('Auth Functions', () => {
             const mockSupabase = await import('@/lib/supabase')
             const mockUpdateUser = jest.mocked(mockSupabase.supabase.auth.updateUser)
 
-            mockUpdateUser.mockResolvedValue({ error: null })
+            mockUpdateUser.mockResolvedValue({
+                data: {
+                    user: {
+                        id: 'test-user-id',
+                        email: 'test@example.com',
+                        app_metadata: {},
+                        user_metadata: {},
+                        aud: 'authenticated',
+                        created_at: '2024-01-01T00:00:00Z'
+                    }
+                },
+                error: null
+            })
 
             const result = await updatePassword('newpassword123')
 

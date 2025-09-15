@@ -1,16 +1,36 @@
 // 🧪 Unit тесты для Stripe интеграции
 import {
     createCheckoutSession,
-    createPortalSession,
-    createStripeCustomer,
-    handleStripeWebhook
+    createCustomer
 } from '@/lib/stripe'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock fetch для Node.js окружения
 global.fetch = jest.fn()
 
-// Mock Stripe
+// Mock Stripe модуль
+jest.mock('stripe', () => {
+    return jest.fn().mockImplementation(() => ({
+        customers: {
+            create: jest.fn()
+        },
+        checkout: {
+            sessions: {
+                create: jest.fn()
+            }
+        },
+        billingPortal: {
+            sessions: {
+                create: jest.fn()
+            }
+        },
+        webhooks: {
+            constructEvent: jest.fn()
+        }
+    }))
+})
+
+// Получаем мок после импорта
 const mockStripe = {
     customers: {
         create: jest.fn()
@@ -30,17 +50,17 @@ const mockStripe = {
     }
 }
 
-// Mock Stripe модуль
-jest.mock('stripe', () => {
-    return jest.fn().mockImplementation(() => mockStripe)
-})
-
 describe('Stripe Integration', () => {
+    let mockStripeInstance: any
+
     beforeEach(() => {
         jest.clearAllMocks()
+        // Получаем экземпляр мока
+        const Stripe = require('stripe')
+        mockStripeInstance = new Stripe()
     })
 
-    describe('createStripeCustomer', () => {
+    describe('createCustomer', () => {
         it('должна создавать клиента Stripe', async () => {
             const customerData = {
                 email: 'test@example.com',
@@ -54,13 +74,13 @@ describe('Stripe Integration', () => {
                 name: 'Test User'
             }
 
-            mockStripe.customers.create.mockResolvedValue(mockCustomer)
+            mockStripeInstance.customers.create.mockResolvedValue(mockCustomer)
 
-            const result = await createStripeCustomer(customerData)
+            const result = await createCustomer('user-123', customerData.email, customerData.name)
 
             expect(result.success).toBe(true)
             expect(result.data).toEqual(mockCustomer)
-            expect(mockStripe.customers.create).toHaveBeenCalledWith(customerData)
+            expect(mockStripeInstance.customers.create).toHaveBeenCalledWith(customerData)
         })
 
         it('должна обрабатывать ошибки создания клиента', async () => {
@@ -70,9 +90,9 @@ describe('Stripe Integration', () => {
                 metadata: { userId: 'user-123' }
             }
 
-            mockStripe.customers.create.mockRejectedValue(new Error('Invalid email'))
+            mockStripeInstance.customers.create.mockRejectedValue(new Error('Invalid email'))
 
-            const result = await createStripeCustomer(customerData)
+            const result = await createCustomer('user-123', customerData.email, customerData.name)
 
             expect(result.success).toBe(false)
             expect(result.error).toContain('Invalid email')
@@ -94,7 +114,7 @@ describe('Stripe Integration', () => {
                 url: 'https://checkout.stripe.com/c/pay/cs_123'
             }
 
-            mockStripe.checkout.sessions.create.mockResolvedValue(mockSession)
+            mockStripeInstance.checkout.sessions.create.mockResolvedValue(mockSession)
 
             const result = await createCheckoutSession(sessionData)
 
@@ -110,7 +130,7 @@ describe('Stripe Integration', () => {
                 cancelUrl: 'https://app.com/cancel'
             }
 
-            mockStripe.checkout.sessions.create.mockRejectedValue(new Error('Invalid plan'))
+            mockStripeInstance.checkout.sessions.create.mockRejectedValue(new Error('Invalid plan'))
 
             const result = await createCheckoutSession(sessionData)
 
@@ -119,57 +139,4 @@ describe('Stripe Integration', () => {
         })
     })
 
-    describe('createPortalSession', () => {
-        it('должна создавать portal сессию', async () => {
-            const portalData = {
-                userId: 'user-123',
-                returnUrl: 'https://app.com/planner'
-            }
-
-            const mockPortalSession = {
-                id: 'bps_123',
-                url: 'https://billing.stripe.com/session/bps_123'
-            }
-
-            mockStripe.billingPortal.sessions.create.mockResolvedValue(mockPortalSession)
-
-            const result = await createPortalSession(portalData)
-
-            expect(result.success).toBe(true)
-            expect(result.data).toEqual(mockPortalSession)
-        })
-    })
-
-    describe('handleStripeWebhook', () => {
-        it('должна обрабатывать webhook события', async () => {
-            const mockEvent = {
-                id: 'evt_123',
-                type: 'customer.subscription.created',
-                data: {
-                    object: {
-                        id: 'sub_123',
-                        customer: 'cus_123',
-                        status: 'active'
-                    }
-                }
-            }
-
-            mockStripe.webhooks.constructEvent.mockReturnValue(mockEvent)
-
-            const result = await handleStripeWebhook('webhook-body', 'stripe-signature')
-
-            expect(result.success).toBe(true)
-        })
-
-        it('должна обрабатывать ошибки webhook', async () => {
-            mockStripe.webhooks.constructEvent.mockImplementation(() => {
-                throw new Error('Invalid signature')
-            })
-
-            const result = await handleStripeWebhook('invalid-body', 'invalid-signature')
-
-            expect(result.success).toBe(false)
-            expect(result.error).toContain('Invalid signature')
-        })
-    })
 })

@@ -19,7 +19,7 @@ const mockUseAppStore = useAppStore as jest.MockedFunction<typeof useAppStore>
 
 describe('Planner Integration with Supabase', () => {
     const mockUser: User = {
-        id: 'test-user-id',
+        id: '550e8400-e29b-41d4-a716-446655440000',
         email: 'test@example.com',
         name: 'Test User',
         avatar: undefined,
@@ -38,7 +38,7 @@ describe('Planner Integration with Supabase', () => {
     }
 
     const mockTask = {
-        id: 'test-task-id',
+        id: '550e8400-e29b-41d4-a716-446655440001',
         title: 'Test Task',
         description: 'Test Description',
         priority: 'high' as const,
@@ -87,9 +87,9 @@ describe('Planner Integration with Supabase', () => {
         it('должен показать экран входа для неавторизованных пользователей', () => {
             render(<PlannerPage />)
 
-            expect(screen.getByText('ИИ-Планировщик')).toBeInTheDocument()
-            expect(screen.getByText('Для доступа к планировщику необходимо войти в систему')).toBeInTheDocument()
-            expect(screen.getByText('Войти в систему')).toBeInTheDocument()
+            expect(screen.getByText('ИИ-Планировщик')).toBeTruthy()
+            expect(screen.getByText('Для доступа к планировщику необходимо войти в систему')).toBeTruthy()
+            expect(screen.getByText('Войти в систему')).toBeTruthy()
         })
 
         it('должен показать планировщик для авторизованных пользователей', () => {
@@ -103,9 +103,9 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            expect(screen.getByText('ИИ-Планировщик')).toBeInTheDocument()
-            expect(screen.getByText('Превращаем хаос в систему')).toBeInTheDocument()
-            expect(screen.getByText('Добавить задачу')).toBeInTheDocument()
+            expect(screen.getByText('ИИ-Планировщик')).toBeTruthy()
+            expect(screen.getByText('Превращаем хаос в систему')).toBeTruthy()
+            expect(screen.getByText('Добавить задачу')).toBeTruthy()
         })
     })
 
@@ -134,7 +134,7 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            expect(screen.getByText('Ошибка загрузки задач')).toBeInTheDocument()
+            expect(screen.getByText('Ошибка загрузки задач')).toBeTruthy()
         })
 
         it('должен показывать состояние загрузки', () => {
@@ -163,10 +163,10 @@ describe('Planner Integration with Supabase', () => {
         it('должен открывать модал добавления задачи', () => {
             render(<PlannerPage />)
 
-            fireEvent.click(screen.getByText('Добавить задачу'))
+            fireEvent.click(screen.getByRole('button', { name: 'Добавить задачу' }))
 
-            expect(screen.getByText('Добавить задачу')).toBeInTheDocument()
-            expect(screen.getByPlaceholderText('Что нужно сделать?')).toBeInTheDocument()
+            expect(screen.getByRole('heading', { name: 'Добавить задачу' })).toBeTruthy()
+            expect(screen.getByPlaceholderText('Что нужно сделать?')).toBeTruthy()
         })
 
         it('должен закрывать модал при нажатии отмены', () => {
@@ -175,7 +175,7 @@ describe('Planner Integration with Supabase', () => {
             fireEvent.click(screen.getByText('Добавить задачу'))
             fireEvent.click(screen.getByText('Отмена'))
 
-            expect(screen.queryByPlaceholderText('Что нужно сделать?')).not.toBeInTheDocument()
+            expect(screen.queryByPlaceholderText('Что нужно сделать?')).not.toBeTruthy()
         })
 
         it('должен создавать задачу через Supabase', async () => {
@@ -214,7 +214,7 @@ describe('Planner Integration with Supabase', () => {
             fireEvent.click(screen.getByText('Добавить'))
 
             await waitFor(() => {
-                expect(screen.getByText('Исправьте ошибки:')).toBeInTheDocument()
+                expect(screen.getByText('Исправьте ошибки:')).toBeTruthy()
             })
         })
 
@@ -257,7 +257,7 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            const taskCheckbox = screen.getByRole('button', { name: /toggle task/i })
+            const taskCheckbox = screen.getAllByRole('button', { name: /toggle task test task/i })[0]
             fireEvent.click(taskCheckbox)
 
             await waitFor(() => {
@@ -270,7 +270,7 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            const deleteButton = screen.getByTitle('Удалить задачу')
+            const deleteButton = screen.getAllByTitle('Удалить задачу')[0]
             fireEvent.click(deleteButton)
 
             await waitFor(() => {
@@ -298,8 +298,8 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            expect(screen.getByText('Срочно')).toBeInTheDocument()
-            expect(screen.getByText('Test Task')).toBeInTheDocument()
+            expect(screen.getByText('Срочно')).toBeTruthy()
+            expect(screen.getByText('Test Task')).toBeTruthy()
         })
 
         it('должен показывать задачи в работе', () => {
@@ -310,8 +310,8 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            expect(screen.getByText('В работе')).toBeInTheDocument()
-            expect(screen.getByText('Test Task')).toBeInTheDocument()
+            expect(screen.getByText('В работе')).toBeTruthy()
+            expect(screen.getByText('Test Task')).toBeTruthy()
         })
 
         it('должен показывать выполненные задачи', () => {
@@ -324,16 +324,16 @@ describe('Planner Integration with Supabase', () => {
 
             render(<PlannerPage />)
 
-            expect(screen.getByText('Выполнено сегодня')).toBeInTheDocument()
-            expect(screen.getByText('Test Task')).toBeInTheDocument()
+            expect(screen.getByText('Выполнено сегодня')).toBeTruthy()
+            expect(screen.getByText('Test Task')).toBeTruthy()
         })
 
         it('должен показывать пустые состояния', () => {
             render(<PlannerPage />)
 
-            expect(screen.getByText('🎉 Нет срочных задач')).toBeInTheDocument()
-            expect(screen.getByText('✨ Добавьте первую задачу')).toBeInTheDocument()
-            expect(screen.getByText('🎯 Пока ничего не выполнено')).toBeInTheDocument()
+            expect(screen.getByText('🎉 Нет срочных задач')).toBeTruthy()
+            expect(screen.getByText('✨ Добавьте первую задачу')).toBeTruthy()
+            expect(screen.getByText('🎯 Пока ничего не выполнено')).toBeTruthy()
         })
     })
 
@@ -362,7 +362,7 @@ describe('Planner Integration with Supabase', () => {
             fireEvent.click(screen.getByText('Добавить'))
 
             await waitFor(() => {
-                expect(screen.getByText('Исправьте ошибки:')).toBeInTheDocument()
+                expect(screen.getByText('Исправьте ошибки:')).toBeTruthy()
             })
         })
     })

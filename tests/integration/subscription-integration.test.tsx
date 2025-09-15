@@ -4,7 +4,7 @@ import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus
 import { useSubscription } from '@/hooks/useSubscription'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 import '@testing-library/jest-dom'
-import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, renderHook, screen, waitFor, act } from '@testing-library/react'
 
 // Mock useSubscription hook
 jest.mock('@/hooks/useSubscription', () => ({
@@ -67,13 +67,13 @@ describe('Subscription Integration', () => {
 
             // Ждем загрузки планов
             await waitFor(() => {
-                expect(screen.getByText('Free')).toBeInTheDocument()
-                expect(screen.getByText('Premium')).toBeInTheDocument()
+                expect(screen.getByText('Free')).toBeTruthy()
+                expect(screen.getByText('Premium')).toBeTruthy()
             })
 
             // Проверяем отображение цен
-            expect(screen.getByText('Бесплатно')).toBeInTheDocument()
-            expect(screen.getByText('9,99 ₽')).toBeInTheDocument()
+            expect(screen.getByText('Бесплатно')).toBeTruthy()
+            expect(screen.getByText('9,99 ₽')).toBeTruthy()
         })
 
         it('должна обрабатывать выбор плана', async () => {
@@ -96,7 +96,7 @@ describe('Subscription Integration', () => {
 
             // Ждем загрузки планов
             await waitFor(() => {
-                expect(screen.getByText('Premium')).toBeInTheDocument()
+                expect(screen.getByText('Premium')).toBeTruthy()
             })
 
             // Нажимаем на кнопку выбора плана
@@ -126,7 +126,7 @@ describe('Subscription Integration', () => {
 
             // Ждем загрузки планов
             await waitFor(() => {
-                expect(screen.getByText('Текущий план')).toBeInTheDocument()
+                expect(screen.getByText('Текущий план')).toBeTruthy()
             })
         })
     })
@@ -182,9 +182,9 @@ describe('Subscription Integration', () => {
 
             // Ждем загрузки статуса
             await waitFor(() => {
-                expect(screen.getByText('Premium')).toBeInTheDocument()
-                expect(screen.getByText('Активна')).toBeInTheDocument()
-                expect(screen.getByText('9,99 ₽')).toBeInTheDocument()
+                expect(screen.getByText('Premium')).toBeTruthy()
+                expect(screen.getByText('Активна')).toBeTruthy()
+                expect(screen.getByText('9,99 ₽')).toBeTruthy()
             })
         })
 
@@ -222,7 +222,7 @@ describe('Subscription Integration', () => {
 
             // Ждем загрузки статуса
             await waitFor(() => {
-                expect(screen.getByText('Обновить план')).toBeInTheDocument()
+                expect(screen.getByText('Обновить план')).toBeTruthy()
             })
 
             // Нажимаем на кнопку обновления
@@ -252,7 +252,7 @@ describe('Subscription Integration', () => {
 
             // Ждем загрузки статуса
             await waitFor(() => {
-                expect(screen.getByText('Нет активной подписки')).toBeInTheDocument()
+                expect(screen.getByText('Нет активной подписки')).toBeTruthy()
             })
         })
     })
@@ -287,8 +287,10 @@ describe('Subscription Integration', () => {
             const { result } = renderHook(() => useSubscription())
 
             // Ждем загрузки
-            await waitFor(() => {
-                expect(result.current.isLoading).toBe(false)
+            await act(async () => {
+                await waitFor(() => {
+                    expect(result.current.isLoading).toBe(false)
+                })
             })
 
             expect(result.current.subscription).toEqual(mockSubscription)
@@ -311,7 +313,10 @@ describe('Subscription Integration', () => {
 
             const { result } = renderHook(() => useSubscription())
 
-            const checkoutResult = await result.current.createCheckoutSession('plan-premium')
+            let checkoutResult: any
+            await act(async () => {
+                checkoutResult = await result.current.createCheckoutSession('plan-premium')
+            })
 
             expect(checkoutResult.success).toBe(true)
             expect(checkoutResult.url).toBe(mockCheckoutSession.url)

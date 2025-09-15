@@ -26,7 +26,7 @@ export function useSubscription(): UseSubscriptionReturn {
             setIsLoading(true)
             setError(null)
 
-            const response = await fetch('/api/subscriptions/status')
+            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/status`)
             const result = await response.json()
 
             if (result.success) {
@@ -47,7 +47,7 @@ export function useSubscription(): UseSubscriptionReturn {
         try {
             setError(null)
 
-            const response = await fetch('/api/subscriptions/create-checkout', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/create-checkout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -83,7 +83,7 @@ export function useSubscription(): UseSubscriptionReturn {
         try {
             setError(null)
 
-            const response = await fetch('/api/subscriptions/portal', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/portal`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

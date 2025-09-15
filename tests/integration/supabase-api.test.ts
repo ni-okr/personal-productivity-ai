@@ -211,7 +211,7 @@ describe('🗄️ Supabase API Integration', () => {
         }, 10000)
 
         test('📏 Валидация длинных email адресов', async () => {
-            const longEmail = 'a'.repeat(300) + '@example.com'
+            const longEmail = 'a'.repeat(240) + '@example.com' // 240 + 12 = 252 символа (в пределах 255)
 
             const result = await addSubscriber(longEmail)
 
