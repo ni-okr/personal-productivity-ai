@@ -44,13 +44,22 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
     }
 
     const { data, error } = await supabase
-      .from('subscribers')
+      .from('subscriptions')
       .insert(subscriberData as any)
       .select()
       .single()
 
     if (error) {
       console.error('🚨 Ошибка добавления подписчика:', error)
+      
+      // Handle duplicate key error
+      if (error.code === '23505') {
+        return {
+          success: false,
+          message: 'Этот email уже подписан на рассылку'
+        }
+      }
+      
       return {
         success: false,
         message: 'Ошибка при добавлении подписчика'
@@ -83,7 +92,7 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscribers')
+      .from('subscriptions')
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -102,8 +111,22 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
 
 export async function unsubscribe(email: string): Promise<{ success: boolean; message: string }> {
   try {
-    // Временно заглушка для успешного build
-    console.log(`Unsubscribe ${email}`)
+    const supabase = getSupabaseClient()
+
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .update({ is_active: false })
+      .eq('email', email)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка отписки:', error)
+      return {
+        success: false,
+        message: 'Произошла ошибка при отписке.'
+      }
+    }
 
     return {
       success: true,
