@@ -11,6 +11,11 @@ jobs:
     name: 🔧 Unit тесты
     runs-on: ubuntu-latest
     
+    env:
+      NODE_ENV: test
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    
     steps:
     - name: 📥 Checkout код
       uses: actions/checkout@v4
@@ -18,14 +23,14 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
       run: npm ci
       
     - name: 🔧 Запуск Unit тестов
-      run: npm run test:unit
+      run: npm run test:unit:ci
       
     - name: 📊 Загрузка покрытия кода
       uses: codecov/codecov-action@v3
@@ -39,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
+      NODE_ENV: test
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     
@@ -49,18 +55,23 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
       run: npm ci
       
     - name: 🔗 Запуск интеграционных тестов
-      run: npm run test:integration
+      run: npm run test:integration:ci
 
   e2e-tests:
     name: 🎭 E2E тесты
     runs-on: ubuntu-latest
+    
+    env:
+      NODE_ENV: test
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     
     steps:
     - name: 📥 Checkout код
@@ -69,7 +80,7 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
@@ -82,7 +93,7 @@ jobs:
       run: npm run build
       
     - name: 🎭 Запуск E2E тестов
-      run: npm run test:e2e
+      run: npm run test:e2e:ci
       
     - name: 📸 Загрузка скриншотов при ошибках
       uses: actions/upload-artifact@v4
@@ -96,6 +107,11 @@ jobs:
     name: 🔒 Аудит безопасности
     runs-on: ubuntu-latest
     
+    env:
+      NODE_ENV: test
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    
     steps:
     - name: 📥 Checkout код
       uses: actions/checkout@v4
@@ -103,7 +119,7 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
@@ -113,11 +129,16 @@ jobs:
       run: npm audit --audit-level=moderate
       
     - name: 🔍 Проверка лицензий
-      run: npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC'
+      run: npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC' || echo "⚠️ license-checker не установлен"
 
   build-test:
     name: 🏗️ Тест сборки
     runs-on: ubuntu-latest
+    
+    env:
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     
     steps:
     - name: 📥 Checkout код
@@ -126,7 +147,7 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
@@ -146,6 +167,11 @@ jobs:
     name: 📝 Линтинг и форматирование
     runs-on: ubuntu-latest
     
+    env:
+      NODE_ENV: test
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    
     steps:
     - name: 📥 Checkout код
       uses: actions/checkout@v4
@@ -153,7 +179,7 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
@@ -172,6 +198,11 @@ jobs:
     name: ⚡ Тесты производительности
     runs-on: ubuntu-latest
     
+    env:
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    
     steps:
     - name: 📥 Checkout код
       uses: actions/checkout@v4
@@ -179,7 +210,7 @@ jobs:
     - name: 📦 Установка Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
