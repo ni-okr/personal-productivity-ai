@@ -29,7 +29,7 @@ export interface SubscriptionResponse {
 
 export interface SubscriptionListResponse {
     success: boolean
-    subscriptions?: Subscription[]
+    user_subscriptions?: Subscription[]
     error?: string
 }
 
@@ -134,7 +134,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
         const supabase = getSupabaseClient()
 
         const { data, error } = await supabase
-            .from('subscriptions')
+            .from('user_subscriptions')
             .select('*')
             .eq('user_id', userId)
             .single()
@@ -213,7 +213,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
         }
 
         const { data: subscription, error } = await supabase
-            .from('subscriptions')
+            .from('user_subscriptions')
             .insert(subscriptionData as any)
             .select()
             .single()
@@ -432,7 +432,7 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
             }
         }
 
-        const subscriptions: Subscription[] = data.map(item => ({
+        const user_subscriptions: Subscription[] = data.map(item => ({
             id: item.id,
             userId: item.user_id,
             tier: item.tier,
@@ -449,14 +449,14 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
 
         return {
             success: true,
-            subscriptions
+            user_subscriptions
         }
         */
 
         // Временная заглушка
         return {
             success: true,
-            subscriptions: []
+            user_subscriptions: []
         }
     } catch (error) {
         console.error('Ошибка получения подписок:', error)

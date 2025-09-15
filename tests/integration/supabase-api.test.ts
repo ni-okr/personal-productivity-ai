@@ -11,13 +11,35 @@ describe('🗄️ Supabase API Integration', () => {
     const testEmail = `test-${Date.now()}@example.com`
     const testEmail2 = `test-${Date.now()}-2@example.com`
 
-    // Очистка тестовых данных после каждого теста
-    afterEach(async () => {
+    // Очистка тестовых данных перед каждым тестом
+    beforeEach(async () => {
         try {
+            // Удаляем тестовые данные перед тестом
             await supabase
                 .from('subscriptions')
                 .delete()
                 .in('email', [testEmail, testEmail2])
+        } catch (error) {
+            console.warn('Не удалось очистить тестовые данные перед тестом:', error)
+        }
+    })
+
+    // Очистка тестовых данных после каждого теста
+    afterEach(async () => {
+        try {
+            // Удаляем тестовые данные
+            await supabase
+                .from('subscriptions')
+                .delete()
+                .in('email', [testEmail, testEmail2])
+            
+            // Дополнительная очистка по времени (удаляем записи созданные в последние 5 минут)
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+            await supabase
+                .from('subscriptions')
+                .delete()
+                .gte('created_at', fiveMinutesAgo)
+                .like('email', 'test-%@example.com')
         } catch (error) {
             console.warn('Не удалось очистить тестовые данные:', error)
         }
