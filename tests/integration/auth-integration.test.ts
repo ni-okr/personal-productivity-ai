@@ -5,25 +5,25 @@ import {
     signUp,
     updateUserProfile
 } from '@/lib/auth'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock Supabase для интеграционных тестов
-vi.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', () => ({
     supabase: {
         auth: {
-            signUp: vi.fn(),
-            signInWithPassword: vi.fn(),
-            signOut: vi.fn(),
-            getUser: vi.fn()
+            signUp: jest.fn(),
+            signInWithPassword: jest.fn(),
+            signOut: jest.fn(),
+            getUser: jest.fn()
         },
-        from: vi.fn(() => ({
-            insert: vi.fn(() => ({
+        from: jest.fn(() => ({
+            insert: jest.fn(() => ({
                 error: null
             })),
-            update: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                    select: vi.fn(() => ({
-                        single: vi.fn(() => ({
+            update: jest.fn(() => ({
+                eq: jest.fn(() => ({
+                    select: jest.fn(() => ({
+                        single: jest.fn(() => ({
                             data: {
                                 id: 'test-user-id',
                                 email: 'test@example.com',
@@ -35,14 +35,11 @@ vi.mock('@/lib/supabase', () => ({
                             error: null
                         }))
                     }))
-                })),
-                eq: vi.fn(() => ({
-                    error: null
                 }))
             })),
-            select: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                    single: vi.fn(() => ({
+            select: jest.fn(() => ({
+                eq: jest.fn(() => ({
+                    single: jest.fn(() => ({
                         data: {
                             id: 'test-user-id',
                             email: 'test@example.com',

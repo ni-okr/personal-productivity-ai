@@ -5,35 +5,39 @@ import {
     createStripeCustomer,
     handleStripeWebhook
 } from '@/lib/stripe'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from '@jest/globals'
+
+// Mock fetch для Node.js окружения
+global.fetch = jest.fn()
 
 // Mock Stripe
 const mockStripe = {
     customers: {
-        create: vi.fn()
+        create: jest.fn()
     },
     checkout: {
         sessions: {
-            create: vi.fn()
+            create: jest.fn()
         }
     },
     billingPortal: {
         sessions: {
-            create: vi.fn()
+            create: jest.fn()
         }
     },
     webhooks: {
-        constructEvent: vi.fn()
+        constructEvent: jest.fn()
     }
 }
 
-vi.mock('stripe', () => ({
-    default: vi.fn(() => mockStripe)
-}))
+// Mock Stripe модуль
+jest.mock('stripe', () => {
+    return jest.fn().mockImplementation(() => mockStripe)
+})
 
 describe('Stripe Integration', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        jest.clearAllMocks()
     })
 
     describe('createStripeCustomer', () => {

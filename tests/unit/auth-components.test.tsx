@@ -3,27 +3,27 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock auth functions
-vi.mock('@/lib/auth', () => ({
-    signIn: vi.fn(),
-    signUp: vi.fn(),
-    resetPassword: vi.fn(),
-    signInWithGoogle: vi.fn(),
-    signInWithGitHub: vi.fn()
+jest.mock('@/lib/auth', () => ({
+    signIn: jest.fn(),
+    signUp: jest.fn(),
+    resetPassword: jest.fn(),
+    signInWithGoogle: jest.fn(),
+    signInWithGitHub: jest.fn()
 }))
 
 // Mock store
-vi.mock('@/stores/useAppStore', () => ({
-    useAppStore: vi.fn(() => ({
-        setUser: vi.fn()
+jest.mock('@/stores/useAppStore', () => ({
+    useAppStore: jest.fn(() => ({
+        setUser: jest.fn()
     }))
 }))
 
 // Mock validation
-vi.mock('@/utils/validation', () => ({
-    validateEmail: vi.fn((email: string) => ({
+jest.mock('@/utils/validation', () => ({
+    validateEmail: jest.fn((email: string) => ({
         isValid: email.includes('@'),
         errors: email.includes('@') ? [] : ['Некорректный email']
     }))
@@ -31,7 +31,7 @@ vi.mock('@/utils/validation', () => ({
 
 describe('Auth Components', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        jest.clearAllMocks()
     })
 
     describe('LoginForm', () => {
@@ -45,12 +45,12 @@ describe('Auth Components', () => {
         })
 
         it('should handle form submission', async () => {
-            const mockSignIn = vi.fn().mockResolvedValue({
+            const mockSignIn = jest.fn().mockResolvedValue({
                 success: true,
                 user: { id: '1', email: 'test@example.com' }
             })
 
-            vi.mocked(await import('@/lib/auth')).signIn = mockSignIn
+            jest.mocked(await import('@/lib/auth')).signIn = mockSignIn
 
             render(<LoginForm />)
 
@@ -69,12 +69,12 @@ describe('Auth Components', () => {
         })
 
         it('should show error on invalid credentials', async () => {
-            const mockSignIn = vi.fn().mockResolvedValue({
+            const mockSignIn = jest.fn().mockResolvedValue({
                 success: false,
                 error: 'Неверный email или пароль'
             })
 
-            vi.mocked(await import('@/lib/auth')).signIn = mockSignIn
+            jest.mocked(await import('@/lib/auth')).signIn = mockSignIn
 
             render(<LoginForm />)
 
@@ -93,7 +93,7 @@ describe('Auth Components', () => {
         })
 
         it('should switch to register form', () => {
-            const mockOnSwitchToRegister = vi.fn()
+            const mockOnSwitchToRegister = jest.fn()
             render(<LoginForm onSwitchToRegister={mockOnSwitchToRegister} />)
 
             fireEvent.click(screen.getByText('Зарегистрироваться'))
@@ -101,7 +101,7 @@ describe('Auth Components', () => {
         })
 
         it('should switch to reset password form', () => {
-            const mockOnSwitchToReset = vi.fn()
+            const mockOnSwitchToReset = jest.fn()
             render(<LoginForm onSwitchToReset={mockOnSwitchToReset} />)
 
             fireEvent.click(screen.getByText('Забыли пароль?'))
@@ -121,12 +121,12 @@ describe('Auth Components', () => {
         })
 
         it('should handle form submission', async () => {
-            const mockSignUp = vi.fn().mockResolvedValue({
+            const mockSignUp = jest.fn().mockResolvedValue({
                 success: true,
                 user: { id: '1', email: 'test@example.com' }
             })
 
-            vi.mocked(await import('@/lib/auth')).signUp = mockSignUp
+            jest.mocked(await import('@/lib/auth')).signUp = mockSignUp
 
             render(<RegisterForm />)
 
@@ -165,7 +165,7 @@ describe('Auth Components', () => {
         })
 
         it('should switch to login form', () => {
-            const mockOnSwitchToLogin = vi.fn()
+            const mockOnSwitchToLogin = jest.fn()
             render(<RegisterForm onSwitchToLogin={mockOnSwitchToLogin} />)
 
             fireEvent.click(screen.getByText('Войти'))
@@ -183,12 +183,12 @@ describe('Auth Components', () => {
         })
 
         it('should handle form submission', async () => {
-            const mockResetPassword = vi.fn().mockResolvedValue({
+            const mockResetPassword = jest.fn().mockResolvedValue({
                 success: true,
                 message: 'Проверьте почту'
             })
 
-            vi.mocked(await import('@/lib/auth')).resetPassword = mockResetPassword
+            jest.mocked(await import('@/lib/auth')).resetPassword = mockResetPassword
 
             render(<ResetPasswordForm />)
 
@@ -204,7 +204,7 @@ describe('Auth Components', () => {
         })
 
         it('should switch to login form', () => {
-            const mockOnSwitchToLogin = vi.fn()
+            const mockOnSwitchToLogin = jest.fn()
             render(<ResetPasswordForm onSwitchToLogin={mockOnSwitchToLogin} />)
 
             fireEvent.click(screen.getByText('← Вернуться к входу'))
@@ -214,31 +214,31 @@ describe('Auth Components', () => {
 
     describe('AuthModal', () => {
         it('should render login form by default', () => {
-            render(<AuthModal isOpen={true} onClose={vi.fn()} />)
+            render(<AuthModal isOpen={true} onClose={jest.fn()} />)
 
             expect(screen.getByText('Вход в аккаунт')).toBeInTheDocument()
         })
 
         it('should render register form when mode is register', () => {
-            render(<AuthModal isOpen={true} onClose={vi.fn()} initialMode="register" />)
+            render(<AuthModal isOpen={true} onClose={jest.fn()} initialMode="register" />)
 
             expect(screen.getByText('Создать аккаунт')).toBeInTheDocument()
         })
 
         it('should render reset password form when mode is reset', () => {
-            render(<AuthModal isOpen={true} onClose={vi.fn()} initialMode="reset" />)
+            render(<AuthModal isOpen={true} onClose={jest.fn()} initialMode="reset" />)
 
             expect(screen.getByText('Восстановление пароля')).toBeInTheDocument()
         })
 
         it('should not render when closed', () => {
-            render(<AuthModal isOpen={false} onClose={vi.fn()} />)
+            render(<AuthModal isOpen={false} onClose={jest.fn()} />)
 
             expect(screen.queryByText('Вход в аккаунт')).not.toBeInTheDocument()
         })
 
         it('should close on backdrop click', () => {
-            const mockOnClose = vi.fn()
+            const mockOnClose = jest.fn()
             render(<AuthModal isOpen={true} onClose={mockOnClose} />)
 
             const backdrop = screen.getByRole('button', { name: 'Закрыть' }).parentElement?.parentElement

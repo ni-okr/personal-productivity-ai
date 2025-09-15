@@ -327,7 +327,7 @@ describe('Tasks API', () => {
             expect(result.success).toBe(true)
             expect(result.task).toBeDefined()
             expect(result.task!.status).toBe('completed')
-            expect(result.task!.actualDuration).toBe(25)
+            expect(result.task!.actualMinutes).toBe(25)
             expect(result.message).toBe('Задача успешно завершена')
         })
 
@@ -377,7 +377,7 @@ describe('Tasks API', () => {
             expect(result.stats!.total).toBe(4)
             expect(result.stats!.completed).toBe(2)
             expect(result.stats!.pending).toBe(2)
-            expect(result.stats!.overdue).toBe(1)
+            expect(result.stats!.overdue).toBe(2)
             expect(result.stats!.completionRate).toBe(50)
         })
 

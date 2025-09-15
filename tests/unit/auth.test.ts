@@ -11,29 +11,29 @@ import {
     updatePassword,
     updateUserProfile
 } from '@/lib/auth'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock Supabase
-vi.mock('@/lib/supabase', () => ({
+jest.mock('@/lib/supabase', () => ({
     supabase: {
         auth: {
-            signUp: vi.fn(),
-            signInWithPassword: vi.fn(),
-            signOut: vi.fn(),
-            resetPasswordForEmail: vi.fn(),
-            signInWithOAuth: vi.fn(),
-            getUser: vi.fn(),
-            verifyOtp: vi.fn(),
-            updateUser: vi.fn()
+            signUp: jest.fn(),
+            signInWithPassword: jest.fn(),
+            signOut: jest.fn(),
+            resetPasswordForEmail: jest.fn(),
+            signInWithOAuth: jest.fn(),
+            getUser: jest.fn(),
+            verifyOtp: jest.fn(),
+            updateUser: jest.fn()
         },
-        from: vi.fn(() => ({
-            insert: vi.fn(() => ({
+        from: jest.fn(() => ({
+            insert: jest.fn(() => ({
                 error: null
             })),
-            update: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                    select: vi.fn(() => ({
-                        single: vi.fn(() => ({
+            update: jest.fn(() => ({
+                eq: jest.fn(() => ({
+                    select: jest.fn(() => ({
+                        single: jest.fn(() => ({
                             data: {
                                 id: 'test-user-id',
                                 email: 'test@example.com',
@@ -45,14 +45,11 @@ vi.mock('@/lib/supabase', () => ({
                             error: null
                         }))
                     }))
-                })),
-                eq: vi.fn(() => ({
-                    error: null
                 }))
             })),
-            select: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                    single: vi.fn(() => ({
+            select: jest.fn(() => ({
+                eq: jest.fn(() => ({
+                    single: jest.fn(() => ({
                         data: {
                             id: 'test-user-id',
                             email: 'test@example.com',
@@ -71,13 +68,13 @@ vi.mock('@/lib/supabase', () => ({
 
 describe('Auth Functions', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        jest.clearAllMocks()
     })
 
     describe('signUp', () => {
         it('should register user successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = vi.mocked(mockSupabase.supabase.auth.signUp)
+            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
 
             mockSignUp.mockResolvedValue({
                 data: {
@@ -104,7 +101,7 @@ describe('Auth Functions', () => {
 
         it('should handle registration error', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignUp = vi.mocked(mockSupabase.supabase.auth.signUp)
+            const mockSignUp = jest.mocked(mockSupabase.supabase.auth.signUp)
 
             mockSignUp.mockResolvedValue({
                 data: { user: null },
@@ -125,7 +122,7 @@ describe('Auth Functions', () => {
     describe('signIn', () => {
         it('should sign in user successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignIn = vi.mocked(mockSupabase.supabase.auth.signInWithPassword)
+            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
 
             mockSignIn.mockResolvedValue({
                 data: {
@@ -149,7 +146,7 @@ describe('Auth Functions', () => {
 
         it('should handle sign in error', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignIn = vi.mocked(mockSupabase.supabase.auth.signInWithPassword)
+            const mockSignIn = jest.mocked(mockSupabase.supabase.auth.signInWithPassword)
 
             mockSignIn.mockResolvedValue({
                 data: { user: null },
@@ -169,7 +166,7 @@ describe('Auth Functions', () => {
     describe('signOut', () => {
         it('should sign out user successfully', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignOut = vi.mocked(mockSupabase.supabase.auth.signOut)
+            const mockSignOut = jest.mocked(mockSupabase.supabase.auth.signOut)
 
             mockSignOut.mockResolvedValue({ error: null })
 
@@ -183,7 +180,7 @@ describe('Auth Functions', () => {
     describe('resetPassword', () => {
         it('should send reset password email', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockResetPassword = vi.mocked(mockSupabase.supabase.auth.resetPasswordForEmail)
+            const mockResetPassword = jest.mocked(mockSupabase.supabase.auth.resetPasswordForEmail)
 
             mockResetPassword.mockResolvedValue({ error: null })
 
@@ -197,7 +194,7 @@ describe('Auth Functions', () => {
     describe('signInWithGoogle', () => {
         it('should initiate Google sign in', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignInWithOAuth = vi.mocked(mockSupabase.supabase.auth.signInWithOAuth)
+            const mockSignInWithOAuth = jest.mocked(mockSupabase.supabase.auth.signInWithOAuth)
 
             mockSignInWithOAuth.mockResolvedValue({
                 data: { url: 'https://google.com/oauth' },
@@ -214,7 +211,7 @@ describe('Auth Functions', () => {
     describe('signInWithGitHub', () => {
         it('should initiate GitHub sign in', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockSignInWithOAuth = vi.mocked(mockSupabase.supabase.auth.signInWithOAuth)
+            const mockSignInWithOAuth = jest.mocked(mockSupabase.supabase.auth.signInWithOAuth)
 
             mockSignInWithOAuth.mockResolvedValue({
                 data: { url: 'https://github.com/oauth' },
@@ -231,7 +228,7 @@ describe('Auth Functions', () => {
     describe('getCurrentUser', () => {
         it('should get current user', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockGetUser = vi.mocked(mockSupabase.supabase.auth.getUser)
+            const mockGetUser = jest.mocked(mockSupabase.supabase.auth.getUser)
 
             mockGetUser.mockResolvedValue({
                 data: {
@@ -274,7 +271,7 @@ describe('Auth Functions', () => {
     describe('confirmEmail', () => {
         it('should confirm email', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockVerifyOtp = vi.mocked(mockSupabase.supabase.auth.verifyOtp)
+            const mockVerifyOtp = jest.mocked(mockSupabase.supabase.auth.verifyOtp)
 
             mockVerifyOtp.mockResolvedValue({
                 data: {
@@ -296,7 +293,7 @@ describe('Auth Functions', () => {
     describe('updatePassword', () => {
         it('should update password', async () => {
             const mockSupabase = await import('@/lib/supabase')
-            const mockUpdateUser = vi.mocked(mockSupabase.supabase.auth.updateUser)
+            const mockUpdateUser = jest.mocked(mockSupabase.supabase.auth.updateUser)
 
             mockUpdateUser.mockResolvedValue({ error: null })
 

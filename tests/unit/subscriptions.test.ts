@@ -7,41 +7,64 @@ import {
     getSubscriptionPlanByTier,
     updateSubscription
 } from '@/lib/subscriptions'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from '@jest/globals'
 
 // Mock Supabase
 const mockSupabase = {
-    from: vi.fn(() => ({
-        insert: vi.fn(() => ({
-            select: vi.fn(() => ({
-                single: vi.fn()
+    from: jest.fn(() => ({
+        insert: jest.fn(() => ({
+            select: jest.fn(() => ({
+                single: jest.fn()
             }))
         })),
-        select: vi.fn(() => ({
-            eq: vi.fn(() => ({
-                single: vi.fn()
+        select: jest.fn(() => ({
+            eq: jest.fn(() => ({
+                single: jest.fn()
             }))
         })),
-        update: vi.fn(() => ({
-            eq: vi.fn(() => ({
-                select: vi.fn(() => ({
-                    single: vi.fn()
+        update: jest.fn(() => ({
+            eq: jest.fn(() => ({
+                select: jest.fn(() => ({
+                    single: jest.fn()
                 }))
             }))
         })),
-        delete: vi.fn(() => ({
-            eq: vi.fn()
+        delete: jest.fn(() => ({
+            eq: jest.fn()
         }))
     }))
 }
 
-vi.mock('@/lib/supabase', () => ({
-    supabase: mockSupabase
+jest.mock('@/lib/supabase', () => ({
+    supabase: {
+        from: jest.fn(() => ({
+            insert: jest.fn(() => ({
+                select: jest.fn(() => ({
+                    single: jest.fn()
+                }))
+            })),
+            select: jest.fn(() => ({
+                eq: jest.fn(() => ({
+                    single: jest.fn()
+                }))
+            })),
+            update: jest.fn(() => ({
+                eq: jest.fn(() => ({
+                    select: jest.fn(() => ({
+                        single: jest.fn()
+                    }))
+                }))
+            })),
+            delete: jest.fn(() => ({
+                eq: jest.fn()
+            }))
+        }))
+    }
 }))
 
 describe('Subscription Management', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
+        jest.clearAllMocks()
     })
 
     describe('createSubscription', () => {
