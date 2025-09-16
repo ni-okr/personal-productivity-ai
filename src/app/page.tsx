@@ -446,7 +446,7 @@ export default function HomePage() {
               {/* Premium Plan */}
               <div className="card text-center border-indigo-200 bg-indigo-50" data-testid="plan-premium">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Premium</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-4">999₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
+                <div className="text-3xl font-bold text-gray-900 mb-4">999 ₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
                 <ul className="text-sm text-gray-600 mb-6 space-y-2">
                   <li>До 500 задач в месяц</li>
                   <li>ИИ планировщик</li>
@@ -460,7 +460,7 @@ export default function HomePage() {
               {/* Pro Plan */}
               <div className="card text-center" data-testid="plan-pro">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Pro</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-4">1999₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
+                <div className="text-3xl font-bold text-gray-900 mb-4">1999 ₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
                 <ul className="text-sm text-gray-600 mb-6 space-y-2">
                   <li>Неограниченные задачи</li>
                   <li>Все ИИ модели</li>
