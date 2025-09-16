@@ -339,7 +339,7 @@ describe('Subscription Integration', () => {
             const mockUseSubscription = useSubscription as jest.MockedFunction<typeof useSubscription>
             const mockCreateCheckoutSession = jest.fn().mockResolvedValue({
                 success: true,
-                data: mockCheckoutSession
+                url: mockCheckoutSession.url
             })
 
             const mockReturnValue = {
@@ -372,7 +372,7 @@ describe('Subscription Integration', () => {
             const checkoutResult = await result.current.createCheckoutSession('plan-premium')
 
             expect(checkoutResult.success).toBe(true)
-            expect(checkoutResult.data?.url).toEqual(mockCheckoutSession.url)
+            expect(checkoutResult.url).toEqual(mockCheckoutSession.url)
         })
     })
 })

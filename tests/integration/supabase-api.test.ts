@@ -32,7 +32,7 @@ describe('🗄️ Supabase API Integration', () => {
                 .from('subscriptions')
                 .delete()
                 .in('email', [testEmail, testEmail2])
-            
+
             // Дополнительная очистка по времени (удаляем записи созданные в последние 5 минут)
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
             await supabase
