@@ -3,7 +3,6 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
 import { getUserProfile } from '@/lib/auth'
-import { getSupabaseClient } from '@/lib/supabase'
 import { useAppStore } from '@/stores/useAppStore'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -17,7 +16,16 @@ export default function AuthCallbackPage() {
     useEffect(() => {
         const handleAuthCallback = async () => {
             try {
-                // Получаем URL параметры
+                // Проверяем наличие переменных окружения Supabase
+                if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+                    console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+                    setStatus('error')
+                    setMessage('Авторизация недоступна в режиме разработки')
+                    return
+                }
+
+                // Импортируем Supabase только если есть переменные окружения
+                const { getSupabaseClient } = await import('@/lib/supabase')
                 const supabase = getSupabaseClient()
                 const { data, error } = await supabase.auth.getSession()
 

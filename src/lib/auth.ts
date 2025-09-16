@@ -1,6 +1,6 @@
 // 🔐 Система авторизации с Supabase Auth
 import { User } from '@/types'
-import { getSupabaseClient } from './supabase'
+// Условный импорт Supabase будет добавлен в функциях
 
 export interface AuthUser {
     id: string
@@ -34,6 +34,17 @@ export interface AuthResponse {
  */
 export async function signUp({ email, password, name }: SignUpData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+            return {
+                success: false,
+                error: 'Авторизация недоступна в режиме разработки'
+            }
+        }
+
+        // Импортируем Supabase только если есть переменные окружения
+        const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
         // 1. Создаем пользователя в Supabase Auth
@@ -116,6 +127,17 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
  */
 export async function signIn({ email, password }: SignInData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+            return {
+                success: false,
+                error: 'Авторизация недоступна в режиме разработки'
+            }
+        }
+
+        // Импортируем Supabase только если есть переменные окружения
+        const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -184,6 +206,17 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
  */
 export async function signOut(): Promise<AuthResponse> {
     try {
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+            return {
+                success: true,
+                message: 'Выход выполнен (заглушка)'
+            }
+        }
+
+        // Импортируем Supabase только если есть переменные окружения
+        const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
         const { error } = await supabase.auth.signOut()
