@@ -17,34 +17,7 @@ export default defineConfig({
   reporter: process.env.CI
     ? [
       ['line'],
-      ['html', { outputFolder: 'playwright-report' }],
-      ['allure-playwright', {
-        detail: true,
-        outputFolder: 'allure-results',
-        suiteTitle: false,
-        categories: [
-          {
-            name: 'Критические дефекты',
-            messageRegex: '.*AssertionError.*',
-            traceRegex: '.*AssertionError.*'
-          },
-          {
-            name: 'Проблемы сети',
-            messageRegex: '.*net::ERR.*'
-          },
-          {
-            name: 'Таймауты',
-            messageRegex: '.*Timeout.*'
-          }
-        ],
-        environmentInfo: {
-          'Проект': 'Personal Productivity AI',
-          'Версия': '1.0.0',
-          'Среда': process.env.NODE_ENV || 'test',
-          'Браузер': 'Chrome/Firefox/Safari',
-          'ОС': process.platform
-        }
-      }]
+      ['html', { outputFolder: 'playwright-report' }]
     ]
     : [
       ['html', { outputFolder: 'playwright-report' }],
