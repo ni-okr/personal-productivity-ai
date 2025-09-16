@@ -27,7 +27,7 @@
     "test:ci": "npm run test:coverage && npm run test:e2e",
     "test:unit:ci": "jest tests/unit --coverage --ci",
     "test:integration:ci": "jest tests/integration --ci",
-    "test:e2e:ci": "playwright test --reporter=line"
+    "test:e2e:ci": "mkdir -p playwright-report allure-results && playwright test --reporter=line,html,allure-playwright"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",

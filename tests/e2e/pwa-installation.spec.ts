@@ -35,7 +35,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.waitForTimeout(2000)
 
             // Проверяем, что кнопка установки появилась
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log(`✅ PWA кнопка отображается в ${browserName}`)
@@ -74,7 +74,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
 
             // В Safari кнопка может не появляться, это нормально
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log('✅ PWA кнопка видна в Safari')
@@ -119,7 +119,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
             await page.waitForTimeout(2000)
 
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 await installButton.click()
@@ -163,7 +163,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
 
             // На iOS кнопка установки может не отображаться
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log('✅ iOS: PWA кнопка отображается')
@@ -212,7 +212,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.goto('/')
 
             // Тест 1: Кнопка не показывается до события
-            let installButton = page.locator('button:has-text("Установить приложение")')
+            let installButton = page.locator('[data-testid="install-app-button"]')
             expect(await installButton.isVisible()).toBe(false)
 
             // Тест 2: Кнопка появляется после события
@@ -231,7 +231,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
             await page.waitForTimeout(2000)
 
-            installButton = page.locator('button:has-text("Установить приложение")')
+            installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log('✅ PWA кнопка появилась после события')

@@ -229,13 +229,14 @@ export default function HomePage() {
               <span className="text-xl font-bold text-gray-900">Personal AI</span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 relative z-10">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => window.location.href = '/planner'}
-                className="gap-2"
+                className="gap-2 relative z-20"
+                data-testid="planner-button"
               >
                 🧠 Планировщик
               </Button>
@@ -252,6 +253,8 @@ export default function HomePage() {
                     console.log('❌ Серверная среда - alert недоступен')
                   }
                 }}
+                className="relative z-10"
+                data-testid="login-button"
               >
                 Войти
               </Button>
@@ -260,6 +263,8 @@ export default function HomePage() {
                   type="button"
                   onClick={handleInstallClick}
                   size="sm"
+                  className="relative z-20"
+                  data-testid="install-app-button"
                 >
                   Установить приложение
                 </Button>
@@ -306,12 +311,27 @@ export default function HomePage() {
                   onClick={scrollToSubscription}
                   size="lg"
                   className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700"
+                  data-testid="notify-release-button"
                 >
                   🔔 Уведомить о релизе
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const pricingSection = document.querySelector('[data-testid="pricing-section"]')
+                    if (pricingSection) {
+                      pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    }
+                  }}
+                  size="lg"
+                  className="text-lg px-8 py-4"
+                  data-testid="pricing-button"
+                >
+                  💰 Посмотреть цены
+                </Button>
                 <Link href="/roadmap">
-                  <Button variant="ghost" size="lg" className="text-lg px-8 py-4">
+                  <Button variant="ghost" size="lg" className="text-lg px-8 py-4" data-testid="roadmap-button">
                     📋 Roadmap разработки
                   </Button>
                 </Link>
@@ -397,6 +417,62 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* Pricing Section */}
+          <section className="py-20" data-testid="pricing-section">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Тарифные планы
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Выберите подходящий план для ваших потребностей
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Free Plan */}
+              <div className="card text-center" data-testid="plan-free">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Free</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-4">0₽</div>
+                <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                  <li>До 50 задач в месяц</li>
+                  <li>Базовое планирование</li>
+                  <li>Email поддержка</li>
+                </ul>
+                <Button variant="outline" className="w-full" data-testid="select-free-plan">
+                  Выбрать Free
+                </Button>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="card text-center border-indigo-200 bg-indigo-50" data-testid="plan-premium">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Premium</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-4">999₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
+                <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                  <li>До 500 задач в месяц</li>
+                  <li>ИИ планировщик</li>
+                  <li>Приоритетная поддержка</li>
+                </ul>
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700" data-testid="select-premium-plan">
+                  Выбрать Premium
+                </Button>
+              </div>
+
+              {/* Pro Plan */}
+              <div className="card text-center" data-testid="plan-pro">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Pro</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-4">1999₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
+                <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                  <li>Неограниченные задачи</li>
+                  <li>Все ИИ модели</li>
+                  <li>Персональный менеджер</li>
+                </ul>
+                <Button variant="outline" className="w-full" data-testid="select-pro-plan">
+                  Выбрать Pro
+                </Button>
+              </div>
+            </div>
+          </section>
+
           {/* CTA */}
           <section id="subscription-form" className="py-20">
             <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
@@ -406,7 +482,7 @@ export default function HomePage() {
               <p className="text-lg mb-8 opacity-90">
                 Подпишитесь на уведомления и получите эксклюзивный ранний доступ к Personal AI
               </p>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6" data-testid="subscription-form">
                 <input
                   type="email"
                   placeholder="Ваш email для уведомлений"
@@ -414,6 +490,7 @@ export default function HomePage() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isSubscribing}
                   className="px-4 py-3 rounded-lg text-gray-900 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid="email-input"
                 />
                 <Button
                   type="submit"
@@ -421,6 +498,7 @@ export default function HomePage() {
                   size="lg"
                   disabled={isSubscribing}
                   className="text-lg px-8 py-3 bg-white text-orange-600 hover:bg-gray-50 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid="subscribe-button"
                 >
                   {isSubscribing ? '⏳ Подписываем...' : '🔔 Подписаться'}
                 </Button>
@@ -431,7 +509,7 @@ export default function HomePage() {
                 <div className={`mb-4 p-3 rounded-lg text-center ${subscriptionStatus.type === 'success'
                   ? 'bg-green-100 text-green-800 border border-green-200'
                   : 'bg-red-100 text-red-800 border border-red-200'
-                  }`}>
+                  }`} data-testid="subscription-status">
                   {subscriptionStatus.message}
                 </div>
               )}

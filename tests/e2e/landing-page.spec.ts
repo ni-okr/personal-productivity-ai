@@ -26,7 +26,7 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
             await allure.step('Проверяем успешное сообщение', async () => {
                 // Проверяем точное сообщение из API
                 await expect(page.locator('.bg-green-100.text-green-800')).toBeVisible({ timeout: 10000 })
-                await expect(page.locator('.bg-green-100.text-green-800')).toContainText('Спасибо за подписку! Мы уведомим вас о релизе.')
+                await expect(page.locator('.bg-green-100.text-green-800')).toContainText('Спасибо за подписку! Мы уведомим вас о запуске.')
             })
 
             await allure.step('Проверяем очистку формы', async () => {
@@ -49,7 +49,7 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
 
                 // Ждем сообщение о успешной подписке
                 await expect(page.locator('.bg-green-100.text-green-800')).toBeVisible({ timeout: 10000 })
-                await expect(page.locator('.bg-green-100.text-green-800')).toContainText('Спасибо за подписку! Мы уведомим вас о релизе.')
+                await expect(page.locator('.bg-green-100.text-green-800')).toContainText('Спасибо за подписку! Мы уведомим вас о запуске.')
 
                 // Проверяем что поле очистилось
                 await expect(page.locator('input[type="email"]')).toHaveValue('')
@@ -200,7 +200,7 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
             await page.waitForTimeout(2000)
 
             // Проверяем, что кнопка установки появилась
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 // Если кнопка видна, тестируем клик
