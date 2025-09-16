@@ -120,13 +120,20 @@ export async function unsubscribe(email: string): Promise<{ success: boolean; me
       .update({ is_active: false } as any)
       .eq('email', email)
       .select()
-      .single()
 
     if (error) {
       console.error('🚨 Ошибка отписки:', error)
       return {
         success: false,
         message: 'Произошла ошибка при отписке.'
+      }
+    }
+
+    // Проверяем, что была обновлена хотя бы одна запись
+    if (!data || data.length === 0) {
+      return {
+        success: false,
+        message: 'Подписчик с таким email не найден.'
       }
     }
 
