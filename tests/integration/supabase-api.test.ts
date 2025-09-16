@@ -5,11 +5,14 @@
  * Используют тестовую базу данных или изолированные тестовые записи.
  */
 
-import { addSubscriber, getActiveSubscribers, supabase, unsubscribe } from '@/lib/supabase'
+import { addSubscriber, getActiveSubscribers, unsubscribe, getSupabaseClient } from '@/lib/supabase'
 
 describe('🗄️ Supabase API Integration', () => {
     const testEmail = `test-${Date.now()}@example.com`
     const testEmail2 = `test-${Date.now()}-2@example.com`
+    
+    // Получаем Supabase клиент для тестов
+    const supabase = getSupabaseClient()
 
     // Очистка тестовых данных перед каждым тестом
     beforeEach(async () => {
