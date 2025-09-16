@@ -60,7 +60,7 @@ jobs:
       run: npm install jest jest-environment-jsdom --save-dev
       
     - name: 🔧 Запуск Unit тестов
-      run: npx jest tests/unit --coverage --ci --testEnvironment=jsdom
+      run: ./node_modules/.bin/jest tests/unit --coverage --ci --testEnvironment=jsdom
       
     - name: 📊 Загрузка покрытия кода
       uses: codecov/codecov-action@v3
@@ -93,7 +93,7 @@ jobs:
       run: npm install jest jest-environment-jsdom --save-dev
       
     - name: 🔗 Запуск Integration тестов
-      run: npx jest tests/integration --ci --testEnvironment=jsdom
+      run: ./node_modules/.bin/jest tests/integration --ci --testEnvironment=jsdom
 
   # 🎭 E2E тесты для релизной ветки
   e2e-tests:
@@ -174,7 +174,7 @@ jobs:
     - name: 🚀 Запуск сервера
       run: |
         npm start &
-        sleep 10
+        sleep 30
         curl -f http://localhost:3000 || exit 1
       
     - name: ⚡ Lighthouse CI
