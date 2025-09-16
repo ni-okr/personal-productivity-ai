@@ -1,29 +1,29 @@
 // 🧪 E2E тесты для критических сценариев монетизации
-import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
+import { test, expect } from '@playwright/test'
 
 // Mock для E2E тестов
 const mockBrowser = {
-    goto: jest.fn(),
-    click: jest.fn(),
-    fill: jest.fn(),
-    waitForSelector: jest.fn(),
-    evaluate: jest.fn(),
-    close: jest.fn()
+    goto: () => Promise.resolve(),
+    click: () => Promise.resolve(),
+    fill: () => Promise.resolve(),
+    waitForSelector: () => Promise.resolve(),
+    evaluate: () => Promise.resolve(),
+    close: () => Promise.resolve()
 }
 
-describe('Critical Monetization Flows', () => {
-    beforeAll(async () => {
+test.test.describe('Critical Monetization Flows', () => {
+    test.beforeAll(async () => {
         // Инициализация браузера
         console.log('🚀 Запуск E2E тестов для монетизации')
     })
 
-    afterAll(async () => {
+    test.afterAll(async () => {
         // Закрытие браузера
         await mockBrowser.close()
     })
 
-    describe('User Registration and Subscription Flow', () => {
-        it('должен пройти полный цикл: регистрация → выбор плана → оплата', async () => {
+    test.test.describe('User Registration and Subscription Flow', () => {
+        test('должен пройти полный цикл: регистрация → выбор плана → оплата', async () => {
             // 1. Переход на главную страницу
             await mockBrowser.goto('http://localhost:3000')
 
@@ -57,7 +57,7 @@ describe('Critical Monetization Flows', () => {
             expect(bankDetails).toContain('12345678901234567890')
         })
 
-        it('должен показать правильные цены и лимиты для каждого плана', async () => {
+        test('должен показать правильные цены и лимиты для каждого плана', async () => {
             await mockBrowser.goto('http://localhost:3000/planner')
             await mockBrowser.click('[data-testid="subscription-button"]')
             await mockBrowser.waitForSelector('[data-testid="subscription-modal"]')
@@ -92,8 +92,8 @@ describe('Critical Monetization Flows', () => {
         })
     })
 
-    describe('Task Management with Limits', () => {
-        it('должен ограничивать создание задач на Free плане', async () => {
+    test.describe('Task Management with Limits', () => {
+        test('должен ограничивать создание задач на Free плане', async () => {
             // Логин как Free пользователь
             await mockBrowser.goto('http://localhost:3000/planner')
 
@@ -120,7 +120,7 @@ describe('Critical Monetization Flows', () => {
             expect(limitMessage).toContain('перейти на Premium')
         })
 
-        it('должен показывать кнопку обновления при достижении лимитов', async () => {
+        test('должен показывать кнопку обновления при достижении лимитов', async () => {
             await mockBrowser.goto('http://localhost:3000/planner')
 
             // Создаем задачи до лимита
@@ -141,8 +141,8 @@ describe('Critical Monetization Flows', () => {
         })
     })
 
-    describe('Payment Processing', () => {
-        it('должен генерировать QR код для оплаты', async () => {
+    test.describe('Payment Processing', () => {
+        test('должен генерировать QR код для оплаты', async () => {
             await mockBrowser.goto('http://localhost:3000/planner')
             await mockBrowser.click('[data-testid="subscription-button"]')
             await mockBrowser.click('[data-testid="plan-premium"]')
@@ -162,7 +162,7 @@ describe('Critical Monetization Flows', () => {
             expect(qrCode).toBe(true)
         })
 
-        it('должен показывать банковские реквизиты для перевода', async () => {
+        test('должен показывать банковские реквизиты для перевода', async () => {
             await mockBrowser.goto('http://localhost:3000/planner')
             await mockBrowser.click('[data-testid="subscription-button"]')
             await mockBrowser.click('[data-testid="plan-premium"]')
@@ -193,8 +193,8 @@ describe('Critical Monetization Flows', () => {
         })
     })
 
-    describe('User Experience', () => {
-        it('должен показывать статус подписки в интерфейсе', async () => {
+    test.describe('User Experience', () => {
+        test('должен показывать статус подписки в интерфейсе', async () => {
             await mockBrowser.goto('http://localhost:3000/planner')
 
             // Проверяем что отображается статус подписки
@@ -207,7 +207,7 @@ describe('Critical Monetization Flows', () => {
             expect(status).toContain('Free')
         })
 
-        it('должен показывать прогресс использования лимитов', async () => {
+        test('должен показывать прогресс использования лимитов', async () => {
             await mockBrowser.goto('http://localhost:3000/planner')
 
             // Создаем несколько задач
