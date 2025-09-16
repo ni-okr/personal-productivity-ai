@@ -1,0 +1,68 @@
+name: 🔒 Security Check
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Каждый понедельник в 2:00
+  push:
+    branches: [ main, develop, release/* ]
+  pull_request:
+    branches: [ main, develop, release/* ]
+
+jobs:
+  security-check:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout код
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        
+    - name: 📚 Установка зависимостей
+      run: npm ci --include=dev
+      
+    - name: 🔒 Проверка продакшн зависимостей
+      run: |
+        echo "Проверка уязвимостей в продакшн зависимостях..."
+        npm audit --production --audit-level=high
+        
+    - name: 🔍 Проверка секретов
+      run: |
+        echo "Проверка на наличие секретов в коде..."
+        if grep -r "sk_live_\|pk_live_\|SUPABASE_SERVICE_ROLE_KEY" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github --exclude=".env.example" .; then
+          echo "❌ Найдены потенциальные секреты!"
+          exit 1
+        else
+          echo "✅ Секреты не найдены"
+        fi
+        
+    - name: 📦 Проверка устаревших пакетов
+      run: |
+        echo "Проверка устаревших пакетов..."
+        npm outdated || echo "⚠️ Найдены устаревшие пакеты"
+        
+    - name: 🛡️ Проверка dev зависимостей
+      run: |
+        echo "Проверка уязвимостей в dev зависимостях..."
+        npm audit --audit-level=high || echo "⚠️ Найдены уязвимости в dev зависимостях (не критично)"
+        
+    - name: 🔧 Автоматическое исправление
+      if: failure()
+      run: |
+        echo "Попытка автоматического исправления..."
+        npm audit fix --force || echo "⚠️ Не удалось исправить все уязвимости"
+        
+    - name: 📊 Отчет о безопасности
+      run: |
+        echo "## 🔒 Отчет о безопасности" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Продакшн зависимости:" >> $GITHUB_STEP_SUMMARY
+        npm audit --production --audit-level=high --json | jq '.vulnerabilities | length' >> $GITHUB_STEP_SUMMARY || echo "0" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Dev зависимости:" >> $GITHUB_STEP_SUMMARY
+        npm audit --audit-level=high --json | jq '.vulnerabilities | length' >> $GITHUB_STEP_SUMMARY || echo "0" >> $GITHUB_STEP_SUMMARY

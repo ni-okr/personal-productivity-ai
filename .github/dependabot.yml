@@ -1,0 +1,45 @@
+version: 2
+updates:
+  # npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ni-okr"
+    assignees:
+      - "ni-okr"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "security"
+    ignore:
+      # Игнорируем Vercel пакеты, так как они содержат уязвимости
+      - dependency-name: "vercel"
+      - dependency-name: "@vercel/*"
+    # Автоматическое исправление
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    # Группировка обновлений
+    groups:
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+      minor-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "version-update:semver-minor"
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "version-update:semver-patch"
