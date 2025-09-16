@@ -57,7 +57,7 @@ jobs:
       run: npm ci --include=dev
       
     - name: 🔧 Установка Jest environment
-      run: npm install jest-environment-jsdom --save-dev
+      run: npm install jest jest-environment-jsdom --save-dev
       
     - name: 🔧 Запуск Unit тестов
       run: ./node_modules/.bin/jest tests/unit --coverage --ci --testEnvironment=jsdom
@@ -90,7 +90,7 @@ jobs:
       run: npm ci --include=dev
       
     - name: 🔧 Установка Jest environment
-      run: npm install jest-environment-jsdom --save-dev
+      run: npm install jest jest-environment-jsdom --save-dev
       
     - name: 🔗 Запуск Integration тестов
       run: ./node_modules/.bin/jest tests/integration --ci --testEnvironment=jsdom
