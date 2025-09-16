@@ -7,9 +7,9 @@ export async function POST(request: NextRequest) {
         // Проверяем переменные окружения
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
-            
+
             const { planId } = await request.json()
-            
+
             // Заглушка для режима разработки
             return NextResponse.json({
                 success: true,
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
         // Импортируем getCurrentUser только если есть переменные окружения
         const { getCurrentUser } = await import('@/lib/auth')
-        
+
         // Проверяем авторизацию
         const user = await getCurrentUser()
         if (!user) {

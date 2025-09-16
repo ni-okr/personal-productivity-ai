@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
         // Проверяем переменные окружения
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
-            
+
             // Заглушка для режима разработки
             return NextResponse.json({
                 success: true,
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         // Импортируем getCurrentUser и getSubscription только если есть переменные окружения
         const { getCurrentUser } = await import('@/lib/auth')
         const { getSubscription } = await import('@/lib/subscriptions')
-        
+
         // Проверяем авторизацию
         const user = await getCurrentUser()
         if (!user) {

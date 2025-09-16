@@ -1,53 +1,89 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:base",
-    "config:js-app",
-    "config:security"
-  ],
-  "timezone": "Europe/Moscow",
-  "schedule": ["before 6am on monday"],
-  "labels": ["dependencies", "security"],
-  "assignees": ["ni-okr"],
-  "reviewers": ["ni-okr"],
-  "prConcurrentLimit": 5,
-  "prHourlyLimit": 2,
-  "packageRules": [
-    {
-      "description": "Group security updates",
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["security"],
-      "groupName": "security updates",
-      "labels": ["security", "dependencies"],
-      "automerge": false
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:base",
+        "config:js-app",
+        "config:security"
+    ],
+    "timezone": "Europe/Moscow",
+    "schedule": [
+        "before 6am on monday"
+    ],
+    "labels": [
+        "dependencies",
+        "security"
+    ],
+    "assignees": [
+        "ni-okr"
+    ],
+    "reviewers": [
+        "ni-okr"
+    ],
+    "prConcurrentLimit": 5,
+    "prHourlyLimit": 2,
+    "packageRules": [
+        {
+            "description": "Group security updates",
+            "matchPackagePatterns": [
+                "*"
+            ],
+            "matchUpdateTypes": [
+                "security"
+            ],
+            "groupName": "security updates",
+            "labels": [
+                "security",
+                "dependencies"
+            ],
+            "automerge": false
+        },
+        {
+            "description": "Group minor updates",
+            "matchPackagePatterns": [
+                "*"
+            ],
+            "matchUpdateTypes": [
+                "minor"
+            ],
+            "groupName": "minor updates",
+            "labels": [
+                "dependencies"
+            ]
+        },
+        {
+            "description": "Group patch updates",
+            "matchPackagePatterns": [
+                "*"
+            ],
+            "matchUpdateTypes": [
+                "patch"
+            ],
+            "groupName": "patch updates",
+            "labels": [
+                "dependencies"
+            ],
+            "automerge": true
+        },
+        {
+            "description": "Ignore Vercel packages",
+            "matchPackagePatterns": [
+                "vercel",
+                "@vercel/*"
+            ],
+            "enabled": false
+        }
+    ],
+    "vulnerabilityAlerts": {
+        "enabled": true,
+        "labels": [
+            "security",
+            "vulnerability"
+        ]
     },
-    {
-      "description": "Group minor updates",
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["minor"],
-      "groupName": "minor updates",
-      "labels": ["dependencies"]
-    },
-    {
-      "description": "Group patch updates",
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["patch"],
-      "groupName": "patch updates",
-      "labels": ["dependencies"],
-      "automerge": true
-    },
-    {
-      "description": "Ignore Vercel packages",
-      "matchPackagePatterns": ["vercel", "@vercel/*"],
-      "enabled": false
+    "lockFileMaintenance": {
+        "enabled": true,
+        "schedule": [
+            "before 6am on monday"
+        ]
     }
-  ],
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "labels": ["security", "vulnerability"]
-  },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 6am on monday"]
-  }
 }

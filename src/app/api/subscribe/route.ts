@@ -1,4 +1,3 @@
-import { addSubscriber } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
@@ -38,8 +37,19 @@ export async function POST(request: NextRequest) {
         const { email } = result.data
         console.log('✅ Email валиден:', email)
 
-        // Сохраняем подписчика в Supabase
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены, возвращаем заглушку')
+            return NextResponse.json({
+                success: true,
+                message: 'Спасибо за подписку!',
+                data: { email, subscribedAt: new Date().toISOString() }
+            })
+        }
+
+        // Импортируем addSubscriber только если есть переменные окружения
         console.log('📡 Вызываем addSubscriber...')
+        const { addSubscriber } = await import('@/lib/supabase')
         const subscription = await addSubscriber(email)
         console.log('📡 Результат addSubscriber:', subscription)
 

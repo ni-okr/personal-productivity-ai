@@ -1,7 +1,6 @@
 // 💳 Система подписок с Тинькофф интеграцией
 import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } from '@/types'
 import type { SubscriptionInsert } from '@/types/supabase'
-import { getSupabaseClient } from './supabase'
 
 export interface CreateSubscriptionData {
     userId: string
@@ -131,6 +130,27 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
  */
 export async function getSubscription(userId: string): Promise<SubscriptionResponse> {
     try {
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            // Возвращаем free tier если нет переменных окружения
+            return {
+                success: true,
+                subscription: {
+                    id: 'free',
+                    userId,
+                    tier: 'free',
+                    status: 'active',
+                    currentPeriodStart: new Date(),
+                    currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+                    cancelAtPeriodEnd: false,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            }
+        }
+
+        // Импортируем Supabase только если есть переменные окружения
+        const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
         const { data, error } = await supabase
@@ -198,6 +218,30 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
  */
 export async function createSubscription(data: CreateSubscriptionData): Promise<SubscriptionResponse> {
     try {
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            // Возвращаем заглушку если нет переменных окружения
+            return {
+                success: true,
+                subscription: {
+                    id: 'temp-subscription',
+                    userId: data.userId,
+                    tier: data.tier,
+                    status: 'active',
+                    tinkoffCustomerId: data.tinkoffCustomerId,
+                    tinkoffPaymentId: data.tinkoffPaymentId,
+                    currentPeriodStart: data.currentPeriodStart,
+                    currentPeriodEnd: data.currentPeriodEnd,
+                    cancelAtPeriodEnd: false,
+                    trialEnd: data.trialEnd,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+            }
+        }
+
+        // Импортируем Supabase только если есть переменные окружения
+        const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
         const subscriptionData: SubscriptionInsert = {

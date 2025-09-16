@@ -26,6 +26,28 @@ export default function HomePage() {
     message: string
   }>({ type: null, message: '' })
 
+  // Валидация email в реальном времени
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEmail(value)
+    
+    // Очищаем статус при изменении email
+    if (subscriptionStatus.type) {
+      setSubscriptionStatus({ type: null, message: '' })
+    }
+    
+    // Валидация в реальном времени
+    if (value.trim() && value !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(value)) {
+        setSubscriptionStatus({
+          type: 'error',
+          message: 'Введите корректный email'
+        })
+      }
+    }
+  }
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
@@ -307,7 +329,7 @@ export default function HomePage() {
               </h1>
 
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-balance">
-                Мы создаем ИИ-ассистента, который превратит хаос в систему за 5 минут.
+                Умный планировщик задач с ИИ-ассистентом, который превратит хаос в систему за 5 минут.
                 Автоматизация рутины, обучение планированию, умные предложения.
               </p>
 
@@ -318,6 +340,17 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link href="/planner">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="text-lg px-8 py-4 bg-indigo-600 hover:bg-indigo-700"
+                    data-testid="planner-button"
+                  >
+                    🧠 Планировщик
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
                 <Button
                   type="button"
                   onClick={scrollToSubscription}
@@ -342,11 +375,6 @@ export default function HomePage() {
                 >
                   💰 Посмотреть цены
                 </Button>
-                <Link href="/roadmap">
-                  <Button variant="ghost" size="lg" className="text-lg px-8 py-4" data-testid="roadmap-button">
-                    📋 Roadmap разработки
-                  </Button>
-                </Link>
               </div>
 
               <p className="text-sm text-gray-500 mt-4">
@@ -486,20 +514,20 @@ export default function HomePage() {
           </section>
 
           {/* CTA */}
-          <section id="subscription-form" className="py-20">
-            <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
+          <section id="subscription-form" className="py-20 pointer-events-none">
+            <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center pointer-events-auto">
               <h2 className="text-3xl font-bold mb-4">
                 Хотите первыми узнать о релизе?
               </h2>
-              <p className="text-lg mb-8 opacity-90">
+              <p className="text-lg mb-8 opacity-90 pointer-events-none">
                 Подпишитесь на уведомления и получите эксклюзивный ранний доступ к Personal AI
               </p>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6" data-testid="subscription-form">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 pointer-events-auto" data-testid="subscription-form">
                 <input
                   type="email"
                   placeholder="Ваш email для уведомлений"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   disabled={isSubscribing}
                   className="px-4 py-3 rounded-lg text-gray-900 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="email-input"

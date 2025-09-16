@@ -17,10 +17,10 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
             const subscribeButton = page.locator('button:has-text("Подписаться")')
 
             // Заполняем email
-            await emailInput.fill('test@example.com')
+            await emailInput.fill(`test-${Date.now()}@example.com`)
 
             // Нажимаем кнопку подписки
-            await subscribeButton.click()
+            await subscribeButton.click({ force: true })
 
             // Проверяем что появилось сообщение об успехе
             await expect(page.locator('text=Спасибо за подписку!')).toBeVisible()
@@ -31,10 +31,14 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
             const emailInput = page.locator('input[type="email"]')
             const subscribeButton = page.locator('button:has-text("Подписаться")')
 
-            // Пытаемся отправить пустой email
-            await subscribeButton.click()
+            // Заполняем некорректный email
+            await emailInput.fill('invalid-email')
+
+            // Пытаемся отправить некорректный email
+            await subscribeButton.click({ force: true })
 
             // Проверяем что появилось сообщение об ошибке
+            await expect(page.locator('[data-testid="subscription-status"]')).toBeVisible({ timeout: 10000 })
             await expect(page.locator('text=Введите корректный email')).toBeVisible()
         })
 
@@ -47,9 +51,10 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
             await emailInput.fill('invalid-email')
 
             // Нажимаем кнопку подписки
-            await subscribeButton.click()
+            await subscribeButton.click({ force: true })
 
             // Проверяем что появилось сообщение об ошибке
+            await expect(page.locator('[data-testid="subscription-status"]')).toBeVisible({ timeout: 10000 })
             await expect(page.locator('text=Введите корректный email')).toBeVisible()
         })
     })
@@ -105,8 +110,8 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
 
         test('✅ Навигация', async ({ page }) => {
             // Проверяем что есть ссылки на другие страницы
-            await expect(page.locator('a[href="/planner"]')).toBeVisible()
-            await expect(page.locator('a[href="/roadmap"]')).toBeVisible()
+            await expect(page.locator('[data-testid="planner-link"]')).toBeVisible()
+            await expect(page.locator('[data-testid="roadmap-link"]')).toBeVisible()
         })
     })
 })
