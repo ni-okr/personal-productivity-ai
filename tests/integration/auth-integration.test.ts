@@ -27,7 +27,7 @@ jest.mock('@/lib/supabase', () => {
             select: mockSelect
         }))
     }
-    
+
     return {
         getSupabaseClient: jest.fn(() => mockSupabaseClient),
         supabase: mockSupabaseClient
@@ -60,17 +60,17 @@ describe('Auth Integration Tests', () => {
         // Настраиваем моки для auth методов
         const { getSupabaseClient } = require('@/lib/supabase')
         const mockSupabaseClient = getSupabaseClient()
-        
+
         mockSupabaseClient.auth.signUp.mockResolvedValue({
             data: { user: { id: 'test-user-id', email: 'test@example.com' } },
             error: null
         })
-        
+
         mockSupabaseClient.auth.signInWithPassword.mockResolvedValue({
             data: { user: { id: 'test-user-id', email: 'test@example.com' } },
             error: null
         })
-        
+
         mockSupabaseClient.auth.getUser.mockResolvedValue({
             data: { user: { id: 'test-user-id', email: 'test@example.com' } },
             error: null
