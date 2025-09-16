@@ -1,6 +1,18 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
 import { validateTask } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
+import { 
+  mockGetTasks, 
+  mockCreateTask, 
+  mockUpdateTask, 
+  mockDeleteTask, 
+  mockCompleteTask, 
+  mockGetTasksStats, 
+  mockSyncTasks 
+} from './tasks-mock'
+
+// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
+const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
 
 // Временные типы
 export interface TasksResponse {
@@ -35,6 +47,11 @@ export interface UpdateTaskData {
 // Временные заглушки для функций
 export async function getTasks(userId: string): Promise<TasksResponse> {
   try {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockGetTasks(userId)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
@@ -112,6 +129,11 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
       }
     }
 
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockCreateTask(userId, taskData)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -183,6 +205,11 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
 
 export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse> {
   try {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockUpdateTask(taskId, updates)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -256,6 +283,11 @@ export async function updateTask(taskId: string, updates: UpdateTaskData): Promi
 
 export async function deleteTask(taskId: string): Promise<TasksResponse> {
   try {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockDeleteTask(taskId)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
@@ -297,6 +329,11 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
 
 export async function completeTask(taskId: string, actualMinutes?: number): Promise<TasksResponse> {
   try {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockCompleteTask(taskId, actualMinutes)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -373,6 +410,11 @@ export async function getTasksStats(userId: string): Promise<{
   error?: string
 }> {
   try {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockGetTasksStats(userId)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -439,6 +481,11 @@ export async function getTasksStats(userId: string): Promise<{
 
 export async function syncTasks(userId: string): Promise<TasksResponse> {
   try {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+      return mockSyncTasks(userId)
+    }
+
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')

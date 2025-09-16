@@ -14,6 +14,9 @@ import { AICoachSuggestion, AppState, ProductivityMetrics, Task, User } from '@/
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
+// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
+const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+
 interface AppStore extends AppState {
   // Actions
   setUser: (user: User | null) => void
@@ -120,6 +123,20 @@ export const useAppStore = create<AppStore>()(
 
           if (result.success && result.tasks) {
             set({ tasks: result.tasks })
+            
+            // 🚨 MOCK РЕЖИМ: Загружаем mock метрики и рекомендации
+            if (DISABLE_EMAIL) {
+              const { mockGetProductivityMetrics, mockGetAISuggestions } = await import('@/lib/tasks-mock')
+              const metrics = await mockGetProductivityMetrics(user.id)
+              const suggestions = await mockGetAISuggestions(user.id)
+              
+              if (metrics) {
+                set({ metrics })
+              }
+              if (suggestions) {
+                set({ suggestions })
+              }
+            }
           } else {
             set({ error: result.error || 'Ошибка загрузки задач' })
           }

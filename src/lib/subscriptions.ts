@@ -2,6 +2,17 @@
 import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } from '@/types'
 import type { SubscriptionInsert } from '@/types/supabase'
 import { getSupabaseClient } from './supabase'
+import { 
+  mockGetSubscription, 
+  mockCreateSubscription, 
+  mockUpdateSubscription, 
+  mockCancelSubscription, 
+  mockGetSubscriptionPlans, 
+  mockGetSubscriptionStatus 
+} from './subscription-mock'
+
+// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
+const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
 
 export interface CreateSubscriptionData {
     userId: string
@@ -131,6 +142,11 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
  */
 export async function getSubscription(userId: string): Promise<SubscriptionResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockGetSubscription(userId)
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             // Возвращаем free tier если нет переменных окружения
@@ -218,6 +234,11 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
  */
 export async function createSubscription(data: CreateSubscriptionData): Promise<SubscriptionResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockCreateSubscription(data.userId, data.tier)
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             // Возвращаем заглушку если нет переменных окружения
