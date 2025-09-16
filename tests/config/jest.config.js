@@ -30,6 +30,16 @@ const customJestConfig = {
   testTimeout: 15000,
   // Переменные окружения для тестов
   setupFiles: ['<rootDir>/tests/setup-env.js'],
+  // TypeScript конфигурация для тестов
+  preset: 'ts-jest',
+  transform: {
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.test.json'
+    }
+  },
   // Настройки покрытия кода
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',

@@ -6,10 +6,6 @@
       "dom.iterable",
       "es6"
     ],
-    "types": [
-      "jest",
-      "@testing-library/jest-dom"
-    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -65,6 +61,7 @@
   "exclude": [
     "node_modules",
     ".next",
-    "out"
+    "out",
+    "tests/e2e/**/*"
   ]
 }

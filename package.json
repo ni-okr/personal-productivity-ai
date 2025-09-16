@@ -74,6 +74,7 @@
     "node-fetch": "^2.7.0",
     "prettier": "^3.3.0",
     "prettier-plugin-tailwindcss": "^0.6.0",
+    "ts-jest": "^29.4.2",
     "vercel": "^48.0.0"
   },
   "engines": {
