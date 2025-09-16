@@ -5,21 +5,22 @@
  * Используют тестовую базу данных или изолированные тестовые записи.
  */
 
-import { addSubscriber, getActiveSubscribers, unsubscribe, getSupabaseClient } from '@/lib/supabase'
+import { addSubscriber, getActiveSubscribers, getSupabaseClient, unsubscribe } from '@/lib/supabase'
 
 describe('🗄️ Supabase API Integration', () => {
-    const testEmail = `test-${Date.now()}@example.com`
-    const testEmail2 = `test-${Date.now()}-2@example.com`
-    
+    // Используем уникальные email для каждого теста
+    const testEmail = `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}@example.com`
+    const testEmail2 = `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-2@example.com`
+
     // Получаем Supabase клиент для тестов
     const supabase = getSupabaseClient()
 
     // Очистка тестовых данных перед каждым тестом
     beforeEach(async () => {
         try {
-            // Удаляем тестовые данные перед тестом
+            // Удаляем тестовые данные перед тестом из правильной таблицы
             await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .delete()
                 .in('email', [testEmail, testEmail2])
         } catch (error) {
@@ -30,16 +31,16 @@ describe('🗄️ Supabase API Integration', () => {
     // Очистка тестовых данных после каждого теста
     afterEach(async () => {
         try {
-            // Удаляем тестовые данные
+            // Удаляем тестовые данные из правильной таблицы
             await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .delete()
                 .in('email', [testEmail, testEmail2])
 
             // Дополнительная очистка по времени (удаляем записи созданные в последние 5 минут)
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
             await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .delete()
                 .gte('created_at', fiveMinutesAgo)
                 .like('email', 'test-%@example.com')
@@ -133,7 +134,7 @@ describe('🗄️ Supabase API Integration', () => {
             try {
                 // Простой запрос для проверки соединения
                 const { error } = await supabase
-                    .from('subscriptions')
+                    .from('subscribers')
                     .select('count')
                     .limit(1)
 
@@ -143,10 +144,10 @@ describe('🗄️ Supabase API Integration', () => {
             }
         }, 5000)
 
-        test('📊 Проверка схемы таблицы subscriptions', async () => {
+        test('📊 Проверка схемы таблицы subscribers', async () => {
             // Проверяем, что таблица существует и имеет правильную структуру
             const { data, error } = await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .select('*')
                 .limit(1)
 
@@ -199,7 +200,7 @@ describe('🗄️ Supabase API Integration', () => {
 
             // Очищаем тестовые данные
             await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .delete()
                 .in('email', testEmails)
 
@@ -228,7 +229,7 @@ describe('🗄️ Supabase API Integration', () => {
 
             // Проверяем, что таблица все еще существует
             const { error } = await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .select('count')
                 .limit(1)
 
