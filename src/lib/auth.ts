@@ -2,6 +2,7 @@
 import { User } from '@/types'
 import { validateEmail, validateName, validatePassword } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
+import { mockSignUp, mockSignIn, mockSignOut, mockGetCurrentUser } from './auth-mock'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
@@ -10,16 +11,16 @@ const TEST_EMAIL_DOMAIN = process.env.TEST_EMAIL_DOMAIN || '@example.test'
 
 // Проверка на тестовые email адреса
 const isTestEmail = (email: string): boolean => {
-  return email.endsWith('@example.test') || 
-         email.endsWith('@test.local') || 
-         email.includes('test@') ||
-         email.includes('demo@')
+    return email.endsWith('@example.test') ||
+        email.endsWith('@test.local') ||
+        email.includes('test@') ||
+        email.includes('demo@')
 }
 
 // Проверка на реальные email адреса (запрещены в dev режиме)
 const isRealEmail = (email: string): boolean => {
-  const realDomains = ['@gmail.com', '@yahoo.com', '@outlook.com', '@hotmail.com', '@yandex.ru', '@mail.ru']
-  return realDomains.some(domain => email.endsWith(domain))
+    const realDomains = ['@gmail.com', '@yahoo.com', '@outlook.com', '@hotmail.com', '@yandex.ru', '@mail.ru']
+    return realDomains.some(domain => email.endsWith(domain))
 }
 
 export interface AuthUser {
@@ -77,6 +78,11 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
                 success: false,
                 error: nameValidation.errors[0]
             }
+        }
+
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockSignUp(email, password, name)
         }
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
@@ -199,6 +205,11 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
                 success: false,
                 error: 'Пароль обязателен'
             }
+        }
+
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockSignIn(email, password)
         }
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
