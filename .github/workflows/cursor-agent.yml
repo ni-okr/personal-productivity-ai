@@ -105,7 +105,7 @@ jobs:
     - name: 🔐 Check for secrets
       run: |
         # Проверяем что нет случайно закоммиченных секретов
-        # Исключаем data-testid атрибуты и другие ложные срабатывания
+        # Исключаем data-testid атрибуты, тесты и примеры конфигурации
         if grep -r "sk-[a-zA-Z0-9]{20,}" src/ --exclude="*.test.*" --exclude="*.spec.*" || \
            grep -r "SUPABASE_SERVICE_ROLE_KEY" src/ --exclude="*.test.*" --exclude="*.spec.*" || \
            grep -r "pk_live_" src/ --exclude="*.test.*" --exclude="*.spec.*" || \

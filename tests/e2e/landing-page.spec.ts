@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { allure } from 'allure-playwright'
 
 test.describe('Personal Productivity AI - Лендинг страница', () => {
 

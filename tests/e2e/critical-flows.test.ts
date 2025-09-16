@@ -42,7 +42,8 @@ test.describe('Critical Monetization Flows', () => {
 
             // Проверка Free плана
             const freePlan = page.locator('[data-testid="plan-free"]')
-            await expect(freePlan).toContainText('0 ₽')
+            await expect(freePlan).toContainText('Free')
+            await expect(freePlan).toContainText('0₽')
             await expect(freePlan).toContainText('50 задач')
 
             // Проверка Premium плана
