@@ -45,7 +45,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
     }
 
     const { data, error } = await supabase
-      .from('subscriptions' as any)
+      .from('subscribers' as any)
       .insert(subscriberData as any)
       .select()
       .single()
@@ -93,7 +93,7 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscriptions' as any)
+      .from('subscribers' as any)
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -115,7 +115,7 @@ export async function unsubscribe(email: string): Promise<{ success: boolean; me
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscriptions' as any)
+      .from('subscribers' as any)
       .update({ is_active: false } as any)
       .eq('email', email)
       .select()

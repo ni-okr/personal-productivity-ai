@@ -372,7 +372,7 @@ describe('Subscription Integration', () => {
             const checkoutResult = await result.current.createCheckoutSession('plan-premium')
 
             expect(checkoutResult.success).toBe(true)
-            expect(checkoutResult.data?.url).toEqual(mockCheckoutSession.url)
+            expect(checkoutResult.url).toEqual(mockCheckoutSession.url)
         })
     })
 })
