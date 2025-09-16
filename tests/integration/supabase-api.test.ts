@@ -116,7 +116,7 @@ describe('🗄️ Supabase API Integration', () => {
 
             // Проверяем, что подписчик стал неактивным
             const { data } = await supabase
-                .from('subscriptions')
+                .from('subscribers')
                 .select('is_active')
                 .eq('email', testEmail)
                 .single()
