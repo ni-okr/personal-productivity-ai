@@ -180,6 +180,16 @@ export default function HomePage() {
       return
     }
 
+    // Валидация email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setSubscriptionStatus({
+        type: 'error',
+        message: 'Введите корректный email'
+      })
+      return
+    }
+
     setIsSubscribing(true)
     setSubscriptionStatus({ type: null, message: '' })
 
@@ -230,16 +240,20 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-4 relative z-10">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/planner'}
-                className="gap-2 relative z-20"
-                data-testid="planner-button"
+              <Link
+                href="/planner"
+                className="text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                data-testid="planner-link"
               >
-                🧠 Планировщик
-              </Button>
+                Планировщик
+              </Link>
+              <Link
+                href="/roadmap"
+                className="text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                data-testid="roadmap-link"
+              >
+                Roadmap
+              </Link>
               <Button
                 type="button"
                 variant="ghost"
@@ -287,11 +301,9 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 text-balance">
-                Встречайте
                 <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {' '}Personal AI{' '}
+                  Personal Productivity AI
                 </span>
-                - ваш будущий ассистент
               </h1>
 
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-balance">
@@ -462,7 +474,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Pro</h3>
                 <div className="text-3xl font-bold text-gray-900 mb-4">1999 ₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
                 <ul className="text-sm text-gray-600 mb-6 space-y-2">
-                  <li>Неограниченные задачи</li>
+                  <li>Неограниченно</li>
                   <li>Все ИИ модели</li>
                   <li>Персональный менеджер</li>
                 </ul>

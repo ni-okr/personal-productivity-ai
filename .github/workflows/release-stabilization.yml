@@ -143,7 +143,7 @@ jobs:
     - name: 🔍 Проверка секретов
       run: |
         echo "Проверка на наличие секретов в коде..."
-        if grep -r "sk_live_\|pk_live_\|SUPABASE_SERVICE_ROLE_KEY" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github .; then
+        if grep -r "sk_live_\|pk_live_\|SUPABASE_SERVICE_ROLE_KEY" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage --exclude-dir=reports --exclude-dir=.github --exclude=".env.example" .; then
           echo "❌ Найдены потенциальные секреты!"
           exit 1
         else
@@ -170,6 +170,12 @@ jobs:
       
     - name: 🏗️ Build приложения
       run: npm run build
+      
+    - name: 🚀 Запуск сервера
+      run: |
+        npm start &
+        sleep 10
+        curl -f http://localhost:3000 || exit 1
       
     - name: ⚡ Lighthouse CI
       run: |

@@ -1,6 +1,6 @@
 {
   "name": "Personal Productivity AI",
-  "short_name": "Personal AI",
+  "short_name": "PPAI",
   "description": "Персональный ИИ-ассистент для продуктивности",
   "start_url": "/",
   "display": "standalone",
