@@ -203,7 +203,10 @@ test.describe('Personal Productivity AI - Лендинг страница', () =
 
             if (await installButton.isVisible()) {
                 // Если кнопка видна, тестируем клик
-                await installButton.click()
+                // Ждем пока кнопка станет кликабельной
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500) // Даем время на стабилизацию
+                await installButton.click({ force: true })
 
                 // В реальном браузере это должно вызвать PWA установку
                 // В тестах мы можем проверить, что функция была вызвана

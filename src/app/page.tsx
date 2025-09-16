@@ -432,7 +432,7 @@ export default function HomePage() {
               {/* Free Plan */}
               <div className="card text-center" data-testid="plan-free">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Free</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-4">0₽</div>
+                <div className="text-3xl font-bold text-gray-900 mb-4">0 ₽</div>
                 <ul className="text-sm text-gray-600 mb-6 space-y-2">
                   <li>До 50 задач в месяц</li>
                   <li>Базовое планирование</li>

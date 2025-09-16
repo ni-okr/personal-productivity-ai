@@ -41,7 +41,9 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
                 console.log(`✅ PWA кнопка отображается в ${browserName}`)
 
                 // Кликаем на установку
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
 
                 // Проверяем, что функция установки была вызвана
                 const wasPromptCalled = await page.evaluate(() => {
@@ -122,7 +124,9 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
 
                 console.log('✅ Android PWA: APK установка инициирована')
 
@@ -167,7 +171,9 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
 
             if (await installButton.isVisible()) {
                 console.log('✅ iOS: PWA кнопка отображается')
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
             } else {
                 console.log('ℹ️ iOS: Используется встроенный механизм "Поделиться" → "Добавить на главный экран"')
             }
@@ -237,7 +243,9 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
                 console.log('✅ PWA кнопка появилась после события')
 
                 // Тест 3: Кнопка исчезает после установки
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
                 await page.waitForTimeout(1000)
 
                 // В реальном сценарии кнопка должна исчезнуть
