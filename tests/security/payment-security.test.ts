@@ -1,8 +1,25 @@
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.032Z
+ * Оригинальный файл сохранен как: tests/security/payment-security.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Тесты безопасности для системы платежей
 import { describe, expect, it, beforeEach } from '@jest/globals'
+import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
+
 
 describe('Payment Security Tests', () => {
     beforeEach(() => {
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.UNIT)
+    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Test Suite')
         jest.clearAllMocks()
     })
 

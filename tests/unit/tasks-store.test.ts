@@ -1,7 +1,21 @@
+import { testFramework, testLogger, testMocks, testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.023Z
+ * Оригинальный файл сохранен как: tests/unit/tasks-store.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Unit тесты для обновленного useAppStore с Supabase интеграцией
 import * as tasksApi from '@/lib/tasks'
+import * as tasksMockApi from '@/lib/tasks-mock'
 import { useAppStore } from '@/stores/useAppStore'
 import { act, renderHook } from '@testing-library/react'
+import { TEST_CONFIGS, MOCK_CONFIGS } from '@/tests/framework'
 
 // Mock tasks API
 jest.mock('@/lib/tasks', () => ({
@@ -14,7 +28,19 @@ jest.mock('@/lib/tasks', () => ({
     syncTasks: jest.fn()
 }))
 
+// Mock tasks-mock API
+jest.mock('@/lib/tasks-mock', () => ({
+    mockGetTasks: jest.fn(),
+    mockCreateTask: jest.fn(),
+    mockUpdateTask: jest.fn(),
+    mockDeleteTask: jest.fn(),
+    mockCompleteTask: jest.fn(),
+    mockGetProductivityMetrics: jest.fn(),
+    mockGetAISuggestions: jest.fn()
+}))
+
 const mockTasksApi = tasksApi as jest.Mocked<typeof tasksApi>
+const mockTasksMockApi = tasksMockApi as jest.Mocked<typeof tasksMockApi>
 
 describe('useAppStore with Supabase integration', () => {
     const mockUser = {
@@ -54,31 +80,47 @@ describe('useAppStore with Supabase integration', () => {
     }
 
     beforeEach(() => {
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.UNIT)
+    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Test Suite')
         jest.clearAllMocks()
+        // Устанавливаем mock режим для тестов
+        process.env.NEXT_PUBLIC_DISABLE_EMAIL = 'true'
         // Reset store state
-        act(() => {
+        testUtils.testUtils.act(() => {
             useAppStore.getState().clearUserData()
         })
     })
 
+    afterEach(() => {
+    testMocks.clearAllMocks()
+    testLogger.endTest('Test Suite', true)
+        // Восстанавливаем mock режим после каждого теста
+        process.env.NEXT_PUBLIC_DISABLE_EMAIL = 'true'
+    })
+
     describe('loadTasks', () => {
         it('должен успешно загрузить задачи', async () => {
-            mockTasksApi.getTasks.mockResolvedValue({
+            mockTasksMockApi.mockGetTasks.mockResolvedValue({
                 success: true,
                 tasks: [mockTask]
             })
+            mockTasksMockApi.mockGetProductivityMetrics.mockResolvedValue(null)
+            mockTasksMockApi.mockGetAISuggestions.mockResolvedValue(null)
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.loadTasks()
             })
 
-            expect(mockTasksApi.getTasks).toHaveBeenCalledWith(mockUser.id)
+            expect(mockTasksMockApi.mockGetTasks).toHaveBeenCalledWith(mockUser.id)
             expect(result.current.tasks).toHaveLength(1)
             expect(result.current.tasks[0]).toEqual(mockTask)
             expect(result.current.isLoading).toBe(false)
@@ -86,18 +128,20 @@ describe('useAppStore with Supabase integration', () => {
         })
 
         it('должен обработать ошибку загрузки задач', async () => {
-            mockTasksApi.getTasks.mockResolvedValue({
+            mockTasksMockApi.mockGetTasks.mockResolvedValue({
                 success: false,
                 error: 'Failed to load tasks'
             })
+            mockTasksMockApi.mockGetProductivityMetrics.mockResolvedValue(null)
+            mockTasksMockApi.mockGetAISuggestions.mockResolvedValue(null)
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.loadTasks()
             })
 
@@ -107,9 +151,9 @@ describe('useAppStore with Supabase integration', () => {
         })
 
         it('не должен загружать задачи без пользователя', async () => {
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.loadTasks()
             })
 
@@ -127,22 +171,22 @@ describe('useAppStore with Supabase integration', () => {
                 tags: ['personal']
             }
 
-            mockTasksApi.createTask.mockResolvedValue({
+            mockTasksMockApi.mockCreateTask.mockResolvedValue({
                 success: true,
                 task: mockTask
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.createTaskAsync(taskData)
             })
 
-            expect(mockTasksApi.createTask).toHaveBeenCalledWith(mockUser.id, taskData)
+            expect(mockTasksMockApi.mockCreateTask).toHaveBeenCalledWith(mockUser.id, taskData)
             expect(result.current.tasks).toHaveLength(1)
             expect(result.current.tasks[0]).toEqual(mockTask)
             expect(result.current.isLoading).toBe(false)
@@ -158,18 +202,29 @@ describe('useAppStore with Supabase integration', () => {
                 tags: ['personal']
             }
 
-            mockTasksApi.createTask.mockResolvedValue({
+            mockTasksMockApi.mockCreateTask.mockResolvedValue({
                 success: false,
                 error: 'Failed to create task'
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            // Устанавливаем пользователя без автоматической загрузки задач
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            // Ждем завершения автоматической загрузки задач
+            await testUtils.testUtils.act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10))
+            })
+
+            // Очищаем ошибку от loadTasks
+            testUtils.testUtils.act(() => {
+                result.current.setError(null)
+            })
+
+            await testUtils.testUtils.act(async () => {
                 await result.current.createTaskAsync(taskData)
             })
 
@@ -187,9 +242,9 @@ describe('useAppStore with Supabase integration', () => {
                 tags: ['personal']
             }
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.createTaskAsync(taskData)
             })
 
@@ -206,22 +261,22 @@ describe('useAppStore with Supabase integration', () => {
 
             const updatedTask = { ...mockTask, title: 'Updated Task', priority: 'urgent' as const, source: 'manual' as const, userId: 'test-user-id' }
 
-            mockTasksApi.updateTask.mockResolvedValue({
+            mockTasksMockApi.mockUpdateTask.mockResolvedValue({
                 success: true,
                 task: updatedTask
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setTasks([mockTask])
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.updateTaskAsync(mockTask.id, updates)
             })
 
-            expect(mockTasksApi.updateTask).toHaveBeenCalledWith(mockTask.id, updates)
+            expect(mockTasksMockApi.mockUpdateTask).toHaveBeenCalledWith(mockTask.id, updates)
             expect(result.current.tasks[0]).toEqual(updatedTask)
             expect(result.current.isLoading).toBe(false)
             expect(result.current.error).toBeNull()
@@ -232,68 +287,68 @@ describe('useAppStore with Supabase integration', () => {
                 title: 'Updated Task'
             }
 
-            mockTasksApi.updateTask.mockResolvedValue({
+            mockTasksMockApi.mockUpdateTask.mockResolvedValue({
                 success: false,
-                error: 'Failed to update task'
+                error: 'Задача не найдена'
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setTasks([mockTask])
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.updateTaskAsync(mockTask.id, updates)
             })
 
             expect(result.current.tasks[0]).toEqual(mockTask) // Task should remain unchanged
-            expect(result.current.error).toBe('Failed to update task')
+            expect(result.current.error).toBe('Задача не найдена')
             expect(result.current.isLoading).toBe(false)
         })
     })
 
     describe('deleteTaskAsync', () => {
         it('должен успешно удалить задачу', async () => {
-            mockTasksApi.deleteTask.mockResolvedValue({
+            mockTasksMockApi.mockDeleteTask.mockResolvedValue({
                 success: true,
                 message: 'Task deleted'
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setTasks([mockTask])
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.deleteTaskAsync(mockTask.id)
             })
 
-            expect(mockTasksApi.deleteTask).toHaveBeenCalledWith(mockTask.id)
+            expect(mockTasksMockApi.mockDeleteTask).toHaveBeenCalledWith(mockTask.id)
             expect(result.current.tasks).toHaveLength(0)
             expect(result.current.isLoading).toBe(false)
             expect(result.current.error).toBeNull()
         })
 
         it('должен обработать ошибку удаления задачи', async () => {
-            mockTasksApi.deleteTask.mockResolvedValue({
+            mockTasksMockApi.mockDeleteTask.mockResolvedValue({
                 success: false,
-                error: 'Failed to delete task'
+                error: 'Задача не найдена'
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setTasks([mockTask])
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.deleteTaskAsync(mockTask.id)
             })
 
             expect(result.current.tasks).toHaveLength(1) // Task should remain
-            expect(result.current.error).toBe('Failed to delete task')
+            expect(result.current.error).toBe('Задача не найдена')
             expect(result.current.isLoading).toBe(false)
         })
     })
@@ -302,45 +357,45 @@ describe('useAppStore with Supabase integration', () => {
         it('должен успешно завершить задачу', async () => {
             const completedTask = { ...mockTask, status: 'completed' as const, actualMinutes: 25, source: 'manual' as const, userId: 'test-user-id' }
 
-            mockTasksApi.completeTask.mockResolvedValue({
+            mockTasksMockApi.mockCompleteTask.mockResolvedValue({
                 success: true,
                 task: completedTask
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setTasks([mockTask])
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.completeTaskAsync(mockTask.id, 25)
             })
 
-            expect(mockTasksApi.completeTask).toHaveBeenCalledWith(mockTask.id, 25)
+            expect(mockTasksMockApi.mockCompleteTask).toHaveBeenCalledWith(mockTask.id, 25)
             expect(result.current.tasks[0]).toEqual(completedTask)
             expect(result.current.isLoading).toBe(false)
             expect(result.current.error).toBeNull()
         })
 
         it('должен обработать ошибку завершения задачи', async () => {
-            mockTasksApi.completeTask.mockResolvedValue({
+            mockTasksMockApi.mockCompleteTask.mockResolvedValue({
                 success: false,
-                error: 'Failed to complete task'
+                error: 'Задача не найдена'
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setTasks([mockTask])
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.completeTaskAsync(mockTask.id)
             })
 
             expect(result.current.tasks[0]).toEqual(mockTask) // Task should remain unchanged
-            expect(result.current.error).toBe('Failed to complete task')
+            expect(result.current.error).toBe('Задача не найдена')
             expect(result.current.isLoading).toBe(false)
         })
     })
@@ -352,13 +407,23 @@ describe('useAppStore with Supabase integration', () => {
                 tasks: [mockTask]
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            // Ждем завершения автоматической загрузки задач
+            await testUtils.testUtils.act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10))
+            })
+
+            // Очищаем ошибку от loadTasks
+            testUtils.testUtils.act(() => {
+                result.current.setError(null)
+            })
+
+            await testUtils.testUtils.act(async () => {
                 await result.current.syncTasksAsync()
             })
 
@@ -370,30 +435,47 @@ describe('useAppStore with Supabase integration', () => {
         })
 
         it('должен обработать ошибку синхронизации', async () => {
+            // Отключаем mock режим для этого теста
+            process.env.NEXT_PUBLIC_DISABLE_EMAIL = 'false'
+
             mockTasksApi.syncTasks.mockResolvedValue({
                 success: false,
                 error: 'Failed to sync tasks'
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            // Устанавливаем пользователя напрямую в store без автоматической загрузки
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            // Ждем завершения автоматической загрузки задач
+            await testUtils.testUtils.act(async () => {
+                await new Promise(resolve => setTimeout(resolve, 10))
+            })
+
+            // Очищаем ошибку от loadTasks
+            testUtils.testUtils.act(() => {
+                result.current.setError(null)
+            })
+
+            await testUtils.testUtils.act(async () => {
                 await result.current.syncTasksAsync()
             })
 
             expect(result.current.tasks).toHaveLength(0)
             expect(result.current.error).toBe('Failed to sync tasks')
             expect(result.current.isLoading).toBe(false)
+
+            // Включаем mock режим обратно
+            process.env.NEXT_PUBLIC_DISABLE_EMAIL = 'true'
         })
 
         it('не должен синхронизировать без пользователя', async () => {
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.syncTasksAsync()
             })
 
@@ -419,13 +501,13 @@ describe('useAppStore with Supabase integration', () => {
                 }
             })
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.loadTasksStats()
             })
 
@@ -434,9 +516,9 @@ describe('useAppStore with Supabase integration', () => {
         })
 
         it('не должен загружать статистику без пользователя', async () => {
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 await result.current.loadTasksStats()
             })
 
@@ -453,19 +535,19 @@ describe('useAppStore with Supabase integration', () => {
 
             mockTasksApi.getTasks.mockReturnValue(promise as any)
 
-            const { result } = renderHook(() => useAppStore())
+            const { result } = testUtils.renderHook(() => useAppStore())
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.setUser(mockUser)
             })
 
-            act(() => {
+            testUtils.testUtils.act(() => {
                 result.current.loadTasks()
             })
 
             expect(result.current.isLoading).toBe(true)
 
-            await act(async () => {
+            await testUtils.testUtils.act(async () => {
                 resolvePromise!({
                     success: true,
                     tasks: []

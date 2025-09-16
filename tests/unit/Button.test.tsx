@@ -1,23 +1,35 @@
+import { testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.028Z
+ * Оригинальный файл сохранен как: tests/unit/Button.test.tsx.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 import { Button } from '@/components/ui/Button'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 
 describe('Button Component', () => {
     test('рендерится с текстом', () => {
-        render(<Button>Тестовая кнопка</Button>)
+        testUtils.renderWithProviders(<Button>Тестовая кнопка</Button>)
         expect(screen.getByText('Тестовая кнопка')).toBeTruthy()
     })
 
     test('обрабатывает клики', () => {
         const handleClick = jest.fn()
-        render(<Button onClick={handleClick}>Кликни меня</Button>)
+        testUtils.renderWithProviders(<Button onClick={handleClick}>Кликни меня</Button>)
 
         fireEvent.click(screen.getByText('Кликни меня'))
         expect(handleClick).toHaveBeenCalledTimes(1)
     })
 
     test('показывает состояние загрузки', () => {
-        render(<Button isLoading>Загружается</Button>)
+        testUtils.renderWithProviders(<Button isLoading>Загружается</Button>)
 
         // Кнопка должна быть отключена
         expect(screen.getByRole('button')).toBeDisabled()
@@ -27,7 +39,7 @@ describe('Button Component', () => {
     })
 
     test('применяет правильные варианты стилей', () => {
-        const { rerender } = render(<Button variant="primary">Primary</Button>)
+        const { rerender } = testUtils.renderWithProviders(<Button variant="primary">Primary</Button>)
         expect(screen.getByRole('button')).toHaveClass('bg-indigo-600')
 
         rerender(<Button variant="secondary">Secondary</Button>)
@@ -38,7 +50,7 @@ describe('Button Component', () => {
     })
 
     test('применяет правильные размеры', () => {
-        const { rerender } = render(<Button size="sm">Small</Button>)
+        const { rerender } = testUtils.renderWithProviders(<Button size="sm">Small</Button>)
         expect(screen.getByRole('button')).toHaveClass('px-3', 'py-1.5')
 
         rerender(<Button size="md">Medium</Button>)
@@ -49,7 +61,7 @@ describe('Button Component', () => {
     })
 
     test('отключается при disabled', () => {
-        render(<Button disabled>Отключена</Button>)
+        testUtils.renderWithProviders(<Button disabled>Отключена</Button>)
         expect(screen.getByRole('button')).toBeDisabled()
     })
 
@@ -57,7 +69,7 @@ describe('Button Component', () => {
         const leftIcon = <span data-testid="left-icon">←</span>
         const rightIcon = <span data-testid="right-icon">→</span>
 
-        render(
+        testUtils.renderWithProviders(
             <Button leftIcon={leftIcon} rightIcon={rightIcon}>
                 С иконками
             </Button>

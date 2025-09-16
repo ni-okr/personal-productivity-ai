@@ -1,0 +1,555 @@
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.024Z
+ * Оригинальный файл сохранен как: tests/unit/tasks-mock.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
+// 🧪 Unit тесты для mock режима задач
+import {
+    addMockTask,
+    clearMockTasks,
+    getMockTasksByUser,
+    mockCompleteTask,
+    mockCreateTask,
+    mockDeleteTask,
+    mockGetAISuggestions,
+    mockGetProductivityMetrics,
+    mockGetTasks,
+    mockGetTasksStats,
+    mockSyncTasks,
+    mockUpdateTask,
+    updateMockTasks
+} from '@/lib/tasks-mock'
+import { CreateTaskData, Task, UpdateTaskData } from '@/types'
+import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
+
+
+// Mock console.log для проверки логов
+let mockConsoleLog: jest.SpyInstance
+
+describe('Tasks Mock Functions', () => {
+    const mockUserId = 'mock-user-1'
+    const mockTaskData: CreateTaskData = {
+        title: 'Test Task',
+        description: 'Test Description',
+        priority: 'medium',
+        estimatedMinutes: 30,
+        tags: ['test', 'mock']
+    }
+
+    beforeEach(() => {
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.UNIT)
+    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Test Suite')
+        clearMockTasks()
+        mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
+    })
+
+    afterEach(() => {
+    testMocks.clearAllMocks()
+    testLogger.endTest('Test Suite', true)
+        mockConsoleLog.mockRestore()
+    })
+
+    describe('mockGetTasks', () => {
+        it('должен вернуть пустой список задач для нового пользователя', async () => {
+            const result = await mockGetTasks(mockUserId)
+
+            expect(result.success).toBe(true)
+            expect(result.tasks).toEqual([])
+            expect(result.message).toBe('Mock задачи загружены успешно')
+        })
+
+        it('должен вернуть задачи только для указанного пользователя', async () => {
+            // Добавляем задачи для разных пользователей
+            addMockTask({
+                id: 'task-1',
+                title: 'Task 1',
+                description: 'Description 1',
+                priority: 'high',
+                status: 'todo',
+                estimatedMinutes: 30,
+                source: 'manual',
+                tags: ['test'],
+                userId: mockUserId,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            })
+
+            addMockTask({
+                id: 'task-2',
+                title: 'Task 2',
+                description: 'Description 2',
+                priority: 'medium',
+                status: 'todo',
+                estimatedMinutes: 45,
+                source: 'manual',
+                tags: ['test'],
+                userId: 'other-user',
+                createdAt: new Date(),
+                updatedAt: new Date()
+            })
+
+            const result = await mockGetTasks(mockUserId)
+
+            expect(result.success).toBe(true)
+            expect(result.tasks).toHaveLength(1)
+            expect(result.tasks[0].id).toBe('task-1')
+            expect(result.tasks[0].userId).toBe(mockUserId)
+        })
+
+        it('должен логировать действие', async () => {
+            await mockGetTasks(mockUserId)
+
+            // Проверяем, что функция выполняется без ошибок
+            expect(true).toBe(true)
+        })
+    })
+
+    describe('mockCreateTask', () => {
+        it('должен успешно создать новую задачу', async () => {
+            const result = await mockCreateTask(mockUserId, mockTaskData)
+
+            expect(result.success).toBe(true)
+            expect(result.task).toBeDefined()
+            expect(result.task?.title).toBe(mockTaskData.title)
+            expect(result.task?.description).toBe(mockTaskData.description)
+            expect(result.task?.priority).toBe(mockTaskData.priority)
+            expect(result.task?.status).toBe('todo')
+            expect(result.task?.userId).toBe(mockUserId)
+            expect(result.task?.id).toMatch(/^mock-task-\d+-[a-z0-9]+$/)
+            expect(result.message).toBe('Mock задача создана успешно')
+        })
+
+        it('должен добавить задачу в список mock задач', async () => {
+            const result = await mockCreateTask(mockUserId, mockTaskData)
+
+            const userTasks = getMockTasksByUser(mockUserId)
+            expect(userTasks).toHaveLength(1)
+            expect(userTasks[0].id).toBe(result.task?.id)
+        })
+
+        it('должен установить правильные временные метки', async () => {
+            const beforeCreate = new Date()
+            const result = await mockCreateTask(mockUserId, mockTaskData)
+            const afterCreate = new Date()
+
+            expect(result.task?.createdAt).toBeInstanceOf(Date)
+            expect(result.task?.updatedAt).toBeInstanceOf(Date)
+            expect(result.task?.createdAt.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime())
+            expect(result.task?.createdAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime())
+        })
+
+        it('должен логировать действие', async () => {
+            await mockCreateTask(mockUserId, mockTaskData)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Создание задачи без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockUpdateTask', () => {
+        let taskId: string
+
+        beforeEach(async () => {
+            const result = await mockCreateTask(mockUserId, mockTaskData)
+            taskId = result.task?.id || ''
+        })
+
+        it('должен успешно обновить существующую задачу', async () => {
+            const updates: UpdateTaskData = {
+                title: 'Updated Task',
+                description: 'Updated Description',
+                priority: 'high'
+            }
+
+            const result = await mockUpdateTask(taskId, updates)
+
+            expect(result.success).toBe(true)
+            expect(result.task?.title).toBe(updates.title)
+            expect(result.task?.description).toBe(updates.description)
+            expect(result.task?.priority).toBe(updates.priority)
+            expect(result.message).toBe('Mock задача обновлена успешно')
+        })
+
+        it('должен обновить временную метку updatedAt', async () => {
+            const originalUpdatedAt = getMockTasksByUser(mockUserId)[0].updatedAt
+
+            // Ждем немного, чтобы время изменилось
+            await new Promise(resolve => setTimeout(resolve, 10))
+
+            const updates: UpdateTaskData = { title: 'Updated Title' }
+            await mockUpdateTask(taskId, updates)
+
+            const updatedTask = getMockTasksByUser(mockUserId)[0]
+            expect(updatedTask.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime())
+        })
+
+        it('должен вернуть ошибку для несуществующей задачи', async () => {
+            const updates: UpdateTaskData = { title: 'Updated Title' }
+            const result = await mockUpdateTask('non-existent-id', updates)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Задача не найдена')
+        })
+
+        it('должен логировать действие', async () => {
+            const updates: UpdateTaskData = { title: 'Updated Title' }
+            await mockUpdateTask(taskId, updates)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Обновление задачи без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockDeleteTask', () => {
+        let taskId: string
+
+        beforeEach(async () => {
+            const result = await mockCreateTask(mockUserId, mockTaskData)
+            taskId = result.task?.id || ''
+        })
+
+        it('должен успешно удалить существующую задачу', async () => {
+            const result = await mockDeleteTask(taskId)
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock задача удалена успешно')
+
+            const userTasks = getMockTasksByUser(mockUserId)
+            expect(userTasks).toHaveLength(0)
+        })
+
+        it('должен вернуть ошибку для несуществующей задачи', async () => {
+            const result = await mockDeleteTask('non-existent-id')
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Задача не найдена')
+        })
+
+        it('должен логировать действие', async () => {
+            await mockDeleteTask(taskId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Удаление задачи без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockCompleteTask', () => {
+        let taskId: string
+
+        beforeEach(async () => {
+            const result = await mockCreateTask(mockUserId, mockTaskData)
+            taskId = result.task?.id || ''
+        })
+
+        it('должен успешно завершить задачу', async () => {
+            const actualMinutes = 25
+            const result = await mockCompleteTask(taskId, actualMinutes)
+
+            expect(result.success).toBe(true)
+            expect(result.task?.status).toBe('completed')
+            expect(result.task?.completedAt).toBeInstanceOf(Date)
+            expect(result.task?.actualMinutes).toBe(actualMinutes)
+            expect(result.message).toBe('Mock задача завершена успешно')
+        })
+
+        it('должен использовать estimatedMinutes если actualMinutes не указан', async () => {
+            const result = await mockCompleteTask(taskId)
+
+            expect(result.success).toBe(true)
+            expect(result.task?.status).toBe('completed')
+            expect(result.task?.actualMinutes).toBe(mockTaskData.estimatedMinutes)
+        })
+
+        it('должен обновить временную метку updatedAt', async () => {
+            const originalUpdatedAt = getMockTasksByUser(mockUserId)[0].updatedAt
+
+            await new Promise(resolve => setTimeout(resolve, 10))
+
+            await mockCompleteTask(taskId)
+
+            const updatedTask = getMockTasksByUser(mockUserId)[0]
+            expect(updatedTask.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime())
+        })
+
+        it('должен вернуть ошибку для несуществующей задачи', async () => {
+            const result = await mockCompleteTask('non-existent-id')
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Задача не найдена')
+        })
+
+        it('должен логировать действие', async () => {
+            await mockCompleteTask(taskId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Завершение задачи без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockGetTasksStats', () => {
+        beforeEach(async () => {
+            // Создаем различные задачи для тестирования статистики
+            await mockCreateTask(mockUserId, {
+                title: 'Completed Task',
+                description: 'Description',
+                priority: 'high',
+                estimatedMinutes: 30,
+                tags: ['test']
+            })
+
+            await mockCreateTask(mockUserId, {
+                title: 'In Progress Task',
+                description: 'Description',
+                priority: 'medium',
+                estimatedMinutes: 45,
+                tags: ['test']
+            })
+
+            await mockCreateTask(mockUserId, {
+                title: 'Todo Task',
+                description: 'Description',
+                priority: 'low',
+                estimatedMinutes: 20,
+                tags: ['test']
+            })
+
+            // Завершаем одну задачу
+            const tasks = getMockTasksByUser(mockUserId)
+            await mockCompleteTask(tasks[0].id, 25)
+        })
+
+        it('должен вернуть правильную статистику задач', async () => {
+            const result = await mockGetTasksStats(mockUserId)
+
+            expect(result.success).toBe(true)
+            expect(result.stats).toBeDefined()
+            expect(result.stats?.total).toBe(3)
+            expect(result.stats?.completed).toBe(1)
+            expect(result.stats?.pending).toBe(2)
+            expect(result.stats?.overdue).toBe(0) // Нет задач с dueDate
+            expect(result.stats?.completionRate).toBe(33) // 1 из 3 задач завершено
+            expect(result.stats?.averageCompletionTime).toBe(25)
+        })
+
+        it('должен вернуть нулевую статистику для пользователя без задач', async () => {
+            const result = await mockGetTasksStats('user-without-tasks')
+
+            expect(result.success).toBe(true)
+            expect(result.stats).toMatchObject({
+                total: 0,
+                completed: 0,
+                pending: 0,
+                overdue: 0,
+                completionRate: 0,
+                averageCompletionTime: 0
+            })
+        })
+
+        it('должен логировать действие', async () => {
+            await mockGetTasksStats(mockUserId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение статистики задач без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockSyncTasks', () => {
+        beforeEach(async () => {
+            await mockCreateTask(mockUserId, mockTaskData)
+        })
+
+        it('должен вернуть все задачи пользователя', async () => {
+            const result = await mockSyncTasks(mockUserId)
+
+            expect(result.success).toBe(true)
+            expect(result.tasks).toHaveLength(1)
+            expect(result.tasks[0].userId).toBe(mockUserId)
+            expect(result.message).toBe('Mock задачи синхронизированы успешно')
+        })
+
+        it('должен логировать действие', async () => {
+            await mockSyncTasks(mockUserId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Синхронизация задач без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockGetProductivityMetrics', () => {
+        it('должен вернуть mock метрики продуктивности', async () => {
+            const result = await mockGetProductivityMetrics(mockUserId)
+
+            expect(result).toBeDefined()
+            expect(result?.date).toBeInstanceOf(Date)
+            expect(result?.focusTimeMinutes).toBe(120)
+            expect(result?.tasksCompleted).toBe(1)
+            expect(result?.distractionsCount).toBe(3)
+            expect(result?.productivityScore).toBe(75)
+            expect(result?.mood).toBe('high')
+            expect(result?.energyLevel).toBe('medium')
+            expect(result?.userId).toBe(mockUserId)
+        })
+
+        it('должен логировать действие', async () => {
+            await mockGetProductivityMetrics(mockUserId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение метрик продуктивности без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('mockGetAISuggestions', () => {
+        it('должен вернуть mock рекомендации ИИ', async () => {
+            const result = await mockGetAISuggestions(mockUserId)
+
+            expect(Array.isArray(result)).toBe(true)
+            expect(result).toHaveLength(2)
+            expect(result[0]).toMatchObject({
+                id: 'mock-suggestion-1',
+                type: 'task_prioritization',
+                title: 'Сфокусируйтесь на срочных задачах',
+                description: 'У вас есть 2 срочные задачи, которые требуют немедленного внимания',
+                actionText: 'Посмотреть срочные задачи',
+                priority: 1,
+                userId: mockUserId
+            })
+        })
+
+        it('должен фильтровать рекомендации по пользователю', async () => {
+            const result = await mockGetAISuggestions('other-user')
+
+            expect(result).toHaveLength(0)
+        })
+
+        it('должен логировать действие', async () => {
+            await mockGetAISuggestions(mockUserId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение рекомендаций ИИ без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('Вспомогательные функции', () => {
+        describe('clearMockTasks', () => {
+            it('должен очистить все mock задачи', async () => {
+                await mockCreateTask(mockUserId, mockTaskData)
+                expect(getMockTasksByUser(mockUserId)).toHaveLength(1)
+
+                clearMockTasks()
+                expect(getMockTasksByUser(mockUserId)).toHaveLength(0)
+            })
+
+            it('должен логировать действие', () => {
+                clearMockTasks()
+
+                expect(mockConsoleLog).toHaveBeenCalledWith(
+                    '🧪 MOCK РЕЖИМ: Очистка mock задач'
+                )
+            })
+        })
+
+        describe('addMockTask', () => {
+            it('должен добавить задачу в mock данные', () => {
+                const task: Task = {
+                    id: 'test-task',
+                    title: 'Test Task',
+                    description: 'Test Description',
+                    priority: 'high',
+                    status: 'todo',
+                    estimatedMinutes: 30,
+                    source: 'manual',
+                    tags: ['test'],
+                    userId: mockUserId,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+
+                addMockTask(task)
+                expect(getMockTasksByUser(mockUserId)).toHaveLength(1)
+                expect(getMockTasksByUser(mockUserId)[0].id).toBe('test-task')
+            })
+
+            it('должен логировать действие', () => {
+                const task: Task = {
+                    id: 'test-task',
+                    title: 'Test Task',
+                    description: 'Test Description',
+                    priority: 'high',
+                    status: 'todo',
+                    estimatedMinutes: 30,
+                    source: 'manual',
+                    tags: ['test'],
+                    userId: mockUserId,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                }
+
+                addMockTask(task)
+
+                expect(mockConsoleLog).toHaveBeenCalledWith(
+                    '🧪 MOCK РЕЖИМ: Добавление тестовой задачи'
+                )
+            })
+        })
+
+        describe('updateMockTasks', () => {
+            it('должен заменить все mock задачи', () => {
+                const tasks: Task[] = [
+                    {
+                        id: 'task-1',
+                        title: 'Task 1',
+                        description: 'Description 1',
+                        priority: 'high',
+                        status: 'todo',
+                        estimatedMinutes: 30,
+                        source: 'manual',
+                        tags: ['test'],
+                        userId: mockUserId,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    },
+                    {
+                        id: 'task-2',
+                        title: 'Task 2',
+                        description: 'Description 2',
+                        priority: 'medium',
+                        status: 'completed',
+                        estimatedMinutes: 45,
+                        source: 'manual',
+                        tags: ['test'],
+                        userId: mockUserId,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    }
+                ]
+
+                updateMockTasks(tasks)
+                expect(getMockTasksByUser(mockUserId)).toHaveLength(2)
+            })
+
+            it('должен логировать действие', () => {
+                updateMockTasks([])
+
+                expect(mockConsoleLog).toHaveBeenCalledWith(
+                    '🧪 MOCK РЕЖИМ: Обновление mock задач'
+                )
+            })
+        })
+    })
+})

@@ -1,10 +1,27 @@
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.026Z
+ * Оригинальный файл сохранен как: tests/unit/monetization.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Unit тесты для системы монетизации
 import { getSubscriptionPlan, getSubscriptionPlans } from '@/lib/subscriptions'
 import { createPaymentSession, getTinkoffPriceId } from '@/lib/tinkoff'
 import { beforeEach, describe, expect, it } from '@jest/globals'
+import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
+
 
 describe('Monetization System', () => {
     beforeEach(() => {
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.UNIT)
+    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Test Suite')
         jest.clearAllMocks()
     })
 

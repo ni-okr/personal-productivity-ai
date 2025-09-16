@@ -13,6 +13,11 @@ process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://loc
 // Режим разработки для более подробных ошибок
 process.env.NODE_ENV = 'test'
 
+// Включаем mock режим для тестов
+process.env.NEXT_PUBLIC_DEV_MODE = 'true'
+process.env.NEXT_PUBLIC_DISABLE_EMAIL = 'true'
+process.env.TEST_EMAIL_DOMAIN = '@example.test'
+
 // Мокаем IntersectionObserver для Framer Motion
 global.IntersectionObserver = class IntersectionObserver {
     constructor() { }

@@ -1,15 +1,10 @@
 // 💳 Система подписок с Тинькофф интеграцией
 import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } from '@/types'
 import type { SubscriptionInsert } from '@/types/supabase'
-import { getSupabaseClient } from './supabase'
-import { 
-  mockGetSubscription, 
-  mockCreateSubscription, 
-  mockUpdateSubscription, 
-  mockCancelSubscription, 
-  mockGetSubscriptionPlans, 
-  mockGetSubscriptionStatus 
+import {
+    mockGetSubscription
 } from './subscription-mock'
+import { getSupabaseClient } from './supabase'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
@@ -51,7 +46,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Free',
         tier: 'free',
         price: 0,
-        currency: 'RUB',
+        currency: 'rub',
         interval: 'month',
         features: [
             'До 50 задач',
@@ -72,7 +67,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Premium',
         tier: 'premium',
         price: 99900, // 999 рублей в копейках
-        currency: 'RUB',
+        currency: 'rub',
         interval: 'month',
         features: [
             'До 500 задач в месяц',
@@ -94,7 +89,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Pro',
         tier: 'pro',
         price: 199900, // 1999 рублей в копейках
-        currency: 'RUB',
+        currency: 'rub',
         interval: 'month',
         features: [
             'Неограниченные задачи',
@@ -117,7 +112,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
         name: 'Enterprise',
         tier: 'enterprise',
         price: 499900, // 4999 рублей в копейках
-        currency: 'RUB',
+        currency: 'rub',
         interval: 'month',
         features: [
             'Все функции Pro',
@@ -234,8 +229,25 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
  */
 export async function createSubscription(data: CreateSubscriptionData): Promise<SubscriptionResponse> {
     try {
+        // Валидация данных
+        if (!data.userId) {
+            return {
+                success: false,
+                error: 'ID пользователя обязателен'
+            }
+        }
+
+        if (!data.tier || !['free', 'premium', 'pro'].includes(data.tier)) {
+            return {
+                success: false,
+                error: 'Некорректный тип подписки'
+            }
+        }
+
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Создание подписки без реальных запросов к Supabase')
+            const { mockCreateSubscription } = await import('./subscription-mock')
             return mockCreateSubscription(data.userId, data.tier)
         }
 
@@ -324,6 +336,13 @@ export async function updateSubscription(
     updates: UpdateSubscriptionData
 ): Promise<SubscriptionResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Обновление подписки без реальных запросов к Supabase')
+            const { mockUpdateSubscription } = await import('./subscription-mock')
+            return mockUpdateSubscription(subscriptionId, updates)
+        }
+
         // Временно закомментировано для build
         /*
         const supabase = getSupabaseClient()
@@ -404,6 +423,13 @@ export async function updateSubscription(
  */
 export async function cancelSubscription(subscriptionId: string): Promise<SubscriptionResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Отмена подписки без реальных запросов к Supabase')
+            const { mockCancelSubscription } = await import('./subscription-mock')
+            return mockCancelSubscription(subscriptionId)
+        }
+
         // Временно закомментировано для build
         /*
         const supabase = getSupabaseClient()
@@ -534,8 +560,9 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
 /**
  * 📝 Получение плана подписки по ID
  */
-export function getSubscriptionPlan(planId: string): SubscriptionPlan | undefined {
-    return SUBSCRIPTION_PLANS.find(plan => plan.id === planId)
+export function getSubscriptionPlan(planId: string): SubscriptionPlan | null {
+    const plan = SUBSCRIPTION_PLANS.find(plan => plan.id === planId)
+    return plan || null
 }
 
 /**
@@ -568,8 +595,28 @@ export function checkSubscriptionLimits(
 /**
  * 📝 Получение планов подписок (для API)
  */
-export function getSubscriptionPlans(): SubscriptionPlan[] {
-    return SUBSCRIPTION_PLANS.filter(plan => plan.isActive)
+export function getSubscriptionPlans(): { success: boolean; plans?: SubscriptionPlan[]; error?: string } {
+    try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Получение планов подписок без реальных запросов к Supabase')
+            return {
+                success: true,
+                plans: SUBSCRIPTION_PLANS.filter(plan => plan.isActive)
+            }
+        }
+
+        return {
+            success: true,
+            plans: SUBSCRIPTION_PLANS.filter(plan => plan.isActive)
+        }
+    } catch (error) {
+        console.error('Ошибка получения планов подписок:', error)
+        return {
+            success: false,
+            error: 'Произошла ошибка при получении планов подписок'
+        }
+    }
 }
 
 /**
@@ -600,7 +647,11 @@ export function hasFeatureAccess(
 /**
  * 📝 Получение лимитов пользователя
  */
-export function getUserLimits(subscription: Subscription): { tasks: number; aiRequests: number; storage: number } {
+export function getUserLimits(subscription: Subscription | null): { tasks: number; aiRequests: number; storage: number } {
+    if (!subscription) {
+        return { tasks: 50, aiRequests: 10, storage: 100 }
+    }
+
     const plan = getSubscriptionPlan(subscription.tier)
     if (!plan) {
         return { tasks: 50, aiRequests: 10, storage: 100 }

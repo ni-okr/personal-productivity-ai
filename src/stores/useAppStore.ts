@@ -62,7 +62,16 @@ export const useAppStore = create<AppStore>()(
       error: null,
 
       // Actions
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        set({ user })
+        // В mock режиме автоматически загружаем задачи при установке пользователя
+        if (DISABLE_EMAIL && user) {
+          // Загружаем задачи асинхронно
+          setTimeout(() => {
+            get().loadTasks()
+          }, 0)
+        }
+      },
 
       setTasks: (tasks) => set({ tasks }),
 
@@ -115,32 +124,50 @@ export const useAppStore = create<AppStore>()(
       // Supabase tasks actions
       loadTasks: async () => {
         const { user } = get()
-        if (!user) return
+        if (!user) {
+          console.log('🚨 loadTasks: Пользователь не найден')
+          return
+        }
+
+        console.log('🚨 loadTasks: Начинаем загрузку задач для пользователя', user.id)
+        console.log('🚨 loadTasks: DISABLE_EMAIL =', DISABLE_EMAIL)
 
         try {
           set({ isLoading: true, error: null })
-          const result = await getTasks(user.id)
 
-          if (result.success && result.tasks) {
-            set({ tasks: result.tasks })
-            
-            // 🚨 MOCK РЕЖИМ: Загружаем mock метрики и рекомендации
-            if (DISABLE_EMAIL) {
-              const { mockGetProductivityMetrics, mockGetAISuggestions } = await import('@/lib/tasks-mock')
-              const metrics = await mockGetProductivityMetrics(user.id)
-              const suggestions = await mockGetAISuggestions(user.id)
-              
-              if (metrics) {
-                set({ metrics })
-              }
-              if (suggestions) {
-                set({ suggestions })
-              }
+          let result: TasksResponse
+
+          // 🚨 MOCK РЕЖИМ: Используем mock функции вместо реальных
+          if (DISABLE_EMAIL) {
+            console.log('🚨 loadTasks: Используем mock режим')
+            const { mockGetTasks, mockGetProductivityMetrics, mockGetAISuggestions } = await import('@/lib/tasks-mock')
+            result = await mockGetTasks(user.id)
+            console.log('🚨 loadTasks: Mock результат', result)
+
+            // Загружаем mock метрики и рекомендации
+            const metrics = await mockGetProductivityMetrics(user.id)
+            const suggestions = await mockGetAISuggestions(user.id)
+
+            if (metrics) {
+              set({ metrics })
+            }
+            if (suggestions) {
+              set({ suggestions })
             }
           } else {
+            console.log('🚨 loadTasks: Используем реальный режим')
+            result = await getTasks(user.id)
+          }
+
+          if (result.success && result.tasks) {
+            console.log('🚨 loadTasks: Успешно загружены задачи', result.tasks.length)
+            set({ tasks: result.tasks })
+          } else {
+            console.log('🚨 loadTasks: Ошибка загрузки задач', result.error)
             set({ error: result.error || 'Ошибка загрузки задач' })
           }
         } catch (error: any) {
+          console.log('🚨 loadTasks: Исключение', error)
           set({ error: error.message || 'Ошибка загрузки задач' })
         } finally {
           set({ isLoading: false })
@@ -153,7 +180,16 @@ export const useAppStore = create<AppStore>()(
 
         try {
           set({ isLoading: true, error: null })
-          const result = await createTask(user.id, taskData)
+
+          let result: TasksResponse
+
+          // 🚨 MOCK РЕЖИМ: Используем mock функции вместо реальных
+          if (DISABLE_EMAIL) {
+            const { mockCreateTask } = await import('@/lib/tasks-mock')
+            result = await mockCreateTask(user.id, taskData)
+          } else {
+            result = await createTask(user.id, taskData)
+          }
 
           if (result.success && result.task) {
             set((state) => ({
@@ -172,7 +208,16 @@ export const useAppStore = create<AppStore>()(
       updateTaskAsync: async (id: string, updates: UpdateTaskData) => {
         try {
           set({ isLoading: true, error: null })
-          const result = await updateTaskApi(id, updates)
+
+          let result: TasksResponse
+
+          // 🚨 MOCK РЕЖИМ: Используем mock функции вместо реальных
+          if (DISABLE_EMAIL) {
+            const { mockUpdateTask } = await import('@/lib/tasks-mock')
+            result = await mockUpdateTask(id, updates)
+          } else {
+            result = await updateTaskApi(id, updates)
+          }
 
           if (result.success && result.task) {
             set((state) => ({
@@ -193,7 +238,16 @@ export const useAppStore = create<AppStore>()(
       deleteTaskAsync: async (id: string) => {
         try {
           set({ isLoading: true, error: null })
-          const result = await deleteTaskApi(id)
+
+          let result: TasksResponse
+
+          // 🚨 MOCK РЕЖИМ: Используем mock функции вместо реальных
+          if (DISABLE_EMAIL) {
+            const { mockDeleteTask } = await import('@/lib/tasks-mock')
+            result = await mockDeleteTask(id)
+          } else {
+            result = await deleteTaskApi(id)
+          }
 
           if (result.success) {
             set((state) => ({
@@ -212,7 +266,16 @@ export const useAppStore = create<AppStore>()(
       completeTaskAsync: async (id: string, actualDuration?: number) => {
         try {
           set({ isLoading: true, error: null })
-          const result = await completeTask(id, actualDuration)
+
+          let result: TasksResponse
+
+          // 🚨 MOCK РЕЖИМ: Используем mock функции вместо реальных
+          if (DISABLE_EMAIL) {
+            const { mockCompleteTask } = await import('@/lib/tasks-mock')
+            result = await mockCompleteTask(id, actualDuration)
+          } else {
+            result = await completeTask(id, actualDuration)
+          }
 
           if (result.success && result.task) {
             set((state) => ({

@@ -1,6 +1,6 @@
 // 🧪 Mock функции для тестирования задач без Supabase
 
-import { Task, TaskPriority, TaskStatus, TaskSource, CreateTaskData, UpdateTaskData, TasksResponse, ProductivityMetrics, AICoachSuggestion } from '@/types'
+import { AICoachSuggestion, CreateTaskData, ProductivityMetrics, Task, TasksResponse, TaskStatus, UpdateTaskData } from '@/types'
 
 // Mock данные для задач
 const mockTasks: Task[] = [
@@ -86,10 +86,10 @@ const mockSuggestions: AICoachSuggestion[] = [
 // Функции для работы с задачами
 export async function mockGetTasks(userId: string): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Получение задач без реальных запросов к Supabase')
-  
+
   // Фильтруем задачи по пользователю
   const userTasks = mockTasks.filter(task => task.userId === userId)
-  
+
   return {
     success: true,
     tasks: userTasks,
@@ -99,7 +99,7 @@ export async function mockGetTasks(userId: string): Promise<TasksResponse> {
 
 export async function mockCreateTask(userId: string, taskData: CreateTaskData): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Создание задачи без реальных запросов к Supabase')
-  
+
   const newTask: Task = {
     id: `mock-task-${Date.now()}-${Math.random().toString(36).substring(7)}`,
     title: taskData.title,
@@ -113,9 +113,9 @@ export async function mockCreateTask(userId: string, taskData: CreateTaskData): 
     createdAt: new Date(),
     updatedAt: new Date()
   }
-  
+
   mockTasks.push(newTask)
-  
+
   return {
     success: true,
     task: newTask,
@@ -125,7 +125,7 @@ export async function mockCreateTask(userId: string, taskData: CreateTaskData): 
 
 export async function mockUpdateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Обновление задачи без реальных запросов к Supabase')
-  
+
   const taskIndex = mockTasks.findIndex(task => task.id === taskId)
   if (taskIndex === -1) {
     return {
@@ -133,15 +133,15 @@ export async function mockUpdateTask(taskId: string, updates: UpdateTaskData): P
       error: 'Задача не найдена'
     }
   }
-  
+
   const updatedTask = {
     ...mockTasks[taskIndex],
     ...updates,
     updatedAt: new Date()
   }
-  
+
   mockTasks[taskIndex] = updatedTask
-  
+
   return {
     success: true,
     task: updatedTask,
@@ -151,7 +151,7 @@ export async function mockUpdateTask(taskId: string, updates: UpdateTaskData): P
 
 export async function mockDeleteTask(taskId: string): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Удаление задачи без реальных запросов к Supabase')
-  
+
   const taskIndex = mockTasks.findIndex(task => task.id === taskId)
   if (taskIndex === -1) {
     return {
@@ -159,9 +159,9 @@ export async function mockDeleteTask(taskId: string): Promise<TasksResponse> {
       error: 'Задача не найдена'
     }
   }
-  
+
   mockTasks.splice(taskIndex, 1)
-  
+
   return {
     success: true,
     message: 'Mock задача удалена успешно'
@@ -170,7 +170,7 @@ export async function mockDeleteTask(taskId: string): Promise<TasksResponse> {
 
 export async function mockCompleteTask(taskId: string, actualMinutes?: number): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Завершение задачи без реальных запросов к Supabase')
-  
+
   const taskIndex = mockTasks.findIndex(task => task.id === taskId)
   if (taskIndex === -1) {
     return {
@@ -178,7 +178,7 @@ export async function mockCompleteTask(taskId: string, actualMinutes?: number): 
       error: 'Задача не найдена'
     }
   }
-  
+
   const updatedTask = {
     ...mockTasks[taskIndex],
     status: 'completed' as TaskStatus,
@@ -186,9 +186,9 @@ export async function mockCompleteTask(taskId: string, actualMinutes?: number): 
     actualMinutes: actualMinutes || mockTasks[taskIndex].estimatedMinutes,
     updatedAt: new Date()
   }
-  
+
   mockTasks[taskIndex] = updatedTask
-  
+
   return {
     success: true,
     task: updatedTask,
@@ -209,10 +209,10 @@ export async function mockGetTasksStats(userId: string): Promise<{
   error?: string
 }> {
   console.log('🧪 MOCK РЕЖИМ: Получение статистики задач без реальных запросов к Supabase')
-  
+
   const userTasks = mockTasks.filter(task => task.userId === userId)
   const now = new Date()
-  
+
   const total = userTasks.length
   const completed = userTasks.filter(task => task.status === 'completed').length
   const pending = userTasks.filter(task => task.status === 'todo' || task.status === 'in_progress').length
@@ -221,14 +221,14 @@ export async function mockGetTasksStats(userId: string): Promise<{
     task.dueDate &&
     task.dueDate < now
   ).length
-  
+
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
-  
+
   const completedTasks = userTasks.filter(task => task.status === 'completed' && task.actualMinutes)
   const averageCompletionTime = completedTasks.length > 0
     ? Math.round(completedTasks.reduce((sum, task) => sum + (task.actualMinutes || 0), 0) / completedTasks.length)
     : 0
-  
+
   return {
     success: true,
     stats: {
@@ -244,9 +244,9 @@ export async function mockGetTasksStats(userId: string): Promise<{
 
 export async function mockSyncTasks(userId: string): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Синхронизация задач без реальных запросов к Supabase')
-  
+
   const userTasks = mockTasks.filter(task => task.userId === userId)
-  
+
   return {
     success: true,
     tasks: userTasks,
@@ -257,22 +257,17 @@ export async function mockSyncTasks(userId: string): Promise<TasksResponse> {
 // Функции для работы с метриками
 export async function mockGetProductivityMetrics(userId: string): Promise<ProductivityMetrics | null> {
   console.log('🧪 MOCK РЕЖИМ: Получение метрик продуктивности без реальных запросов к Supabase')
-  
+
   return mockMetrics
 }
 
 // Функции для работы с рекомендациями ИИ
 export async function mockGetAISuggestions(userId: string): Promise<AICoachSuggestion[]> {
   console.log('🧪 MOCK РЕЖИМ: Получение рекомендаций ИИ без реальных запросов к Supabase')
-  
+
   return mockSuggestions.filter(suggestion => suggestion.userId === userId)
 }
 
-// Функция для очистки mock данных
-export function clearMockTasks(): void {
-  console.log('🧪 MOCK РЕЖИМ: Очистка mock задач')
-  mockTasks.length = 0
-}
 
 // Функция для добавления тестовых задач
 export function addMockTask(task: Task): void {
@@ -283,6 +278,12 @@ export function addMockTask(task: Task): void {
 // Функция для получения mock задач по пользователю
 export function getMockTasksByUser(userId: string): Task[] {
   return mockTasks.filter(task => task.userId === userId)
+}
+
+export function clearMockTasks(): void {
+  console.log('🧪 MOCK РЕЖИМ: Очистка mock задач')
+  // Очищаем массив mockTasks полностью
+  mockTasks.length = 0
 }
 
 // Функция для обновления mock задач

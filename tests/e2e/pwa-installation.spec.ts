@@ -1,3 +1,15 @@
+import { testFramework, testLogger, testMocks, testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.030Z
+ * Оригинальный файл сохранен как: tests/e2e/pwa-installation.spec.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 import { devices, expect, test } from '@playwright/test'
 
 test.describe('📱 PWA Установка - Кроссплатформенность', () => {
@@ -15,7 +27,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
                 const mockEvent = {
                     preventDefault: () => { },
                     prompt: async () => {
-                        console.log('🖥️ Desktop PWA installation triggered')
+                        testLogger.info('TEST', '🖥️ Desktop PWA installation triggered')
                         return Promise.resolve()
                     },
                     userChoice: Promise.resolve({ outcome: 'accepted' })
@@ -38,10 +50,10 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                console.log(`✅ PWA кнопка отображается в ${browserName}`)
+                testLogger.info('TEST', `✅ PWA кнопка отображается в ${browserName}`)
 
                 // Кликаем на установку
-                await installButton.waitFor({ state: 'visible' })
+                await installButton.testUtils.waitForState({ state: 'visible' })
                 await page.waitForTimeout(500)
                 await installButton.click({ force: true })
 
@@ -51,10 +63,10 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
                 })
 
                 expect(wasPromptCalled).toBe(true)
-                console.log(`✅ PWA установка инициирована в ${browserName}`)
+                testLogger.info('TEST', `✅ PWA установка инициирована в ${browserName}`)
 
             } else {
-                console.log(`ℹ️ PWA кнопка не отображается в ${browserName} (зависит от браузера)`)
+                testLogger.info('TEST', `ℹ️ PWA кнопка не отображается в ${browserName} (зависит от браузера)`)
             }
         })
 
@@ -64,7 +76,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             // Safari имеет другой механизм PWA
             await page.addInitScript(() => {
                 // В Safari PWA устанавливается через "Добавить на главный экран"
-                console.log('🍎 Safari PWA: Добавить на главный экран')
+                testLogger.info('TEST', '🍎 Safari PWA: Добавить на главный экран')
 
                 // Эмулируем проверку Safari
                 Object.defineProperty(navigator, 'standalone', {
@@ -79,9 +91,9 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                console.log('✅ PWA кнопка видна в Safari')
+                testLogger.info('TEST', '✅ PWA кнопка видна в Safari')
             } else {
-                console.log('ℹ️ Safari использует встроенный механизм "Добавить на главный экран"')
+                testLogger.info('TEST', 'ℹ️ Safari использует встроенный механизм "Добавить на главный экран"')
             }
         })
     })
@@ -105,7 +117,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
                 const mockEvent = {
                     preventDefault: () => { },
                     prompt: async () => {
-                        console.log('🤖 Android PWA: Генерация APK файла')
+                        testLogger.info('TEST', '🤖 Android PWA: Генерация APK файла')
                         // В реальности здесь должен генерироваться APK
                         return Promise.resolve()
                     },
@@ -124,11 +136,11 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                await installButton.waitFor({ state: 'visible' })
+                await installButton.testUtils.waitForState({ state: 'visible' })
                 await page.waitForTimeout(500)
                 await installButton.click({ force: true })
 
-                console.log('✅ Android PWA: APK установка инициирована')
+                testLogger.info('TEST', '✅ Android PWA: APK установка инициирована')
 
                 // Проверяем, что Android PWA событие сработало
                 const androidPWATriggered = await page.evaluate(() => {
@@ -153,7 +165,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.addInitScript(() => {
 
                 // iOS не поддерживает beforeinstallprompt
-                console.log('🍎 iOS: Используется встроенный механизм Safari')
+                testLogger.info('TEST', '🍎 iOS: Используется встроенный механизм Safari')
 
                 // Проверяем, что приложение может быть добавлено на главный экран
                 Object.defineProperty(navigator, 'standalone', {
@@ -170,12 +182,12 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                console.log('✅ iOS: PWA кнопка отображается')
-                await installButton.waitFor({ state: 'visible' })
+                testLogger.info('TEST', '✅ iOS: PWA кнопка отображается')
+                await installButton.testUtils.waitForState({ state: 'visible' })
                 await page.waitForTimeout(500)
                 await installButton.click({ force: true })
             } else {
-                console.log('ℹ️ iOS: Используется встроенный механизм "Поделиться" → "Добавить на главный экран"')
+                testLogger.info('TEST', 'ℹ️ iOS: Используется встроенный механизм "Поделиться" → "Добавить на главный экран"')
             }
 
             // Проверяем, что iOS PWA настройки корректны
@@ -199,7 +211,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             expect(manifestContent).toHaveProperty('short_name')
             expect(manifestContent).toHaveProperty('icons')
 
-            console.log('✅ PWA Manifest корректен:', manifestContent.name)
+            testLogger.info('TEST', '✅ PWA Manifest корректен:', manifestContent.name)
         })
 
         test('🔄 Service Worker регистрация', async ({ page }) => {
@@ -211,7 +223,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             })
 
             expect(swSupported).toBe(true)
-            console.log('✅ Service Worker поддерживается')
+            testLogger.info('TEST', '✅ Service Worker поддерживается')
         })
 
         test('📱 PWA установка - различные сценарии', async ({ page }) => {
@@ -240,16 +252,16 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                console.log('✅ PWA кнопка появилась после события')
+                testLogger.info('TEST', '✅ PWA кнопка появилась после события')
 
                 // Тест 3: Кнопка исчезает после установки
-                await installButton.waitFor({ state: 'visible' })
+                await installButton.testUtils.waitForState({ state: 'visible' })
                 await page.waitForTimeout(500)
                 await installButton.click({ force: true })
                 await page.waitForTimeout(1000)
 
                 // В реальном сценарии кнопка должна исчезнуть
-                console.log('✅ PWA установка завершена')
+                testLogger.info('TEST', '✅ PWA установка завершена')
             }
         })
     })
@@ -260,7 +272,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             test.skip(browserName !== 'chromium', 'Тест только для Chrome')
 
             await page.goto('/')
-            console.log('✅ Chrome: Полная PWA поддержка ожидается')
+            testLogger.info('TEST', '✅ Chrome: Полная PWA поддержка ожидается')
 
             // Chrome должен поддерживать все PWA функции
             const pwaSupport = await page.evaluate(() => {
@@ -274,14 +286,14 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             expect(pwaSupport.serviceWorker).toBe(true)
             expect(pwaSupport.manifest).toBe(true)
 
-            console.log('✅ Chrome PWA поддержка:', pwaSupport)
+            testLogger.info('TEST', '✅ Chrome PWA поддержка:', pwaSupport)
         })
 
         test('🦊 Firefox - ограниченная PWA поддержка', async ({ page, browserName }) => {
             test.skip(browserName !== 'firefox', 'Тест только для Firefox')
 
             await page.goto('/')
-            console.log('ℹ️ Firefox: Ограниченная PWA поддержка')
+            testLogger.info('TEST', 'ℹ️ Firefox: Ограниченная PWA поддержка')
 
             // Firefox имеет ограниченную поддержку PWA
             const pwaSupport = await page.evaluate(() => {
@@ -296,14 +308,14 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             expect(pwaSupport.manifest).toBe(true)
             // beforeInstallPrompt может не поддерживаться в Firefox
 
-            console.log('ℹ️ Firefox PWA поддержка:', pwaSupport)
+            testLogger.info('TEST', 'ℹ️ Firefox PWA поддержка:', pwaSupport)
         })
 
         test('🧭 Safari - альтернативный PWA механизм', async ({ page, browserName }) => {
             test.skip(browserName !== 'webkit', 'Тест только для Safari')
 
             await page.goto('/')
-            console.log('🍎 Safari: Альтернативный PWA механизм')
+            testLogger.info('TEST', '🍎 Safari: Альтернативный PWA механизм')
 
             // Safari использует другой подход к PWA
             const safariPWA = await page.evaluate(() => {
@@ -318,7 +330,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             expect(safariPWA.serviceWorker).toBe(true)
             expect(safariPWA.manifest).toBe(true)
 
-            console.log('🍎 Safari PWA поддержка:', safariPWA)
+            testLogger.info('TEST', '🍎 Safari PWA поддержка:', safariPWA)
         })
     })
 })

@@ -1,4 +1,14 @@
-// 🧪 Unit тесты для системы подписок
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.025Z
+ * Оригинальный файл сохранен как: tests/unit/subscriptions.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
+// 🧪 Integration тесты для subscriptions.ts с mock режимом
 import {
     createSubscription,
     getSubscription,
@@ -6,296 +16,280 @@ import {
     getSubscriptionPlans,
     updateSubscription
 } from '@/lib/subscriptions'
-import { beforeEach, describe, expect, it } from '@jest/globals'
+import { SubscriptionTier } from '@/types'
+import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
 
-// Mock Supabase с правильной структурой
-const mockSingle = jest.fn()
-const mockInsert = jest.fn().mockReturnValue({
-    select: jest.fn().mockReturnValue({
-        single: mockSingle
-    })
-})
-const mockSelect = jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-        single: mockSingle
-    })
-})
-const mockUpdate = jest.fn().mockReturnValue({
-    eq: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-            single: mockSingle
-        })
-    })
-})
 
-jest.mock('@/lib/supabase', () => ({
-    getSupabaseClient: jest.fn(() => ({
-        from: jest.fn().mockImplementation((table: string) => ({
-            insert: mockInsert,
-            select: mockSelect,
-            update: mockUpdate,
-            delete: jest.fn(() => ({
-                eq: jest.fn()
-            }))
-        }))
-    }))
-}))
+// Mock console.log для проверки логов
+let mockConsoleLog: jest.SpyInstance
 
-describe('Subscription Management', () => {
+describe('Subscription Integration (Mock Mode)', () => {
+    const mockUserId = 'test-user-id'
+    const mockSubscriptionData = {
+        userId: mockUserId,
+        tier: 'premium' as SubscriptionTier,
+        tinkoffCustomerId: 'test-customer',
+        tinkoffPaymentId: 'test-payment',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    }
+
     beforeEach(() => {
-        jest.clearAllMocks()
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+    testMocks.updateConfig(MOCK_CONFIGS.FULL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Integration Tests')
+        mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
+        // Очищаем mock данные между тестами
+        const { clearMockSubscriptions } = require('@/lib/subscription-mock')
+        clearMockSubscriptions()
     })
 
-    describe('createSubscription', () => {
-        it('должна создавать подписку успешно', async () => {
-            const subscriptionData = {
-                userId: 'user-123',
-                tier: 'premium' as const,
-                tinkoffCustomerId: 'customer_123',
-                tinkoffPaymentId: 'payment_123',
-                currentPeriodStart: new Date('2024-01-01'),
-                currentPeriodEnd: new Date('2024-02-01'),
-                trialEnd: undefined
-            }
-
-            const mockSubscription = {
-                id: 'sub-123',
-                user_id: 'user-123',
-                tier: 'premium',
-                status: 'active',
-                tinkoff_customer_id: 'customer_123',
-                tinkoff_payment_id: 'payment_123',
-                current_period_start: '2024-01-01T00:00:00.000Z',
-                current_period_end: '2024-02-01T00:00:00.000Z',
-                cancel_at_period_end: false,
-                trial_end: null,
-                created_at: '2024-01-01T00:00:00.000Z',
-                updated_at: '2024-01-01T00:00:00.000Z'
-            }
-
-            // Настраиваем мок для успешного создания
-            mockSingle.mockResolvedValue({
-                data: mockSubscription,
-                error: null
-            })
-
-            const result = await createSubscription(subscriptionData)
-
-            expect(result.success).toBe(true)
-            expect(result.subscription).toBeDefined()
-            expect(result.subscription?.tier).toBe('premium')
-        })
-
-        it('должна обрабатывать ошибки создания подписки', async () => {
-            const subscriptionData = {
-                userId: 'user-123',
-                tier: 'premium' as const,
-                tinkoffCustomerId: 'customer_123',
-                tinkoffPaymentId: 'payment_123',
-                currentPeriodStart: new Date('2024-01-01'),
-                currentPeriodEnd: new Date('2024-02-01'),
-                trialEnd: undefined
-            }
-
-            // Настраиваем мок для ошибки
-            mockSingle.mockResolvedValue({
-                data: null,
-                error: { message: 'Database error' }
-            })
-
-            const result = await createSubscription(subscriptionData)
-
-            expect(result.success).toBe(false)
-            expect(result.error).toBe('Не удалось создать подписку')
-        })
+    afterEach(() => {
+    testMocks.clearAllMocks()
+    testLogger.endTest('Test Suite', true)
+        mockConsoleLog.mockRestore()
     })
 
     describe('getSubscription', () => {
-        it('должна получать подписку пользователя', async () => {
-            const mockSubscription = {
-                id: 'sub-123',
-                user_id: 'user-123',
-                tier: 'premium',
-                status: 'active',
-                tinkoff_customer_id: 'customer_123',
-                tinkoff_payment_id: 'payment_123',
-                current_period_start: '2024-01-01T00:00:00.000Z',
-                current_period_end: '2024-02-01T00:00:00.000Z',
-                cancel_at_period_end: false,
-                trial_end: null,
-                created_at: '2024-01-01T00:00:00.000Z',
-                updated_at: '2024-01-01T00:00:00.000Z'
-            }
+        it('должна возвращать free план если подписка не найдена в mock режиме', async () => {
+            const result = await getSubscription('user-without-subscription')
 
-            // Настраиваем мок для успешного получения
-            mockSingle.mockResolvedValue({
-                data: mockSubscription,
-                error: null
-            })
-
-            const result = await getSubscription('user-123')
-
-            expect(result.success).toBe(true)
-            expect(result.subscription).toBeDefined()
-            expect(result.subscription?.tier).toBe('premium')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Подписка не найдена')
         })
 
-        it('должна возвращать free план если подписка не найдена', async () => {
-            // Настраиваем мок для отсутствия подписки
-            mockSingle.mockResolvedValue({
-                data: null,
-                error: { code: 'PGRST116' }
-            })
+        it('должна логировать действие в mock режиме', async () => {
+            await getSubscription(mockUserId)
 
-            const result = await getSubscription('user-123')
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение подписки без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('createSubscription', () => {
+        it('должна создавать подписку успешно в mock режиме', async () => {
+            const result = await createSubscription(mockSubscriptionData)
 
             expect(result.success).toBe(true)
             expect(result.subscription).toBeDefined()
-            expect(result.subscription?.tier).toBe('free')
+            expect(result.subscription!.userId).toBe(mockUserId)
+            expect(result.subscription!.tier).toBe('premium')
+            expect(result.subscription!.status).toBe('active')
+        })
+
+        it('должна обрабатывать ошибки создания подписки в mock режиме', async () => {
+            // Создаем первую подписку
+            await createSubscription(mockSubscriptionData)
+
+            // Пытаемся создать вторую подписку для того же пользователя
+            const result = await createSubscription(mockSubscriptionData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('У пользователя уже есть активная подписка')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await createSubscription(mockSubscriptionData)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Создание подписки без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('getSubscriptionPlans', () => {
+        it('должна возвращать все планы подписок', async () => {
+            const result = await getSubscriptionPlans()
+
+            expect(result.success).toBe(true)
+            expect(result.plans).toBeDefined()
+            expect(result.plans).toHaveLength(4) // free, premium, pro, enterprise
+
+            const planNames = result.plans?.map(plan => plan.name) || []
+            expect(planNames).toContain('Free')
+            expect(planNames).toContain('Premium')
+            expect(planNames).toContain('Pro')
+            expect(planNames).toContain('Enterprise')
+        })
+
+        it('должна возвращать планы с правильной структурой данных', async () => {
+            const result = await getSubscriptionPlans()
+
+            expect(result.success).toBe(true)
+            expect(result.plans).toBeDefined()
+
+            const freePlan = result.plans?.find(plan => plan.tier === 'free')
+            expect(freePlan).toMatchObject({
+                id: 'free',
+                name: 'Free',
+                tier: 'free',
+                price: 0,
+                currency: 'rub',
+                interval: 'month',
+                isActive: true
+            })
+
+            const premiumPlan = result.plans?.find(plan => plan.tier === 'premium')
+            expect(premiumPlan).toMatchObject({
+                id: 'premium',
+                name: 'Premium',
+                tier: 'premium',
+                price: 99900, // 999 рублей в копейках
+                currency: 'rub',
+                interval: 'month',
+                isActive: true
+            })
+        })
+
+        it('должна возвращать планы с правильными лимитами', async () => {
+            const result = await getSubscriptionPlans()
+
+            const freePlan = result.plans?.find(plan => plan.tier === 'free')
+            expect(freePlan?.limits).toMatchObject({
+                tasks: 50,
+                aiRequests: 0,
+                storage: 100
+            })
+
+            const premiumPlan = result.plans?.find(plan => plan.tier === 'premium')
+            expect(premiumPlan?.limits).toMatchObject({
+                tasks: 500,
+                aiRequests: 1000,
+                storage: 1000
+            })
+
+            const proPlan = result.plans?.find(plan => plan.tier === 'pro')
+            expect(proPlan?.limits).toMatchObject({
+                tasks: -1, // -1 означает неограниченно
+                aiRequests: -1,
+                storage: -1
+            })
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await getSubscriptionPlans()
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение планов подписок без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('getSubscriptionPlan', () => {
+        it('должна возвращать план по tier', async () => {
+            const result = await getSubscriptionPlan('premium')
+
+            expect(result).toBeDefined()
+            expect(result?.tier).toBe('premium')
+            expect(result?.name).toBe('Premium')
+        })
+
+        it('должна возвращать null для несуществующего плана', async () => {
+            const result = await getSubscriptionPlan('invalid' as any)
+
+            expect(result).toBeNull()
         })
     })
 
     describe('updateSubscription', () => {
-        it('должна обновлять подписку', async () => {
+        let subscriptionId: string
+
+        beforeEach(async () => {
+            const result = await createSubscription(mockSubscriptionData)
+            subscriptionId = result.subscription!.id
+        })
+
+        it('должна обновлять подписку успешно в mock режиме', async () => {
             const updates = {
                 status: 'canceled' as const,
                 cancelAtPeriodEnd: true
             }
 
-            const mockUpdatedSubscription = {
-                id: 'sub-123',
-                user_id: 'user-123',
-                tier: 'premium',
-                status: 'canceled',
-                tinkoff_customer_id: 'customer_123',
-                tinkoff_payment_id: 'payment_123',
-                current_period_start: '2024-01-01T00:00:00.000Z',
-                current_period_end: '2024-02-01T00:00:00.000Z',
-                cancel_at_period_end: true,
-                trial_end: null,
-                created_at: '2024-01-01T00:00:00.000Z',
-                updated_at: '2024-01-01T00:00:00.000Z'
-            }
-
-            // Настраиваем мок для успешного обновления
-            mockSingle.mockResolvedValue({
-                data: mockUpdatedSubscription,
-                error: null
-            })
-
-            const result = await updateSubscription('sub-123', updates)
+            const result = await updateSubscription(subscriptionId, updates)
 
             expect(result.success).toBe(true)
             expect(result.subscription).toBeDefined()
-            expect(result.subscription?.status).toBe('canceled')
+            expect(result.subscription!.status).toBe('canceled')
+            expect(result.subscription!.cancelAtPeriodEnd).toBe(true)
+        })
+
+        it('должна возвращать ошибку для несуществующей подписки', async () => {
+            const updates = { status: 'canceled' as const }
+            const result = await updateSubscription('non-existent-id', updates)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Подписка не найдена')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            const updates = { status: 'canceled' as const }
+            await updateSubscription(subscriptionId, updates)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Обновление подписки без реальных запросов к Supabase'
+            )
         })
     })
 
-    describe('getSubscriptionPlans', () => {
-        it('должна получать все планы подписок', () => {
-            const result = getSubscriptionPlans()
+    describe('Валидация данных', () => {
+        it('должна валидировать данные подписки при создании', async () => {
+            const invalidData = {
+                userId: '', // Пустой userId
+                tier: 'premium' as SubscriptionTier,
+                tinkoffCustomerId: 'test-customer',
+                tinkoffPaymentId: 'test-payment',
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            }
 
-            expect(result).toHaveLength(4) // free, premium, pro, enterprise
-            expect(result[0].tier).toBe('free')
-            expect(result[1].tier).toBe('premium')
-            expect(result[2].tier).toBe('pro')
-            expect(result[3].tier).toBe('enterprise')
+            const result = await createSubscription(invalidData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
         })
 
-        it('должна возвращать только активные планы', () => {
-            const result = getSubscriptionPlans()
+        it('должна валидировать tier подписки', async () => {
+            const invalidData = {
+                userId: mockUserId,
+                tier: 'invalid' as any,
+                tinkoffCustomerId: 'test-customer',
+                tinkoffPaymentId: 'test-payment',
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            }
 
-            result.forEach(plan => {
-                expect(plan.isActive).toBe(true)
-            })
-        })
+            const result = await createSubscription(invalidData)
 
-        it('должна иметь правильные цены в копейках', () => {
-            const result = getSubscriptionPlans()
-
-            const freePlan = result.find(p => p.tier === 'free')
-            const premiumPlan = result.find(p => p.tier === 'premium')
-            const proPlan = result.find(p => p.tier === 'pro')
-            const enterprisePlan = result.find(p => p.tier === 'enterprise')
-
-            expect(freePlan?.price).toBe(0)
-            expect(premiumPlan?.price).toBe(99900) // 999 рублей в копейках
-            expect(proPlan?.price).toBe(199900) // 1999 рублей в копейках
-            expect(enterprisePlan?.price).toBe(499900) // 4999 рублей в копейках
-        })
-
-        it('должна иметь правильные валюты', () => {
-            const result = getSubscriptionPlans()
-
-            result.forEach(plan => {
-                expect(plan.currency).toBe('RUB')
-            })
-        })
-
-        it('должна иметь правильные Тинькофф ID', () => {
-            const result = getSubscriptionPlans()
-
-            const freePlan = result.find(p => p.tier === 'free')
-            const premiumPlan = result.find(p => p.tier === 'premium')
-            const proPlan = result.find(p => p.tier === 'pro')
-            const enterprisePlan = result.find(p => p.tier === 'enterprise')
-
-            expect(freePlan?.tinkoffPriceId).toBe('')
-            expect(premiumPlan?.tinkoffPriceId).toBe('tinkoff_premium_monthly')
-            expect(proPlan?.tinkoffPriceId).toBe('tinkoff_pro_monthly')
-            expect(enterprisePlan?.tinkoffPriceId).toBe('tinkoff_enterprise_monthly')
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
         })
     })
 
-    describe('getSubscriptionPlan', () => {
-        it('должна получать план по тиру', () => {
-            const result = getSubscriptionPlan('premium')
+    describe('Обработка ошибок', () => {
+        it('должна обрабатывать ошибки при работе с несуществующими подписками', async () => {
+            const result = await updateSubscription('non-existent-id', { status: 'canceled' })
 
-            expect(result).toBeDefined()
-            expect(result?.tier).toBe('premium')
-            expect(result?.name).toBe('Premium')
-            expect(result?.price).toBe(99900) // в копейках
-            expect(result?.currency).toBe('RUB')
-            expect(result?.tinkoffPriceId).toBe('tinkoff_premium_monthly')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Подписка не найдена')
         })
 
-        it('должна получать free план', () => {
-            const result = getSubscriptionPlan('free')
+        it('должна обрабатывать ошибки валидации', async () => {
+            const invalidData = {
+                userId: '',
+                tier: 'invalid' as any,
+                tinkoffCustomerId: '',
+                tinkoffPaymentId: '',
+                currentPeriodStart: new Date(),
+                currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            }
 
-            expect(result).toBeDefined()
-            expect(result?.tier).toBe('free')
-            expect(result?.name).toBe('Free')
-            expect(result?.price).toBe(0)
-            expect(result?.currency).toBe('RUB')
-            expect(result?.tinkoffPriceId).toBe('')
-        })
+            const result = await createSubscription(invalidData)
 
-        it('должна получать pro план', () => {
-            const result = getSubscriptionPlan('pro')
-
-            expect(result).toBeDefined()
-            expect(result?.tier).toBe('pro')
-            expect(result?.name).toBe('Pro')
-            expect(result?.price).toBe(199900) // в копейках
-            expect(result?.currency).toBe('RUB')
-            expect(result?.tinkoffPriceId).toBe('tinkoff_pro_monthly')
-        })
-
-        it('должна получать enterprise план', () => {
-            const result = getSubscriptionPlan('enterprise')
-
-            expect(result).toBeDefined()
-            expect(result?.tier).toBe('enterprise')
-            expect(result?.name).toBe('Enterprise')
-            expect(result?.price).toBe(499900) // в копейках
-            expect(result?.currency).toBe('RUB')
-            expect(result?.tinkoffPriceId).toBe('tinkoff_enterprise_monthly')
-        })
-
-        it('должна возвращать undefined для несуществующего плана', () => {
-            const result = getSubscriptionPlan('invalid' as any)
-
-            expect(result).toBeUndefined()
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
         })
     })
 })

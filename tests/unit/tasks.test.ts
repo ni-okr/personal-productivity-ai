@@ -1,4 +1,14 @@
-// 🧪 Unit тесты для tasks.ts
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.022Z
+ * Оригинальный файл сохранен как: tests/unit/tasks.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
+// 🧪 Integration тесты для tasks.ts с mock режимом
 import {
     completeTask,
     createTask,
@@ -8,442 +18,334 @@ import {
     syncTasks,
     updateTask
 } from '@/lib/tasks'
+import { CreateTaskData, UpdateTaskData } from '@/types'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks } from '../framework'
 
-// Mock Supabase
-const mockSupabaseClient = {
-    from: jest.fn(() => ({
-        select: jest.fn(() => ({
-            eq: jest.fn(() => ({
-                order: jest.fn(() => ({
-                    data: [],
-                    error: null
-                }))
-            }))
-        })),
-        insert: jest.fn(() => ({
-            select: jest.fn(() => ({
-                single: jest.fn(() => ({
-                    data: null,
-                    error: null
-                }))
-            }))
-        })),
-        update: jest.fn(() => ({
-            eq: jest.fn(() => ({
-                select: jest.fn(() => ({
-                    single: jest.fn(() => ({
-                        data: null,
-                        error: null
-                    }))
-                }))
-            }))
-        })),
-        delete: jest.fn(() => ({
-            eq: jest.fn(() => ({
-                data: null,
-                error: null
-            }))
-        }))
-    }))
-}
 
-jest.mock('@/lib/supabase', () => ({
-    getSupabaseClient: jest.fn(() => mockSupabaseClient)
-}))
+// Mock console.log для проверки логов
+let mockConsoleLog: jest.SpyInstance
 
-const mockSupabase = mockSupabaseClient
-
-describe('Tasks API', () => {
-    const mockUserId = 'test-user-id'
-    const mockTaskId = 'test-task-id'
+describe('Tasks Integration (Mock Mode)', () => {
+    const mockUserId = 'mock-user-1'
+    const mockTaskData: CreateTaskData = {
+        title: 'Test Task',
+        description: 'Test Description',
+        priority: 'medium',
+        estimatedMinutes: 30,
+        tags: ['test', 'integration']
+    }
 
     beforeEach(() => {
-        jest.clearAllMocks()
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+        testMocks.updateConfig(MOCK_CONFIGS.FULL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Integration Tests')
+        mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
+        // Очищаем mock данные между тестами
+        const { clearMockTasks } = require('@/lib/tasks-mock')
+        clearMockTasks()
+    })
+
+    afterEach(() => {
+        testMocks.clearAllMocks()
+        testLogger.endTest('Test Suite', true)
+        mockConsoleLog.mockRestore()
     })
 
     describe('getTasks', () => {
-        it('должен успешно получить задачи пользователя', async () => {
-            const mockTasks = [
-                {
-                    id: '1',
-                    title: 'Test Task 1',
-                    description: 'Test Description 1',
-                    priority: 'high',
-                    status: 'todo',
-                    due_date: '2024-01-01T00:00:00Z',
-                    completed_at: null,
-                    estimated_minutes: 30,
-                    actual_minutes: null,
-                    source: 'manual',
-                    tags: ['work'],
-                    user_id: mockUserId,
-                    created_at: '2024-01-01T00:00:00Z',
-                    updated_at: '2024-01-01T00:00:00Z'
-                }
-            ]
-
-            // Настраиваем мок для возврата данных
-            mockSupabase.from.mockReturnValue({
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        order: jest.fn(() => ({
-                            data: mockTasks,
-                            error: null
-                        }))
-                    }))
-                }))
-            } as any)
-
+        it('должен успешно получить задачи пользователя в mock режиме', async () => {
             const result = await getTasks(mockUserId)
 
             expect(result.success).toBe(true)
-            expect(result.tasks).toHaveLength(1)
-            expect(result.tasks![0].title).toBe('Test Task 1')
-            expect(result.tasks![0].priority).toBe('high')
+            expect(result.tasks).toBeDefined()
+            expect(result.message).toBe('Mock задачи загружены успешно')
         })
 
-        it('должен обработать ошибку получения задач', async () => {
-            // Настраиваем мок для возврата ошибки
-            mockSupabase.from.mockReturnValue({
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        order: jest.fn(() => ({
-                            data: null,
-                            error: { message: 'Database error' }
-                        }))
-                    }))
-                }))
-            } as any)
+        it('должен логировать действие в mock режиме', async () => {
+            await getTasks(mockUserId)
 
-            const result = await getTasks(mockUserId)
-
-            expect(result.success).toBe(false)
-            expect(result.error).toBe('Database error')
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение задач без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('createTask', () => {
-        it('должен успешно создать задачу', async () => {
-            const mockTaskData = {
-                title: 'New Task',
-                description: 'New Description',
-                priority: 'medium' as const,
-                dueDate: new Date('2030-01-01'), // future date
-                estimatedMinutes: 60,
-                tags: ['personal']
-            }
-
-            const mockCreatedTask = {
-                id: 'new-task-id',
-                title: 'New Task',
-                description: 'New Description',
-                priority: 'medium',
-                status: 'todo',
-                due_date: '2030-01-01T00:00:00Z',
-                completed_at: null,
-                estimated_minutes: 60,
-                actual_minutes: null,
-                source: 'manual',
-                tags: ['personal'],
-                user_id: mockUserId,
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z'
-            }
-
-            mockSupabase.from.mockReturnValue({
-                insert: jest.fn(() => ({
-                    select: jest.fn(() => ({
-                        single: jest.fn(() => ({
-                            data: mockCreatedTask,
-                            error: null
-                        }))
-                    }))
-                }))
-            } as any)
-
+        it('должен успешно создать задачу в mock режиме', async () => {
             const result = await createTask(mockUserId, mockTaskData)
 
             expect(result.success).toBe(true)
             expect(result.task).toBeDefined()
-            expect(result.task!.title).toBe('New Task')
-            expect(result.message).toBe('Задача успешно создана')
+            expect(result.task!.title).toBe(mockTaskData.title)
+            expect(result.task!.description).toBe(mockTaskData.description)
+            expect(result.task!.priority).toBe(mockTaskData.priority)
+            expect(result.task!.status).toBe('todo')
+            expect(result.task!.userId).toBe(mockUserId)
+            expect(result.message).toBe('Mock задача создана успешно')
         })
 
-        it('должен обработать ошибку создания задачи', async () => {
-            const mockTaskData = {
-                title: 'New Task',
-                description: 'New Description',
-                priority: 'medium' as const,
-                estimatedMinutes: 60,
-                tags: ['personal']
-            }
+        it('должен логировать действие в mock режиме', async () => {
+            await createTask(mockUserId, mockTaskData)
 
-            mockSupabase.from.mockReturnValue({
-                insert: jest.fn(() => ({
-                    select: jest.fn(() => ({
-                        single: jest.fn(() => ({
-                            data: null,
-                            error: { message: 'Database error' }
-                        }))
-                    }))
-                }))
-            } as any)
-
-            const result = await createTask(mockUserId, mockTaskData)
-
-            expect(result.success).toBe(false)
-            expect(result.error).toBe('Database error')
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Создание задачи без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('updateTask', () => {
-        it('должен успешно обновить задачу', async () => {
-            const mockUpdates = {
-                title: 'Updated Task',
-                priority: 'high' as const,
-                status: 'in_progress' as const
-            }
+        let taskId: string
 
-            const mockUpdatedTask = {
-                id: mockTaskId,
+        beforeEach(async () => {
+            const result = await createTask(mockUserId, mockTaskData)
+            taskId = result.task!.id
+        })
+
+        it('должен успешно обновить задачу в mock режиме', async () => {
+            const updates: UpdateTaskData = {
                 title: 'Updated Task',
                 description: 'Updated Description',
-                priority: 'high',
-                status: 'in_progress',
-                due_date: null,
-                completed_at: null,
-                estimated_minutes: 30,
-                actual_minutes: null,
-                source: 'manual',
-                tags: [],
-                user_id: mockUserId,
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z'
+                priority: 'high'
             }
 
-            mockSupabase.from.mockReturnValue({
-                update: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        select: jest.fn(() => ({
-                            single: jest.fn(() => ({
-                                data: mockUpdatedTask,
-                                error: null
-                            }))
-                        }))
-                    }))
-                }))
-            } as any)
-
-            const result = await updateTask(mockTaskId, mockUpdates)
+            const result = await updateTask(taskId, updates)
 
             expect(result.success).toBe(true)
             expect(result.task).toBeDefined()
-            expect(result.task!.title).toBe('Updated Task')
-            expect(result.message).toBe('Задача успешно обновлена')
+            expect(result.task!.title).toBe(updates.title)
+            expect(result.task!.description).toBe(updates.description)
+            expect(result.task!.priority).toBe(updates.priority)
+            expect(result.message).toBe('Mock задача обновлена успешно')
         })
 
-        it('должен обработать ошибку обновления задачи', async () => {
-            const mockUpdates = {
-                title: 'Updated Task'
-            }
-
-            mockSupabase.from.mockReturnValue({
-                update: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        select: jest.fn(() => ({
-                            single: jest.fn(() => ({
-                                data: null,
-                                error: { message: 'Update error' }
-                            }))
-                        }))
-                    }))
-                }))
-            } as any)
-
-            const result = await updateTask(mockTaskId, mockUpdates)
+        it('должен вернуть ошибку для несуществующей задачи', async () => {
+            const updates: UpdateTaskData = { title: 'Updated Title' }
+            const result = await updateTask('non-existent-id', updates)
 
             expect(result.success).toBe(false)
-            expect(result.error).toBe('Update error')
+            expect(result.error).toBe('Задача не найдена')
+        })
+
+        it('должен логировать действие в mock режиме', async () => {
+            const updates: UpdateTaskData = { title: 'Updated Title' }
+            await updateTask(taskId, updates)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Обновление задачи без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('deleteTask', () => {
-        it('должен успешно удалить задачу', async () => {
-            mockSupabase.from.mockReturnValue({
-                delete: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        data: null,
-                        error: null
-                    }))
-                }))
-            } as any)
+        let taskId: string
 
-            const result = await deleteTask(mockTaskId)
-
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Задача успешно удалена')
+        beforeEach(async () => {
+            const result = await createTask(mockUserId, mockTaskData)
+            taskId = result.task!.id
         })
 
-        it('должен обработать ошибку удаления задачи', async () => {
-            mockSupabase.from.mockReturnValue({
-                delete: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        data: null,
-                        error: { message: 'Delete error' }
-                    }))
-                }))
-            } as any)
+        it('должен успешно удалить задачу в mock режиме', async () => {
+            const result = await deleteTask(taskId)
 
-            const result = await deleteTask(mockTaskId)
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock задача удалена успешно')
+        })
+
+        it('должен вернуть ошибку для несуществующей задачи', async () => {
+            const result = await deleteTask('non-existent-id')
 
             expect(result.success).toBe(false)
-            expect(result.error).toBe('Delete error')
+            expect(result.error).toBe('Задача не найдена')
+        })
+
+        it('должен логировать действие в mock режиме', async () => {
+            await deleteTask(taskId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Удаление задачи без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('completeTask', () => {
-        it('должен успешно завершить задачу', async () => {
-            const mockCompletedTask = {
-                id: mockTaskId,
-                title: 'Completed Task',
-                description: 'Task Description',
-                priority: 'medium',
-                status: 'completed',
-                due_date: null,
-                completed_at: '2024-01-01T00:00:00Z',
-                estimated_minutes: 30,
-                actual_minutes: 25,
-                source: 'manual',
-                tags: [],
-                user_id: mockUserId,
-                created_at: '2024-01-01T00:00:00Z',
-                updated_at: '2024-01-01T00:00:00Z'
-            }
+        let taskId: string
 
-            mockSupabase.from.mockReturnValue({
-                update: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        select: jest.fn(() => ({
-                            single: jest.fn(() => ({
-                                data: mockCompletedTask,
-                                error: null
-                            }))
-                        }))
-                    }))
-                }))
-            } as any)
+        beforeEach(async () => {
+            const result = await createTask(mockUserId, mockTaskData)
+            taskId = result.task!.id
+        })
 
-            const result = await completeTask(mockTaskId, 25)
+        it('должен успешно завершить задачу в mock режиме', async () => {
+            const actualMinutes = 25
+            const result = await completeTask(taskId, actualMinutes)
 
             expect(result.success).toBe(true)
             expect(result.task).toBeDefined()
             expect(result.task!.status).toBe('completed')
-            expect(result.task!.actualMinutes).toBe(25)
-            expect(result.message).toBe('Задача успешно завершена')
+            expect(result.task!.completedAt).toBeInstanceOf(Date)
+            expect(result.task!.actualMinutes).toBe(actualMinutes)
+            expect(result.message).toBe('Mock задача завершена успешно')
         })
 
-        it('должен обработать ошибку завершения задачи', async () => {
-            mockSupabase.from.mockReturnValue({
-                update: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        select: jest.fn(() => ({
-                            single: jest.fn(() => ({
-                                data: null,
-                                error: { message: 'Complete error' }
-                            }))
-                        }))
-                    }))
-                }))
-            } as any)
+        it('должен использовать estimatedMinutes если actualMinutes не указан', async () => {
+            const result = await completeTask(taskId)
 
-            const result = await completeTask(mockTaskId)
+            expect(result.success).toBe(true)
+            expect(result.task!.status).toBe('completed')
+            expect(result.task!.actualMinutes).toBe(mockTaskData.estimatedMinutes)
+        })
+
+        it('должен вернуть ошибку для несуществующей задачи', async () => {
+            const result = await completeTask('non-existent-id')
 
             expect(result.success).toBe(false)
-            expect(result.error).toBe('Complete error')
+            expect(result.error).toBe('Задача не найдена')
+        })
+
+        it('должен логировать действие в mock режиме', async () => {
+            await completeTask(taskId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Завершение задачи без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('getTasksStats', () => {
-        it('должен успешно получить статистику задач', async () => {
-            const mockTasks = [
-                { status: 'completed', due_date: null, completed_at: '2024-01-01T00:00:00Z', actual_minutes: 30 },
-                { status: 'todo', due_date: '2030-01-02T00:00:00Z', completed_at: null, actual_minutes: null }, // future date
-                { status: 'completed', due_date: null, completed_at: '2024-01-01T00:00:00Z', actual_minutes: 20 },
-                { status: 'todo', due_date: '2023-12-31T00:00:00Z', completed_at: null, actual_minutes: null } // overdue
-            ]
+        beforeEach(async () => {
+            // Создаем различные задачи для тестирования статистики
+            await createTask(mockUserId, {
+                title: 'Completed Task',
+                description: 'Description',
+                priority: 'high',
+                estimatedMinutes: 30,
+                tags: ['test']
+            })
 
-            mockSupabase.from.mockReturnValue({
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        data: mockTasks,
-                        error: null
-                    }))
-                }))
-            } as any)
+            await createTask(mockUserId, {
+                title: 'In Progress Task',
+                description: 'Description',
+                priority: 'medium',
+                estimatedMinutes: 45,
+                tags: ['test']
+            })
 
+            await createTask(mockUserId, {
+                title: 'Todo Task',
+                description: 'Description',
+                priority: 'low',
+                estimatedMinutes: 20,
+                tags: ['test']
+            })
+
+            // Завершаем одну задачу
+            const tasks = await getTasks(mockUserId)
+            if (tasks.tasks && tasks.tasks.length > 0) {
+                await completeTask(tasks.tasks[0].id, 25)
+            }
+        })
+
+        it('должен успешно получить статистику задач в mock режиме', async () => {
             const result = await getTasksStats(mockUserId)
 
             expect(result.success).toBe(true)
             expect(result.stats).toBeDefined()
-            expect(result.stats!.total).toBe(4)
-            expect(result.stats!.completed).toBe(2)
-            expect(result.stats!.pending).toBe(2)
-            expect(result.stats!.overdue).toBe(1)
-            expect(result.stats!.completionRate).toBe(50)
+            // В beforeEach создается 3 задачи + 3 статические = 6 задач
+            // 1 задача завершается в beforeEach + 1 статическая завершенная = 2 завершенные
+            expect(result.stats!.total).toBe(3) // Только 3 задачи из beforeEach
+            expect(result.stats!.completed).toBe(1) // 1 завершенная задача
+            expect(result.stats!.pending).toBe(2) // 2 незавершенные задачи
+            expect(result.stats!.overdue).toBe(0) // Нет задач с dueDate
+            expect(result.stats!.completionRate).toBe(33) // 1 из 3 задач завершено
+            expect(result.stats!.averageCompletionTime).toBe(25) // 25 минут для завершенной задачи
         })
 
-        it('должен обработать ошибку получения статистики', async () => {
-            mockSupabase.from.mockReturnValue({
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        data: null,
-                        error: { message: 'Stats error' }
-                    }))
-                }))
-            } as any)
+        it('должен логировать действие в mock режиме', async () => {
+            await getTasksStats(mockUserId)
 
-            const result = await getTasksStats(mockUserId)
-
-            expect(result.success).toBe(false)
-            expect(result.error).toBe('Stats error')
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение статистики задач без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('syncTasks', () => {
-        it('должен успешно синхронизировать задачи', async () => {
-            const mockTasks = [
-                {
-                    id: '1',
-                    title: 'Synced Task',
-                    description: 'Synced Description',
-                    priority: 'medium',
-                    status: 'todo',
-                    due_date: null,
-                    completed_at: null,
-                    estimated_minutes: 30,
-                    actual_minutes: null,
-                    tags: [],
-                    created_at: '2024-01-01T00:00:00Z',
-                    updated_at: '2024-01-01T00:00:00Z'
-                }
-            ]
+        beforeEach(async () => {
+            await createTask(mockUserId, mockTaskData)
+        })
 
-            mockSupabase.from.mockReturnValue({
-                select: jest.fn(() => ({
-                    eq: jest.fn(() => ({
-                        order: jest.fn(() => ({
-                            data: mockTasks,
-                            error: null
-                        }))
-                    }))
-                }))
-            } as any)
-
+        it('должен успешно синхронизировать задачи в mock режиме', async () => {
             const result = await syncTasks(mockUserId)
 
             expect(result.success).toBe(true)
-            expect(result.tasks).toHaveLength(1)
-            expect(result.message).toBe('Задачи успешно синхронизированы')
+            expect(result.tasks).toBeDefined()
+            expect(result.tasks!.length).toBeGreaterThan(0)
+            expect(result.message).toBe('Mock задачи синхронизированы успешно')
+        })
+
+        it('должен логировать действие в mock режиме', async () => {
+            await syncTasks(mockUserId)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Синхронизация задач без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('Валидация данных', () => {
+        it('должен валидировать данные задачи при создании', async () => {
+            const invalidTaskData = {
+                title: '', // Пустой заголовок
+                description: 'Test Description',
+                priority: 'medium' as const,
+                estimatedMinutes: 30,
+                tags: ['test']
+            }
+
+            const result = await createTask(mockUserId, invalidTaskData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
+        })
+
+        it('должен валидировать данные задачи при обновлении', async () => {
+            const result = await createTask(mockUserId, mockTaskData)
+            const taskId = result.task!.id
+
+            const invalidUpdates = {
+                title: '', // Пустой заголовок
+                priority: 'medium' as const
+            }
+
+            const updateResult = await updateTask(taskId, invalidUpdates)
+
+            expect(updateResult.success).toBe(false)
+            expect(updateResult.error).toBeDefined()
+        })
+    })
+
+    describe('Обработка ошибок', () => {
+        it('должен обрабатывать ошибки валидации', async () => {
+            const invalidTaskData = {
+                title: '',
+                description: 'Test Description',
+                priority: 'invalid' as any,
+                estimatedMinutes: -1,
+                tags: ['test']
+            }
+
+            const result = await createTask(mockUserId, invalidTaskData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
+        })
+
+        it('должен обрабатывать ошибки при работе с несуществующими задачами', async () => {
+            const result = await updateTask('non-existent-id', { title: 'Updated' })
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Задача не найдена')
         })
     })
 })

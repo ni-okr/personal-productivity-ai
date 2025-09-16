@@ -2,7 +2,7 @@
 import { User } from '@/types'
 import { validateEmail, validateName, validatePassword } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
-import { mockSignIn, mockSignUp, mockSignOut, mockGetCurrentUser, mockOnAuthStateChange, mockSignUpWithState, mockSignInWithState, mockSignOutWithState } from './auth-mock'
+import { mockGetCurrentUser, mockGetUserProfile, mockOnAuthStateChange, mockSignInWithState, mockSignOutWithState, mockSignUpWithState, mockUpdateUserProfile } from './auth-mock'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
@@ -339,12 +339,21 @@ export async function signOut(): Promise<AuthResponse> {
 /**
  * 👤 Получение профиля пользователя
  */
-export async function getUserProfile(userId: string): Promise<User | null> {
+export async function getUserProfile(userId: string): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Получение профиля без реальных запросов к Supabase')
+            return await mockGetUserProfile(userId)
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены')
-            return null
+            return {
+                success: false,
+                error: 'Профиль не найден'
+            }
         }
 
         const { getSupabaseClient } = await import('./supabase')
@@ -358,30 +367,39 @@ export async function getUserProfile(userId: string): Promise<User | null> {
 
         if (error || !data) {
             console.error('Ошибка получения профиля:', error)
-            return null
+            return {
+                success: false,
+                error: 'Профиль не найден'
+            }
         }
 
         return {
-            id: data.id,
-            email: data.email,
-            name: data.name,
-            avatar: data.avatar,
-            timezone: data.timezone || 'Europe/Moscow',
-            subscription: data.subscription || 'free',
-            subscriptionStatus: data.subscription_status || 'active',
-            preferences: data.preferences || {
-                workingHours: { start: '09:00', end: '18:00' },
-                focusTime: 25,
-                breakTime: 5,
-                notifications: { email: true, push: true, desktop: true },
-                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+            success: true,
+            user: {
+                id: data.id,
+                email: data.email,
+                name: data.name,
+                avatar: data.avatar,
+                timezone: data.timezone || 'Europe/Moscow',
+                subscription: data.subscription || 'free',
+                subscriptionStatus: data.subscription_status || 'active',
+                preferences: data.preferences || {
+                    workingHours: { start: '09:00', end: '18:00' },
+                    focusTime: 25,
+                    breakTime: 5,
+                    notifications: { email: true, push: true, desktop: true },
+                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                }
             },
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at || data.created_at)
         }
     } catch (error) {
         console.error('Ошибка получения профиля:', error)
-        return null
+        return {
+            success: false,
+            error: 'Профиль не найден'
+        }
     }
 }
 
@@ -393,6 +411,12 @@ export async function updateUserProfile(
     updates: Partial<Pick<AuthUser, 'name' | 'subscription'>>
 ): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Обновление профиля без реальных запросов к Supabase')
+            return await mockUpdateUserProfile(userId, updates)
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -455,6 +479,15 @@ export async function updateUserProfile(
  */
 export async function resetPassword(email: string): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Сброс пароля без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock инструкции по сбросу пароля отправлены'
+            }
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -528,6 +561,15 @@ export async function getCurrentUser(): Promise<User | null> {
  */
 export async function confirmEmail(token: string): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Подтверждение email без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock email подтвержден успешно'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { data, error } = await supabase.auth.verifyOtp({
@@ -569,6 +611,15 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
  */
 export async function updatePassword(newPassword: string): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Обновление пароля без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock пароль обновлен успешно'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { error } = await supabase.auth.updateUser({
@@ -632,6 +683,15 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
  */
 export async function signInWithGoogle(): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Вход через Google без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock вход через Google успешен'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -673,6 +733,15 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
  */
 export async function signInWithGitHub(): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Вход через GitHub без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock вход через GitHub успешен'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { data, error } = await supabase.auth.signInWithOAuth({

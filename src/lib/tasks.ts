@@ -1,14 +1,14 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
 import { validateTask } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
-import { 
-  mockGetTasks, 
-  mockCreateTask, 
-  mockUpdateTask, 
-  mockDeleteTask, 
-  mockCompleteTask, 
-  mockGetTasksStats, 
-  mockSyncTasks 
+import {
+  mockCompleteTask,
+  mockCreateTask,
+  mockDeleteTask,
+  mockGetTasks,
+  mockGetTasksStats,
+  mockSyncTasks,
+  mockUpdateTask
 } from './tasks-mock'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
@@ -205,6 +205,28 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
 
 export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse> {
   try {
+    // Валидация данных
+    if (updates.title !== undefined && (!updates.title || updates.title.trim().length === 0)) {
+      return {
+        success: false,
+        error: 'Заголовок задачи не может быть пустым'
+      }
+    }
+
+    if (updates.priority !== undefined && !['low', 'medium', 'high', 'urgent'].includes(updates.priority)) {
+      return {
+        success: false,
+        error: 'Некорректный приоритет задачи'
+      }
+    }
+
+    if (updates.status !== undefined && !['todo', 'in_progress', 'completed', 'cancelled'].includes(updates.status)) {
+      return {
+        success: false,
+        error: 'Некорректный статус задачи'
+      }
+    }
+
     // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
     if (DISABLE_EMAIL) {
       return mockUpdateTask(taskId, updates)

@@ -1,3 +1,13 @@
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.022Z
+ * Оригинальный файл сохранен как: tests/unit/tinkoff.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Unit тесты для Тинькофф интеграции
 import {
     createPaymentSession,
@@ -9,12 +19,19 @@ import {
     verifyTinkoffWebhookSignature
 } from '@/lib/tinkoff'
 import { beforeEach, describe, expect, it } from '@jest/globals'
+import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
+
 
 // Mock fetch для Node.js окружения
 global.fetch = jest.fn()
 
 describe('Тинькофф Integration', () => {
     beforeEach(() => {
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.UNIT)
+    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Test Suite')
         jest.clearAllMocks()
     })
 

@@ -1,3 +1,15 @@
+import { testFramework, testLogger, testMocks, testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.029Z
+ * Оригинальный файл сохранен как: tests/integration/subscription-integration.test.tsx.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Integration тесты для системы подписок
 import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
@@ -5,6 +17,7 @@ import { useSubscription } from '@/hooks/useSubscription'
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals'
 import '@testing-library/jest-dom'
 import { cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { TEST_CONFIGS, MOCK_CONFIGS } from '@/tests/framework'
 
 // Mock useSubscription hook
 jest.mock('@/hooks/useSubscription', () => ({
@@ -14,12 +27,34 @@ jest.mock('@/hooks/useSubscription', () => ({
 // Mock fetch
 global.fetch = jest.fn()
 
+// Mock environment variables
+process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
+
 describe('Subscription Integration', () => {
     beforeEach(() => {
+    // Настройка единого фреймворка тестирования
+    testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+    testMocks.updateConfig(MOCK_CONFIGS.FULL)
+    testMocks.setupAllMocks()
+    testLogger.startTest('Integration Tests')
         jest.clearAllMocks()
+
+            // Mock successful API response
+            ; (global.fetch as jest.Mock).mockResolvedValue({
+                ok: true,
+                json: async () => ({
+                    success: true,
+                    data: {
+                        subscription: null,
+                        plan: null
+                    }
+                })
+            })
     })
 
     afterEach(() => {
+    testMocks.clearAllMocks()
+    testLogger.endTest('Test Suite', true)
         cleanup()
     })
 
@@ -60,7 +95,7 @@ describe('Subscription Integration', () => {
             const mockOnSelectPlan = jest.fn()
             const mockOnClose = jest.fn()
 
-            render(
+            testUtils.renderWithProviders(
                 <SubscriptionModal
                     isOpen={true}
                     onClose={mockOnClose}
@@ -70,7 +105,7 @@ describe('Subscription Integration', () => {
             )
 
             // Ждем загрузки планов
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Free')).toBeTruthy()
                 expect(screen.getByText('Premium')).toBeTruthy()
             })
@@ -89,7 +124,7 @@ describe('Subscription Integration', () => {
             const mockOnSelectPlan = jest.fn()
             const mockOnClose = jest.fn()
 
-            render(
+            testUtils.renderWithProviders(
                 <SubscriptionModal
                     isOpen={true}
                     onClose={mockOnClose}
@@ -99,7 +134,7 @@ describe('Subscription Integration', () => {
             )
 
             // Ждем загрузки планов
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Premium')).toBeTruthy()
             })
 
@@ -119,7 +154,7 @@ describe('Subscription Integration', () => {
             const mockOnSelectPlan = jest.fn()
             const mockOnClose = jest.fn()
 
-            render(
+            testUtils.renderWithProviders(
                 <SubscriptionModal
                     isOpen={true}
                     onClose={mockOnClose}
@@ -129,7 +164,7 @@ describe('Subscription Integration', () => {
             )
 
             // Ждем загрузки планов
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Текущий план')).toBeTruthy()
             })
         })
@@ -177,7 +212,7 @@ describe('Subscription Integration', () => {
 
             const mockOnUpgrade = jest.fn()
 
-            render(
+            testUtils.renderWithProviders(
                 <SubscriptionStatus
                     userId="user-123"
                     onUpgrade={mockOnUpgrade}
@@ -185,7 +220,7 @@ describe('Subscription Integration', () => {
             )
 
             // Ждем загрузки статуса
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Premium')).toBeTruthy()
                 expect(screen.getByText('Активна')).toBeTruthy()
                 expect(screen.getByText('9,99 ₽')).toBeTruthy()
@@ -217,7 +252,7 @@ describe('Subscription Integration', () => {
 
             const mockOnUpgrade = jest.fn()
 
-            render(
+            testUtils.renderWithProviders(
                 <SubscriptionStatus
                     userId="user-123"
                     onUpgrade={mockOnUpgrade}
@@ -225,7 +260,7 @@ describe('Subscription Integration', () => {
             )
 
             // Ждем загрузки статуса
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Обновить план')).toBeTruthy()
             })
 
@@ -247,7 +282,7 @@ describe('Subscription Integration', () => {
 
             const mockOnUpgrade = jest.fn()
 
-            render(
+            testUtils.renderWithProviders(
                 <SubscriptionStatus
                     userId="user-123"
                     onUpgrade={mockOnUpgrade}
@@ -255,7 +290,7 @@ describe('Subscription Integration', () => {
             )
 
             // Ждем загрузки статуса
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Нет активной подписки')).toBeTruthy()
             })
         })
@@ -315,7 +350,7 @@ describe('Subscription Integration', () => {
 
             mockUseSubscription.mockReturnValue(mockReturnValue)
 
-            const { result } = renderHook(() => useSubscription())
+            const { result } = testUtils.renderHook(() => useSubscription())
 
             expect(result.current).toBeDefined()
             expect(result.current.subscription).toEqual(mockSubscription)
@@ -367,7 +402,7 @@ describe('Subscription Integration', () => {
 
             mockUseSubscription.mockReturnValue(mockReturnValue)
 
-            const { result } = renderHook(() => useSubscription())
+            const { result } = testUtils.renderHook(() => useSubscription())
 
             const checkoutResult = await result.current.createCheckoutSession('plan-premium')
 

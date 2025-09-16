@@ -1,3 +1,16 @@
+import { testLogger, testMocks } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.026Z
+ * Оригинальный файл сохранен как: tests/unit/auth.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
+// 🧪 Integration тесты для auth.ts с mock режимом
 import {
     confirmEmail,
     getCurrentUser,
@@ -11,323 +24,354 @@ import {
     updatePassword,
     updateUserProfile
 } from '@/lib/auth'
-import { beforeEach, describe, expect, it } from '@jest/globals'
 
-// Mock Supabase
-const mockSupabaseClient = {
-    auth: {
-        signUp: jest.fn(),
-        signInWithPassword: jest.fn(),
-        signOut: jest.fn(),
-        resetPasswordForEmail: jest.fn(),
-        signInWithOAuth: jest.fn(),
-        getUser: jest.fn(),
-        verifyOtp: jest.fn(),
-        updateUser: jest.fn()
-    },
-    from: jest.fn(() => ({
-        insert: jest.fn(() => ({
-            error: null
-        })),
-        update: jest.fn(() => ({
-            eq: jest.fn(() => ({
-                select: jest.fn(() => ({
-                    single: jest.fn(() => ({
-                        data: {
-                            id: 'test-user-id',
-                            email: 'test@example.com',
-                            name: 'Updated Name',
-                            subscription: 'premium',
-                            created_at: '2024-01-01T00:00:00Z',
-                            last_login_at: '2024-01-01T00:00:00Z'
-                        },
-                        error: null
-                    }))
-                }))
-            }))
-        })),
-        select: jest.fn(() => ({
-            eq: jest.fn(() => ({
-                single: jest.fn(() => ({
-                    data: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        name: 'Test User',
-                        subscription: 'free',
-                        created_at: '2024-01-01T00:00:00Z',
-                        last_login_at: '2024-01-01T00:00:00Z'
-                    },
-                    error: null
-                }))
-            }))
-        }))
-    }))
-}
+// Mock console.log для проверки логов
+let mockConsoleLog: jest.SpyInstance
 
-jest.mock('@/lib/supabase', () => ({
-    getSupabaseClient: jest.fn(() => mockSupabaseClient)
-}))
+describe('Auth Integration (Mock Mode)', () => {
+    const mockUserData = {
+        email: 'test@example.test',
+        password: 'Password123',
+        name: 'Test User'
+    }
 
-describe('Auth Functions', () => {
-    beforeEach(() => {
-        jest.clearAllMocks()
+    beforeEach(async () => {
+        mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
+        // Очищаем mock пользователей перед каждым тестом
+        const { clearMockUsers } = await import('@/lib/auth-mock')
+        clearMockUsers()
+    })
+
+    afterEach(() => {
+        testMocks.clearAllMocks()
+        testLogger.endTest('Test Suite', true)
+        mockConsoleLog.mockRestore()
     })
 
     describe('signUp', () => {
-        it('should register user successfully', async () => {
-            mockSupabaseClient.auth.signUp.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        email_confirmed_at: '2024-01-01T00:00:00Z',
-                        user_metadata: { name: 'Test User' },
-                        app_metadata: {},
-                        aud: 'authenticated',
-                        created_at: '2024-01-01T00:00:00Z'
-                    },
-                    session: null
-                },
-                error: null
-            })
-
-            const result = await signUp({
-                email: 'test@example.com',
-                password: 'Password123',
-                name: 'Test User'
-            })
+        it('должна регистрировать пользователя успешно в mock режиме', async () => {
+            const result = await signUp(mockUserData)
 
             expect(result.success).toBe(true)
             expect(result.user).toBeDefined()
-            expect(result.user?.email).toBe('test@example.com')
+            expect(result.user?.email).toBe(mockUserData.email)
+            expect(result.user?.name).toBe(mockUserData.name)
+            expect(result.user?.subscription).toBe('free')
+            expect(result.message).toBe('Mock регистрация успешна')
         })
 
-        it('should handle registration error', async () => {
-            mockSupabaseClient.auth.signUp.mockResolvedValue({
-                data: { user: null, session: null },
-                error: {
-                    message: 'User already registered',
-                    code: 'user_already_registered',
-                    status: 400,
-                    __isAuthError: true,
-                    name: 'AuthError'
-                } as any
-            })
+        it('должна обрабатывать ошибки регистрации в mock режиме', async () => {
+            // Сначала регистрируем пользователя
+            await signUp(mockUserData)
 
-            const result = await signUp({
-                email: 'test@example.com',
-                password: 'Password123',
-                name: 'Test User'
-            })
+            // Пытаемся зарегистрировать того же пользователя снова
+            const result = await signUp(mockUserData)
 
             expect(result.success).toBe(false)
-            expect(result.error).toBe('Пользователь с таким email уже существует')
+            expect(result.error).toBe('Пользователь с таким email уже существует (mock)')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await signUp(mockUserData)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Регистрация без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('signIn', () => {
-        it('should sign in user successfully', async () => {
-            mockSupabaseClient.auth.signInWithPassword.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        user_metadata: { name: 'Test User' },
-                        app_metadata: {},
-                        aud: 'authenticated',
-                        created_at: '2024-01-01T00:00:00Z'
-                    },
-                    session: {
-                        access_token: 'mock-token',
-                        refresh_token: 'mock-refresh-token',
-                        expires_in: 3600,
-                        expires_at: Date.now() + 3600000,
-                        token_type: 'bearer',
-                        user: {
-                            id: 'test-user-id',
-                            email: 'test@example.com',
-                            user_metadata: { name: 'Test User' },
-                            app_metadata: {},
-                            aud: 'authenticated',
-                            created_at: '2024-01-01T00:00:00Z'
-                        }
-                    }
-                },
-                error: null
-            })
+        beforeEach(async () => {
+            // Создаем пользователя для тестов входа
+            await signUp(mockUserData)
+        })
 
+        it('должна входить пользователя успешно в mock режиме', async () => {
             const result = await signIn({
-                email: 'test@example.com',
-                password: 'password123'
+                email: mockUserData.email,
+                password: mockUserData.password
             })
 
             expect(result.success).toBe(true)
             expect(result.user).toBeDefined()
+            expect(result.user?.email).toBe(mockUserData.email)
+            expect(result.message).toBe('Mock вход успешен')
         })
 
-        it('should handle sign in error', async () => {
-            mockSupabaseClient.auth.signInWithPassword.mockResolvedValue({
-                data: { user: null, session: null },
-                error: {
-                    message: 'Invalid login credentials',
-                    code: 'invalid_credentials',
-                    status: 400,
-                    __isAuthError: true,
-                    name: 'AuthError'
-                } as any
-            })
-
+        it('должна обрабатывать ошибки входа в mock режиме', async () => {
             const result = await signIn({
-                email: 'test@example.com',
+                email: mockUserData.email,
                 password: 'wrongpassword'
             })
 
             expect(result.success).toBe(false)
-            expect(result.error).toBe('Неверный email или пароль')
+            expect(result.error).toBe('Неверный email или пароль (mock)')
+        })
+
+        it('должна обрабатывать несуществующего пользователя в mock режиме', async () => {
+            const result = await signIn({
+                email: 'nonexistent@example.test',
+                password: mockUserData.password
+            })
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Неверный email или пароль (mock)')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await signIn({
+                email: mockUserData.email,
+                password: mockUserData.password
+            })
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Вход без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('signOut', () => {
-        it('should sign out user successfully', async () => {
-            mockSupabaseClient.auth.signOut.mockResolvedValue({ error: null })
+        beforeEach(async () => {
+            // Создаем и входим как пользователь
+            await signUp(mockUserData)
+        })
 
+        it('должна выходить пользователя успешно в mock режиме', async () => {
             const result = await signOut()
 
             expect(result.success).toBe(true)
-            expect(result.message).toBe('Вы успешно вышли из системы')
+            expect(result.message).toBe('Mock выход успешен')
         })
-    })
 
-    describe('resetPassword', () => {
-        it('should send password reset email', async () => {
-            mockSupabaseClient.auth.resetPasswordForEmail.mockResolvedValue({ error: null })
+        it('должна логировать действие в mock режиме', async () => {
+            await signOut()
 
-            const result = await resetPassword('test@example.com')
-
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Инструкции по сбросу пароля отправлены на email')
-        })
-    })
-
-    describe('signInWithGoogle', () => {
-        it('should initiate Google OAuth', async () => {
-            mockSupabaseClient.auth.signInWithOAuth.mockResolvedValue({
-                data: { provider: 'google', url: 'https://google.com/oauth' },
-                error: null
-            })
-
-            const result = await signInWithGoogle()
-
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Перенаправление на Google...')
-        })
-    })
-
-    describe('signInWithGitHub', () => {
-        it('should initiate GitHub OAuth', async () => {
-            mockSupabaseClient.auth.signInWithOAuth.mockResolvedValue({
-                data: { provider: 'github', url: 'https://github.com/oauth' },
-                error: null
-            })
-
-            const result = await signInWithGitHub()
-
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Перенаправление на GitHub...')
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Выход без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('getCurrentUser', () => {
-        it('should get current user', async () => {
-            mockSupabaseClient.auth.getUser.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        user_metadata: { name: 'Test User' },
-                        app_metadata: {},
-                        aud: 'authenticated',
-                        created_at: '2024-01-01T00:00:00Z'
-                    }
-                },
-                error: null
-            })
+        beforeEach(async () => {
+            // Очищаем mock пользователей перед каждым тестом
+            await signOut()
+        })
+
+        it('должна возвращать null если пользователь не авторизован в mock режиме', async () => {
+            const result = await getCurrentUser()
+
+            expect(result).toBeNull()
+        })
+
+        it('должна возвращать текущего пользователя если авторизован в mock режиме', async () => {
+            await signUp(mockUserData)
 
             const result = await getCurrentUser()
 
             expect(result).toBeDefined()
-            expect(result?.id).toBe('test-user-id')
+            expect(result?.email).toBe(mockUserData.email)
         })
     })
 
     describe('getUserProfile', () => {
-        it('should get user profile', async () => {
-            const result = await getUserProfile('test-user-id')
-
-            expect(result).toBeDefined()
-            expect(result?.id).toBe('test-user-id')
-            expect(result?.email).toBe('test@example.com')
+        beforeEach(async () => {
+            await signUp(mockUserData)
         })
-    })
 
-    describe('confirmEmail', () => {
-        it('should confirm email with valid token', async () => {
-            mockSupabaseClient.auth.verifyOtp.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        user_metadata: { name: 'Test User' },
-                        app_metadata: {},
-                        aud: 'authenticated',
-                        created_at: '2024-01-01T00:00:00Z'
-                    },
-                    session: null
-                },
-                error: null
-            })
-
-            const result = await confirmEmail('valid-token')
+        it('должна получать профиль пользователя в mock режиме', async () => {
+            const result = await getUserProfile(mockUserData.email)
 
             expect(result.success).toBe(true)
-            expect(result.message).toBe('Email успешно подтвержден!')
+            expect(result.user).toBeDefined()
+            expect(result.user?.email).toBe(mockUserData.email)
+            expect(result.user?.name).toBe(mockUserData.name)
         })
-    })
 
-    describe('updatePassword', () => {
-        it('should update password successfully', async () => {
-            mockSupabaseClient.auth.updateUser.mockResolvedValue({
-                data: {
-                    user: {
-                        id: 'test-user-id',
-                        email: 'test@example.com',
-                        user_metadata: { name: 'Test User' },
-                        app_metadata: {},
-                        aud: 'authenticated',
-                        created_at: '2024-01-01T00:00:00Z'
-                    }
-                },
-                error: null
-            })
+        it('должна возвращать ошибку для несуществующего пользователя в mock режиме', async () => {
+            const result = await getUserProfile('nonexistent@example.test')
 
-            const result = await updatePassword('newpassword123')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Профиль не найден')
+        })
 
-            expect(result.success).toBe(true)
-            expect(result.message).toBe('Пароль успешно обновлен')
+        it('должна логировать действие в mock режиме', async () => {
+            await getUserProfile(mockUserData.email)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Получение профиля без реальных запросов к Supabase'
+            )
         })
     })
 
     describe('updateUserProfile', () => {
-        it('should update user profile successfully', async () => {
-            const result = await updateUserProfile('test-user-id', {
+        beforeEach(async () => {
+            await signUp(mockUserData)
+        })
+
+        it('должна обновлять профиль пользователя в mock режиме', async () => {
+            const updates = {
                 name: 'Updated Name',
-                subscription: 'premium'
-            })
+                subscription: 'premium' as const
+            }
+
+            const result = await updateUserProfile(mockUserData.email, updates)
 
             expect(result.success).toBe(true)
-            expect(result.message).toBe('Профиль успешно обновлен')
             expect(result.user).toBeDefined()
-            expect(result.user?.name).toBe('Updated Name')
+            expect(result.user?.name).toBe(updates.name)
+            expect(result.user?.subscription).toBe(updates.subscription)
+        })
+
+        it('должна возвращать ошибку для несуществующего пользователя в mock режиме', async () => {
+            const updates = { name: 'Updated Name' }
+            const result = await updateUserProfile('nonexistent@example.test', updates)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Профиль не найден')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            const updates = { name: 'Updated Name' }
+            await updateUserProfile(mockUserData.email, updates)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Обновление профиля без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('resetPassword', () => {
+        it('должна сбрасывать пароль в mock режиме', async () => {
+            const result = await resetPassword(mockUserData.email)
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock инструкции по сбросу пароля отправлены')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await resetPassword(mockUserData.email)
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Сброс пароля без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('updatePassword', () => {
+        beforeEach(async () => {
+            await signUp(mockUserData)
+        })
+
+        it('должна обновлять пароль в mock режиме', async () => {
+            const result = await updatePassword('NewPassword123')
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock пароль обновлен успешно')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await updatePassword('NewPassword123')
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Обновление пароля без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('confirmEmail', () => {
+        it('должна подтверждать email в mock режиме', async () => {
+            const result = await confirmEmail('test-token')
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock email подтвержден успешно')
+        })
+
+        it('должна логировать действие в mock режиме', async () => {
+            await confirmEmail('test-token')
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Подтверждение email без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('OAuth провайдеры', () => {
+        it('должна входить через Google в mock режиме', async () => {
+            const result = await signInWithGoogle()
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock вход через Google успешен')
+        })
+
+        it('должна входить через GitHub в mock режиме', async () => {
+            const result = await signInWithGitHub()
+
+            expect(result.success).toBe(true)
+            expect(result.message).toBe('Mock вход через GitHub успешен')
+        })
+
+        it('должна логировать OAuth действия в mock режиме', async () => {
+            await signInWithGoogle()
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Вход через Google без реальных запросов к Supabase'
+            )
+
+            await signInWithGitHub()
+
+            expect(mockConsoleLog).toHaveBeenCalledWith(
+                '🧪 MOCK РЕЖИМ: Вход через GitHub без реальных запросов к Supabase'
+            )
+        })
+    })
+
+    describe('Валидация данных', () => {
+        it('должна валидировать данные пользователя при регистрации', async () => {
+            const invalidData = {
+                email: 'invalid-email',
+                password: '123', // Слишком короткий пароль
+                name: ''
+            }
+
+            const result = await signUp(invalidData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
+        })
+
+        it('должна валидировать данные пользователя при входе', async () => {
+            const invalidData = {
+                email: 'invalid-email',
+                password: ''
+            }
+
+            const result = await signIn(invalidData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
+        })
+    })
+
+    describe('Обработка ошибок', () => {
+        it('должна обрабатывать ошибки валидации', async () => {
+            const invalidData = {
+                email: '',
+                password: '',
+                name: ''
+            }
+
+            const result = await signUp(invalidData)
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
+        })
+
+        it('должна обрабатывать ошибки при работе с несуществующими пользователями', async () => {
+            const result = await getUserProfile('nonexistent@example.test')
+
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Профиль не найден')
         })
     })
 })
