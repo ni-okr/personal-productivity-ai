@@ -22,7 +22,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🏗️ Build приложения
       run: npm run build

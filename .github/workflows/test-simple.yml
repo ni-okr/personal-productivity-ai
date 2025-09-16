@@ -22,7 +22,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🏗️ Build приложения
       run: npm run build
@@ -46,7 +46,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🔧 Запуск Unit тестов
       run: npm run test:unit:ci
@@ -70,7 +70,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🔗 Запуск интеграционных тестов
       run: npm run test:integration:ci
@@ -94,7 +94,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🎭 Установка Playwright браузеров
       run: npx playwright install --with-deps

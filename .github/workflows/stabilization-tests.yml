@@ -32,7 +32,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🔍 TypeScript проверка
       run: npx tsc --noEmit

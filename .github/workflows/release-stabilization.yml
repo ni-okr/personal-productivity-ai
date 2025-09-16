@@ -28,7 +28,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🏗️ Build приложения
       run: npm run build
@@ -54,7 +54,10 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
+      
+    - name: 🔧 Установка Jest environment
+      run: npm install jest-environment-jsdom --save-dev
       
     - name: 🔧 Запуск Unit тестов
       run: npm run test:unit:ci
@@ -84,7 +87,10 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
+      
+    - name: 🔧 Установка Jest environment
+      run: npm install jest-environment-jsdom --save-dev
       
     - name: 🔗 Запуск Integration тестов
       run: npm run test:integration:ci
@@ -105,7 +111,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🎭 Установка Playwright
       run: npx playwright install --with-deps
@@ -129,7 +135,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🔒 Security аудит
       run: npm audit --audit-level moderate
@@ -160,7 +166,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🏗️ Build приложения
       run: npm run build
@@ -188,7 +194,7 @@ jobs:
         cache: 'npm'
         
     - name: 📚 Установка зависимостей
-      run: npm ci
+      run: npm ci --include=dev
       
     - name: 🎛️ Тест Feature Toggles
       run: |
