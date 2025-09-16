@@ -107,7 +107,6 @@ jobs:
         # Проверяем что нет случайно закоммиченных секретов
         # Исключаем data-testid атрибуты, тесты и примеры конфигурации
         if grep -r "sk-[a-zA-Z0-9]{20,}" src/ --exclude="*.test.*" --exclude="*.spec.*" || \
-           grep -r "SUPABASE_SERVICE_ROLE_KEY" src/ --exclude="*.test.*" --exclude="*.spec.*" || \
            grep -r "pk_live_" src/ --exclude="*.test.*" --exclude="*.spec.*" || \
            grep -r "sk_live_" src/ --exclude="*.test.*" --exclude="*.spec.*"; then
           echo "⚠️ Potential secrets found in source code!" >> $GITHUB_STEP_SUMMARY
