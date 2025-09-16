@@ -72,8 +72,8 @@ describe('Tasks API', () => {
                     status: 'todo',
                     due_date: '2024-01-01T00:00:00Z',
                     completed_at: null,
-                    estimated_duration: 30,
-                    actual_duration: null,
+                    estimated_minutes: 30,
+                    actual_minutes: null,
                     source: 'manual',
                     tags: ['work'],
                     user_id: mockUserId,
@@ -128,12 +128,39 @@ describe('Tasks API', () => {
                 title: 'New Task',
                 description: 'New Description',
                 priority: 'medium' as const,
-                dueDate: new Date('2024-01-01'),
+                dueDate: new Date('2030-01-01'), // future date
                 estimatedMinutes: 60,
                 tags: ['personal']
             }
 
-            // Функция использует заглушку, тестируем заглушку
+            const mockCreatedTask = {
+                id: 'new-task-id',
+                title: 'New Task',
+                description: 'New Description',
+                priority: 'medium',
+                status: 'todo',
+                due_date: '2030-01-01T00:00:00Z',
+                completed_at: null,
+                estimated_minutes: 60,
+                actual_minutes: null,
+                source: 'manual',
+                tags: ['personal'],
+                user_id: mockUserId,
+                created_at: '2024-01-01T00:00:00Z',
+                updated_at: '2024-01-01T00:00:00Z'
+            }
+
+            mockSupabase.from.mockReturnValue({
+                insert: jest.fn(() => ({
+                    select: jest.fn(() => ({
+                        single: jest.fn(() => ({
+                            data: mockCreatedTask,
+                            error: null
+                        }))
+                    }))
+                }))
+            } as any)
+
             const result = await createTask(mockUserId, mockTaskData)
 
             expect(result.success).toBe(true)
@@ -151,13 +178,21 @@ describe('Tasks API', () => {
                 tags: ['personal']
             }
 
-            // Функция использует заглушку, тестируем заглушку
+            mockSupabase.from.mockReturnValue({
+                insert: jest.fn(() => ({
+                    select: jest.fn(() => ({
+                        single: jest.fn(() => ({
+                            data: null,
+                            error: { message: 'Database error' }
+                        }))
+                    }))
+                }))
+            } as any)
+
             const result = await createTask(mockUserId, mockTaskData)
 
-            expect(result.success).toBe(true)
-            expect(result.task).toBeDefined()
-            expect(result.task!.title).toBe('New Task')
-            expect(result.message).toBe('Задача успешно создана')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Database error')
         })
     })
 
@@ -169,7 +204,36 @@ describe('Tasks API', () => {
                 status: 'in_progress' as const
             }
 
-            // Функция использует заглушку, тестируем заглушку
+            const mockUpdatedTask = {
+                id: mockTaskId,
+                title: 'Updated Task',
+                description: 'Updated Description',
+                priority: 'high',
+                status: 'in_progress',
+                due_date: null,
+                completed_at: null,
+                estimated_minutes: 30,
+                actual_minutes: null,
+                source: 'manual',
+                tags: [],
+                user_id: mockUserId,
+                created_at: '2024-01-01T00:00:00Z',
+                updated_at: '2024-01-01T00:00:00Z'
+            }
+
+            mockSupabase.from.mockReturnValue({
+                update: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        select: jest.fn(() => ({
+                            single: jest.fn(() => ({
+                                data: mockUpdatedTask,
+                                error: null
+                            }))
+                        }))
+                    }))
+                }))
+            } as any)
+
             const result = await updateTask(mockTaskId, mockUpdates)
 
             expect(result.success).toBe(true)
@@ -183,13 +247,23 @@ describe('Tasks API', () => {
                 title: 'Updated Task'
             }
 
-            // Функция использует заглушку, тестируем заглушку
+            mockSupabase.from.mockReturnValue({
+                update: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        select: jest.fn(() => ({
+                            single: jest.fn(() => ({
+                                data: null,
+                                error: { message: 'Update error' }
+                            }))
+                        }))
+                    }))
+                }))
+            } as any)
+
             const result = await updateTask(mockTaskId, mockUpdates)
 
-            expect(result.success).toBe(true)
-            expect(result.task).toBeDefined()
-            expect(result.task!.title).toBe('Updated Task')
-            expect(result.message).toBe('Задача успешно обновлена')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Update error')
         })
     })
 
@@ -229,35 +303,73 @@ describe('Tasks API', () => {
 
     describe('completeTask', () => {
         it('должен успешно завершить задачу', async () => {
-            // Функция использует заглушку, тестируем заглушку
+            const mockCompletedTask = {
+                id: mockTaskId,
+                title: 'Completed Task',
+                description: 'Task Description',
+                priority: 'medium',
+                status: 'completed',
+                due_date: null,
+                completed_at: '2024-01-01T00:00:00Z',
+                estimated_minutes: 30,
+                actual_minutes: 25,
+                source: 'manual',
+                tags: [],
+                user_id: mockUserId,
+                created_at: '2024-01-01T00:00:00Z',
+                updated_at: '2024-01-01T00:00:00Z'
+            }
+
+            mockSupabase.from.mockReturnValue({
+                update: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        select: jest.fn(() => ({
+                            single: jest.fn(() => ({
+                                data: mockCompletedTask,
+                                error: null
+                            }))
+                        }))
+                    }))
+                }))
+            } as any)
+
             const result = await completeTask(mockTaskId, 25)
 
             expect(result.success).toBe(true)
             expect(result.task).toBeDefined()
             expect(result.task!.status).toBe('completed')
-            expect(result.task!.actualMinutes).toBe(25) // Заглушка возвращает переданное значение
+            expect(result.task!.actualMinutes).toBe(25)
             expect(result.message).toBe('Задача успешно завершена')
         })
 
         it('должен обработать ошибку завершения задачи', async () => {
-            // Функция использует заглушку, тестируем заглушку
+            mockSupabase.from.mockReturnValue({
+                update: jest.fn(() => ({
+                    eq: jest.fn(() => ({
+                        select: jest.fn(() => ({
+                            single: jest.fn(() => ({
+                                data: null,
+                                error: { message: 'Complete error' }
+                            }))
+                        }))
+                    }))
+                }))
+            } as any)
+
             const result = await completeTask(mockTaskId)
 
-            expect(result.success).toBe(true)
-            expect(result.task).toBeDefined()
-            expect(result.task!.status).toBe('completed')
-            expect(result.task!.actualMinutes).toBe(0) // Заглушка возвращает 0
-            expect(result.message).toBe('Задача успешно завершена')
+            expect(result.success).toBe(false)
+            expect(result.error).toBe('Complete error')
         })
     })
 
     describe('getTasksStats', () => {
         it('должен успешно получить статистику задач', async () => {
             const mockTasks = [
-                { status: 'completed', due_date: null, completed_at: '2024-01-01T00:00:00Z' },
-                { status: 'todo', due_date: '2024-01-02T00:00:00Z', completed_at: null },
-                { status: 'completed', due_date: null, completed_at: '2024-01-01T00:00:00Z' },
-                { status: 'todo', due_date: '2023-12-31T00:00:00Z', completed_at: null } // overdue
+                { status: 'completed', due_date: null, completed_at: '2024-01-01T00:00:00Z', actual_minutes: 30 },
+                { status: 'todo', due_date: '2030-01-02T00:00:00Z', completed_at: null, actual_minutes: null }, // future date
+                { status: 'completed', due_date: null, completed_at: '2024-01-01T00:00:00Z', actual_minutes: 20 },
+                { status: 'todo', due_date: '2023-12-31T00:00:00Z', completed_at: null, actual_minutes: null } // overdue
             ]
 
             mockSupabase.from.mockReturnValue({
@@ -276,7 +388,7 @@ describe('Tasks API', () => {
             expect(result.stats!.total).toBe(4)
             expect(result.stats!.completed).toBe(2)
             expect(result.stats!.pending).toBe(2)
-            expect(result.stats!.overdue).toBe(2)
+            expect(result.stats!.overdue).toBe(1)
             expect(result.stats!.completionRate).toBe(50)
         })
 
@@ -308,8 +420,8 @@ describe('Tasks API', () => {
                     status: 'todo',
                     due_date: null,
                     completed_at: null,
-                    estimated_duration: 30,
-                    actual_duration: null,
+                    estimated_minutes: 30,
+                    actual_minutes: null,
                     tags: [],
                     created_at: '2024-01-01T00:00:00Z',
                     updated_at: '2024-01-01T00:00:00Z'

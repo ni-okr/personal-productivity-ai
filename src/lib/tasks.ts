@@ -1,4 +1,5 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
+import { validateTask } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
 
 // Временные типы
@@ -48,7 +49,7 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
     const { getSupabaseClient } = await import('./supabase')
     const supabase = getSupabaseClient()
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .select('*')
       .eq('user_id', userId)
@@ -71,8 +72,8 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
       status: task.status,
       dueDate: task.due_date ? new Date(task.due_date) : undefined,
       completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-      estimatedMinutes: task.estimated_duration,
-      actualMinutes: task.actual_duration,
+      estimatedMinutes: task.estimated_minutes,
+      actualMinutes: task.actual_minutes,
       source: task.source,
       tags: task.tags || [],
       userId: task.user_id,
@@ -95,24 +96,75 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
 
 export async function createTask(userId: string, taskData: CreateTaskData): Promise<TasksResponse> {
   try {
-    // Временно заглушка для успешного build
-    console.log(`Create task for user ${userId}:`, taskData)
-
-    const task: Task = {
-      id: 'temp-id',
+    // Валидация данных задачи
+    const validation = validateTask({
       title: taskData.title,
       description: taskData.description,
-      priority: taskData.priority || 'medium',
-      status: 'todo',
-      dueDate: taskData.dueDate,
-      completedAt: undefined,
-      estimatedMinutes: taskData.estimatedMinutes || 30,
-      actualMinutes: 0,
-      source: 'manual',
-      tags: taskData.tags || [],
-      userId,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      priority: taskData.priority,
+      estimatedMinutes: taskData.estimatedMinutes,
+      dueDate: taskData.dueDate?.toISOString()
+    })
+
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: validation.errors[0]
+      }
+    }
+
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены')
+      return {
+        success: false,
+        error: 'Создание задач недоступно - не настроены переменные окружения'
+      }
+    }
+
+    const { getSupabaseClient } = await import('./supabase')
+    const supabase = getSupabaseClient()
+
+    const { data, error } = await (supabase as any)
+      .from('tasks')
+      .insert({
+        user_id: userId,
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority || 'medium',
+        status: 'todo',
+        estimated_minutes: taskData.estimatedMinutes,
+        due_date: taskData.dueDate?.toISOString(),
+        source: 'manual',
+        tags: taskData.tags || [],
+        ai_generated: false
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка создания задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
+    const task: Task = {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.due_date ? new Date(data.due_date) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedMinutes: data.estimated_minutes,
+      actualMinutes: data.actual_minutes,
+      source: data.source,
+      tags: data.tags || [],
+      userId: data.user_id,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
     }
 
     return {
@@ -131,24 +183,61 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
 
 export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse> {
   try {
-    // Временно заглушка для успешного build
-    console.log(`Update task ${taskId}:`, updates)
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены')
+      return {
+        success: false,
+        error: 'Обновление задач недоступно - не настроены переменные окружения'
+      }
+    }
 
+    const { getSupabaseClient } = await import('./supabase')
+    const supabase = getSupabaseClient()
+
+    // Подготавливаем данные для обновления
+    const updateData: any = {}
+    if (updates.title !== undefined) updateData.title = updates.title
+    if (updates.description !== undefined) updateData.description = updates.description
+    if (updates.priority !== undefined) updateData.priority = updates.priority
+    if (updates.status !== undefined) updateData.status = updates.status
+    if (updates.estimatedMinutes !== undefined) updateData.estimated_minutes = updates.estimatedMinutes
+    if (updates.actualMinutes !== undefined) updateData.actual_minutes = updates.actualMinutes
+    if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate?.toISOString()
+    if (updates.completedAt !== undefined) updateData.completed_at = updates.completedAt?.toISOString()
+    if (updates.tags !== undefined) updateData.tags = updates.tags
+
+    const { data, error } = await (supabase as any)
+      .from('tasks')
+      .update(updateData)
+      .eq('id', taskId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка обновления задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
     const task: Task = {
-      id: taskId,
-      title: updates.title || 'Updated Task',
-      description: updates.description,
-      priority: updates.priority || 'medium',
-      status: updates.status || 'todo',
-      dueDate: updates.dueDate,
-      completedAt: updates.completedAt,
-      estimatedMinutes: updates.estimatedMinutes || 30,
-      actualMinutes: updates.actualMinutes || 0,
-      source: 'manual',
-      tags: updates.tags || [],
-      userId: 'temp-user',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.due_date ? new Date(data.due_date) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedMinutes: data.estimated_minutes,
+      actualMinutes: data.actual_minutes,
+      source: data.source,
+      tags: data.tags || [],
+      userId: data.user_id,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
     }
 
     return {
@@ -180,7 +269,7 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
     const { getSupabaseClient } = await import('./supabase')
     const supabase = getSupabaseClient()
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('tasks')
       .delete()
       .eq('id', taskId)
@@ -208,24 +297,53 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
 
 export async function completeTask(taskId: string, actualMinutes?: number): Promise<TasksResponse> {
   try {
-    // Временно заглушка для успешного build
-    console.log(`Complete task ${taskId} with ${actualMinutes} minutes`)
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены')
+      return {
+        success: false,
+        error: 'Завершение задач недоступно - не настроены переменные окружения'
+      }
+    }
 
+    const { getSupabaseClient } = await import('./supabase')
+    const supabase = getSupabaseClient()
+
+    const { data, error } = await (supabase as any)
+      .from('tasks')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        actual_minutes: actualMinutes
+      })
+      .eq('id', taskId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('🚨 Ошибка завершения задачи:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+
+    // Преобразуем данные из Supabase в наш формат
     const task: Task = {
-      id: taskId,
-      title: 'Completed Task',
-      description: 'Task completed',
-      priority: 'medium',
-      status: 'completed',
-      dueDate: undefined,
-      completedAt: new Date(),
-      estimatedMinutes: 30,
-      actualMinutes: actualMinutes || 0,
-      source: 'manual',
-      tags: [],
-      userId: 'temp-user',
-      createdAt: new Date(),
-      updatedAt: new Date()
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      status: data.status,
+      dueDate: data.due_date ? new Date(data.due_date) : undefined,
+      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
+      estimatedMinutes: data.estimated_minutes,
+      actualMinutes: data.actual_minutes,
+      source: data.source,
+      tags: data.tags || [],
+      userId: data.user_id,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
     }
 
     return {
@@ -257,17 +375,10 @@ export async function getTasksStats(userId: string): Promise<{
   try {
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+      console.log('⚠️ Переменные окружения Supabase не настроены')
       return {
-        success: true,
-        stats: {
-          total: 0,
-          completed: 0,
-          pending: 0,
-          overdue: 0,
-          completionRate: 0,
-          averageCompletionTime: 0
-        }
+        success: false,
+        error: 'Статистика задач недоступна - не настроены переменные окружения'
       }
     }
 
@@ -276,9 +387,9 @@ export async function getTasksStats(userId: string): Promise<{
     const supabase = getSupabaseClient()
 
     // Получаем все задачи пользователя
-    const { data: tasks, error } = await supabase
+    const { data: tasks, error } = await (supabase as any)
       .from('tasks')
-      .select('status, due_date, actual_duration')
+      .select('status, due_date, actual_minutes')
       .eq('user_id', userId)
 
     if (error) {
@@ -301,9 +412,9 @@ export async function getTasksStats(userId: string): Promise<{
 
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
 
-    const completedTasks = (tasks as any)?.filter((task: any) => task.status === 'completed' && task.actual_duration) || []
+    const completedTasks = (tasks as any)?.filter((task: any) => task.status === 'completed' && task.actual_minutes) || []
     const averageCompletionTime = completedTasks.length > 0
-      ? Math.round(completedTasks.reduce((sum: number, task: any) => sum + (task.actual_duration || 0), 0) / completedTasks.length)
+      ? Math.round(completedTasks.reduce((sum: number, task: any) => sum + (task.actual_minutes || 0), 0) / completedTasks.length)
       : 0
 
     return {
@@ -330,11 +441,10 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
   try {
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+      console.log('⚠️ Переменные окружения Supabase не настроены')
       return {
-        success: true,
-        tasks: [],
-        message: 'Синхронизация задач недоступна в режиме разработки'
+        success: false,
+        error: 'Синхронизация задач недоступна - не настроены переменные окружения'
       }
     }
 
@@ -343,7 +453,7 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
     const supabase = getSupabaseClient()
 
     // Получаем все задачи пользователя для синхронизации
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('tasks')
       .select('*')
       .eq('user_id', userId)
@@ -366,8 +476,8 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
       status: task.status,
       dueDate: task.due_date ? new Date(task.due_date) : undefined,
       completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-      estimatedMinutes: task.estimated_duration,
-      actualMinutes: task.actual_duration,
+      estimatedMinutes: task.estimated_minutes,
+      actualMinutes: task.actual_minutes,
       source: task.source,
       tags: task.tags || [],
       userId: task.user_id,

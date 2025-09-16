@@ -245,10 +245,10 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
 
         const subscriptionData: SubscriptionInsert = {
             user_id: data.userId,
-            tier: data.tier,
+            tier: data.tier === 'enterprise' ? 'pro' : data.tier as 'free' | 'premium' | 'pro',
             status: 'active',
-            tinkoff_customer_id: data.tinkoffCustomerId,
-            tinkoff_payment_id: data.tinkoffPaymentId,
+            stripe_customer_id: data.tinkoffCustomerId,
+            stripe_subscription_id: data.tinkoffPaymentId,
             current_period_start: data.currentPeriodStart.toISOString(),
             current_period_end: data.currentPeriodEnd.toISOString(),
             trial_end: data.trialEnd?.toISOString(),

@@ -1,6 +1,217 @@
 export interface Database {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string
+          email: string
+          name: string
+          subscription: 'free' | 'premium' | 'pro'
+          preferences: any
+          created_at: string
+          last_login_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          name: string
+          subscription?: 'free' | 'premium' | 'pro'
+          preferences?: any
+          created_at?: string
+          last_login_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string
+          subscription?: 'free' | 'premium' | 'pro'
+          preferences?: any
+          created_at?: string
+          last_login_at?: string
+          updated_at?: string
+        }
+      }
+      tasks: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          description: string | null
+          priority: 'low' | 'medium' | 'high' | 'urgent'
+          status: 'todo' | 'in_progress' | 'completed' | 'cancelled'
+          estimated_minutes: number | null
+          actual_minutes: number | null
+          due_date: string | null
+          completed_at: string | null
+          source: 'manual' | 'email' | 'calendar' | 'ai_suggestion'
+          tags: string[]
+          ai_generated: boolean
+          ai_reason: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          description?: string | null
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          status?: 'todo' | 'in_progress' | 'completed' | 'cancelled'
+          estimated_minutes?: number | null
+          actual_minutes?: number | null
+          due_date?: string | null
+          completed_at?: string | null
+          source?: 'manual' | 'email' | 'calendar' | 'ai_suggestion'
+          tags?: string[]
+          ai_generated?: boolean
+          ai_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          description?: string | null
+          priority?: 'low' | 'medium' | 'high' | 'urgent'
+          status?: 'todo' | 'in_progress' | 'completed' | 'cancelled'
+          estimated_minutes?: number | null
+          actual_minutes?: number | null
+          due_date?: string | null
+          completed_at?: string | null
+          source?: 'manual' | 'email' | 'calendar' | 'ai_suggestion'
+          tags?: string[]
+          ai_generated?: boolean
+          ai_reason?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      productivity_metrics: {
+        Row: {
+          id: string
+          user_id: string
+          date: string
+          focus_time_minutes: number
+          tasks_completed: number
+          distractions_count: number
+          productivity_score: number
+          mood: 'low' | 'medium' | 'high' | null
+          energy_level: 'low' | 'medium' | 'high' | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          date: string
+          focus_time_minutes?: number
+          tasks_completed?: number
+          distractions_count?: number
+          productivity_score?: number
+          mood?: 'low' | 'medium' | 'high' | null
+          energy_level?: 'low' | 'medium' | 'high' | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          date?: string
+          focus_time_minutes?: number
+          tasks_completed?: number
+          distractions_count?: number
+          productivity_score?: number
+          mood?: 'low' | 'medium' | 'high' | null
+          energy_level?: 'low' | 'medium' | 'high' | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      subscriptions: {
+        Row: {
+          id: string
+          user_id: string
+          tier: 'free' | 'premium' | 'pro'
+          status: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'unpaid'
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          current_period_start: string
+          current_period_end: string
+          cancel_at_period_end: boolean
+          trial_end: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          tier: 'free' | 'premium' | 'pro'
+          status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'unpaid'
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          current_period_start: string
+          current_period_end: string
+          cancel_at_period_end?: boolean
+          trial_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          tier?: 'free' | 'premium' | 'pro'
+          status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'unpaid'
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          current_period_start?: string
+          current_period_end?: string
+          cancel_at_period_end?: boolean
+          trial_end?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      ai_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'take_break' | 'focus_time' | 'task_prioritization' | 'schedule_optimization' | 'productivity_tip' | 'goal_reminder'
+          title: string
+          description: string
+          action_text: string | null
+          priority: number
+          expires_at: string | null
+          dismissed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'take_break' | 'focus_time' | 'task_prioritization' | 'schedule_optimization' | 'productivity_tip' | 'goal_reminder'
+          title: string
+          description: string
+          action_text?: string | null
+          priority?: number
+          expires_at?: string | null
+          dismissed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'take_break' | 'focus_time' | 'task_prioritization' | 'schedule_optimization' | 'productivity_tip' | 'goal_reminder'
+          title?: string
+          description?: string
+          action_text?: string | null
+          priority?: number
+          expires_at?: string | null
+          dismissed_at?: string | null
+          created_at?: string
+        }
+      }
       subscribers: {
         Row: {
           id: string
@@ -30,132 +241,22 @@ export interface Database {
           updated_at?: string | null
         }
       }
-      tasks: {
-        Row: {
-          id: string
-          user_id: string
-          title: string
-          description: string | null
-          priority: 'low' | 'medium' | 'high' | 'urgent'
-          status: 'todo' | 'in_progress' | 'completed' | 'cancelled'
-          due_date: string | null
-          completed_at: string | null
-          estimated_duration: number | null
-          actual_duration: number | null
-          source: string
-          tags: string[]
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          title: string
-          description?: string | null
-          priority?: 'low' | 'medium' | 'high' | 'urgent'
-          status?: 'todo' | 'in_progress' | 'completed' | 'cancelled'
-          due_date?: string | null
-          completed_at?: string | null
-          estimated_duration?: number | null
-          actual_duration?: number | null
-          source?: string
-          tags?: string[]
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          title?: string
-          description?: string | null
-          priority?: 'low' | 'medium' | 'high' | 'urgent'
-          status?: 'todo' | 'in_progress' | 'completed' | 'cancelled'
-          due_date?: string | null
-          completed_at?: string | null
-          estimated_duration?: number | null
-          actual_duration?: number | null
-          source?: string
-          tags?: string[]
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      subscriptions: {
-        Row: {
-          id: string
-          user_id: string
-          tier: 'free' | 'premium' | 'pro' | 'enterprise'
-          status: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
-          tinkoff_customer_id: string | null
-          tinkoff_payment_id: string | null
-          current_period_start: string
-          current_period_end: string
-          cancel_at_period_end: boolean
-          trial_end: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          tier: 'free' | 'premium' | 'pro' | 'enterprise'
-          status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
-          tinkoff_customer_id?: string | null
-          tinkoff_payment_id?: string | null
-          current_period_start: string
-          current_period_end: string
-          cancel_at_period_end?: boolean
-          trial_end?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          tier?: 'free' | 'premium' | 'pro' | 'enterprise'
-          status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
-          tinkoff_customer_id?: string | null
-          tinkoff_payment_id?: string | null
-          current_period_start?: string
-          current_period_end?: string
-          cancel_at_period_end?: boolean
-          trial_end?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
-      feature_toggles: {
-        Row: {
-          id: string
-          name: string
-          enabled: boolean
-          type: 'hot' | 'cold'
-          description: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          enabled?: boolean
-          type?: 'hot' | 'cold'
-          description?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          enabled?: boolean
-          type?: 'hot' | 'cold'
-          description?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
     }
     Views: {
-      [_ in never]: never
+      user_stats: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          subscription: 'free' | 'premium' | 'pro'
+          total_tasks: number
+          completed_tasks: number
+          pending_tasks: number
+          avg_task_duration: number | null
+          max_productivity_score: number | null
+          avg_productivity_score: number | null
+        }
+      }
     }
     Functions: {
       [_ in never]: never
@@ -247,18 +348,28 @@ export type Enums<
   : never
 
 // Convenience types
-export type Subscriber = Tables<'subscribers'>
-export type SubscriberInsert = TablesInsert<'subscribers'>
-export type SubscriberUpdate = TablesUpdate<'subscribers'>
+export type User = Tables<'users'>
+export type UserInsert = TablesInsert<'users'>
+export type UserUpdate = TablesUpdate<'users'>
 
 export type Task = Tables<'tasks'>
 export type TaskInsert = TablesInsert<'tasks'>
 export type TaskUpdate = TablesUpdate<'tasks'>
 
+export type ProductivityMetric = Tables<'productivity_metrics'>
+export type ProductivityMetricInsert = TablesInsert<'productivity_metrics'>
+export type ProductivityMetricUpdate = TablesUpdate<'productivity_metrics'>
+
 export type Subscription = Tables<'subscriptions'>
 export type SubscriptionInsert = TablesInsert<'subscriptions'>
 export type SubscriptionUpdate = TablesUpdate<'subscriptions'>
 
-export type FeatureToggle = Tables<'feature_toggles'>
-export type FeatureToggleInsert = TablesInsert<'feature_toggles'>
-export type FeatureToggleUpdate = TablesUpdate<'feature_toggles'>
+export type AISuggestion = Tables<'ai_suggestions'>
+export type AISuggestionInsert = TablesInsert<'ai_suggestions'>
+export type AISuggestionUpdate = TablesUpdate<'ai_suggestions'>
+
+export type Subscriber = Tables<'subscribers'>
+export type SubscriberInsert = TablesInsert<'subscribers'>
+export type SubscriberUpdate = TablesUpdate<'subscribers'>
+
+export type UserStats = Tables<'user_stats'>

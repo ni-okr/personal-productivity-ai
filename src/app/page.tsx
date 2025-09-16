@@ -1,5 +1,6 @@
 'use client'
 
+import { AuthModal, useAuth } from '@/components/auth/AuthModal'
 import { MobileOptimized } from '@/components/MobileOptimized'
 import { Button } from '@/components/ui/Button'
 import { motion } from 'framer-motion'
@@ -11,6 +12,7 @@ import {
   Mail,
   Sparkles,
   Target,
+  User,
   Zap
 } from 'lucide-react'
 import Link from 'next/link'
@@ -26,16 +28,19 @@ export default function HomePage() {
     message: string
   }>({ type: null, message: '' })
 
+  // Используем хук авторизации
+  const { user, isAuthModalOpen, openAuthModal, closeAuthModal, signOut, isAuthenticated } = useAuth()
+
   // Валидация email в реальном времени
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setEmail(value)
-    
+
     // Очищаем статус при изменении email
     if (subscriptionStatus.type) {
       setSubscriptionStatus({ type: null, message: '' })
     }
-    
+
     // Валидация в реальном времени
     if (value.trim() && value !== '') {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -276,24 +281,36 @@ export default function HomePage() {
               >
                 Roadmap
               </Link>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  console.log('🚪 Кнопка Войти нажата')
-                  if (typeof window !== 'undefined') {
-                    console.log('✅ Показываем alert')
-                    alert('Функция входа будет доступна в следующих обновлениях!')
-                  } else {
-                    console.log('❌ Серверная среда - alert недоступен')
-                  }
-                }}
-                className="relative z-10"
-                data-testid="login-button"
-              >
-                Войти
-              </Button>
+              {/* Кнопка авторизации */}
+              {isAuthenticated ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline">{user?.name || user?.email}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={signOut}
+                    className="relative z-10"
+                    data-testid="logout-button"
+                  >
+                    Выйти
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openAuthModal('login')}
+                  className="relative z-10"
+                  data-testid="login-button"
+                >
+                  Войти
+                </Button>
+              )}
               {isInstallable && (
                 <Button
                   type="button"
@@ -570,6 +587,16 @@ export default function HomePage() {
           </div>
         </footer>
       </div>
+
+      {/* Модальное окно авторизации */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        initialMode="login"
+        onSuccess={() => {
+          console.log('✅ Авторизация успешна')
+        }}
+      />
     </MobileOptimized>
   )
 }

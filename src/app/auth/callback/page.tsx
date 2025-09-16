@@ -1,129 +1,173 @@
 'use client'
 
-import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
-import { getUserProfile } from '@/lib/auth'
+import { confirmEmail, getCurrentUser } from '@/lib/auth'
 import { useAppStore } from '@/stores/useAppStore'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { CheckCircle, XCircle } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
     const [message, setMessage] = useState('')
+    const [user, setUser] = useState<any>(null)
+    const { setUser: setAppUser } = useAppStore()
     const router = useRouter()
-    const { setUser } = useAppStore()
+    const searchParams = useSearchParams()
 
     useEffect(() => {
         const handleAuthCallback = async () => {
             try {
-                // Проверяем наличие переменных окружения Supabase
-                if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-                    console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
-                    setStatus('error')
-                    setMessage('Авторизация недоступна в режиме разработки')
-                    return
-                }
+                // Получаем параметры из URL
+                const token = searchParams?.get('token')
+                const type = searchParams?.get('type')
+                const error = searchParams?.get('error')
+                const errorDescription = searchParams?.get('error_description')
 
-                // Импортируем Supabase только если есть переменные окружения
-                const { getSupabaseClient } = await import('@/lib/supabase')
-                const supabase = getSupabaseClient()
-                const { data, error } = await supabase.auth.getSession()
-
+                // Если есть ошибка в URL
                 if (error) {
-                    console.error('Ошибка получения сессии:', error)
                     setStatus('error')
-                    setMessage('Ошибка авторизации. Попробуйте еще раз.')
+                    setMessage(errorDescription || 'Произошла ошибка при авторизации')
                     return
                 }
 
-                if (data.session?.user) {
-                    // Получаем профиль пользователя
-                    const userProfile = await getUserProfile(data.session.user.id)
-
-                    if (userProfile) {
-                        setUser(userProfile)
+                // Если это подтверждение email
+                if (type === 'signup' && token) {
+                    const result = await confirmEmail(token)
+                    if (result.success) {
                         setStatus('success')
-                        setMessage('Авторизация успешна! Перенаправление...')
-
-                        // Перенаправляем на главную страницу через 2 секунды
-                        setTimeout(() => {
-                            router.push('/')
-                        }, 2000)
+                        setMessage('Email успешно подтвержден!')
+                        // Получаем пользователя и сохраняем в store
+                        const currentUser = await getCurrentUser()
+                        if (currentUser) {
+                            setUser(currentUser)
+                            setAppUser(currentUser)
+                        }
                     } else {
                         setStatus('error')
-                        setMessage('Ошибка получения профиля пользователя')
+                        setMessage(result.error || 'Ошибка подтверждения email')
                     }
+                    return
+                }
+
+                // Если это обычный вход через OAuth
+                const currentUser = await getCurrentUser()
+                if (currentUser) {
+                    setStatus('success')
+                    setMessage('Вход выполнен успешно!')
+                    setUser(currentUser)
+                    setAppUser(currentUser)
                 } else {
                     setStatus('error')
-                    setMessage('Сессия не найдена')
+                    setMessage('Не удалось войти в систему')
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Ошибка обработки callback:', error)
                 setStatus('error')
-                setMessage('Произошла ошибка при авторизации')
+                setMessage('Произошла ошибка при обработке авторизации')
             }
         }
 
         handleAuthCallback()
-    }, [router, setUser])
+    }, [searchParams, setAppUser])
 
-    const handleRetry = () => {
-        router.push('/')
+    const handleContinue = () => {
+        if (user) {
+            router.push('/planner')
+        } else {
+            router.push('/')
+        }
     }
 
     return (
-        <ErrorBoundary>
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-                <div className="max-w-md w-full space-y-8">
-                    <div className="text-center">
-                        <div className="mx-auto h-12 w-12 flex items-center justify-center">
-                            {status === 'loading' && (
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                            )}
-                            {status === 'success' && (
-                                <div className="rounded-full h-12 w-12 bg-green-100 flex items-center justify-center">
-                                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                            )}
-                            {status === 'error' && (
-                                <div className="rounded-full h-12 w-12 bg-red-100 flex items-center justify-center">
-                                    <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+            <div className="max-w-md w-full">
+                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 text-center">
+                    {status === 'loading' && (
+                        <>
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Обработка авторизации...
+                            </h1>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                Пожалуйста, подождите
+                            </p>
+                        </>
+                    )}
 
-                        <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-                            {status === 'loading' && 'Авторизация...'}
-                            {status === 'success' && 'Успешно!'}
-                            {status === 'error' && 'Ошибка'}
-                        </h2>
+                    {status === 'success' && (
+                        <>
+                            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Успешно!
+                            </h1>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                {message}
+                            </p>
+                            <Button
+                                onClick={handleContinue}
+                                className="w-full"
+                                size="lg"
+                            >
+                                Продолжить
+                            </Button>
+                        </>
+                    )}
 
-                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            {message}
-                        </p>
-
-                        {status === 'error' && (
-                            <div className="mt-6">
-                                <Button onClick={handleRetry} variant="primary">
-                                    Попробовать снова
+                    {status === 'error' && (
+                        <>
+                            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                Ошибка
+                            </h1>
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
+                                {message}
+                            </p>
+                            <div className="space-y-2">
+                                <Button
+                                    onClick={() => router.push('/')}
+                                    className="w-full"
+                                    size="lg"
+                                >
+                                    На главную
                                 </Button>
+                                <Link href="/">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full"
+                                        size="lg"
+                                    >
+                                        Попробовать снова
+                                    </Button>
+                                </Link>
                             </div>
-                        )}
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}
 
-                        {status === 'success' && (
-                            <div className="mt-6">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    Вы будете перенаправлены на главную страницу...
-                                </p>
-                            </div>
-                        )}
+export default function AuthCallbackPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+                <div className="max-w-md w-full">
+                    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            Загрузка...
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Пожалуйста, подождите
+                        </p>
                     </div>
                 </div>
             </div>
-        </ErrorBoundary>
+        }>
+            <AuthCallbackContent />
+        </Suspense>
     )
 }
