@@ -1,5 +1,5 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
-import { getSupabaseClient } from './supabase'
+// Условный импорт Supabase будет добавлен в функциях
 
 // Временные типы
 export interface TasksResponse {
@@ -34,6 +34,18 @@ export interface UpdateTaskData {
 // Временные заглушки для функций
 export async function getTasks(userId: string): Promise<TasksResponse> {
   try {
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+      return {
+        success: true,
+        tasks: [],
+        message: 'Задачи недоступны в режиме разработки'
+      }
+    }
+
+    // Импортируем Supabase только если есть переменные окружения
+    const { getSupabaseClient } = await import('./supabase')
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
@@ -155,6 +167,17 @@ export async function updateTask(taskId: string, updates: UpdateTaskData): Promi
 
 export async function deleteTask(taskId: string): Promise<TasksResponse> {
   try {
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+      return {
+        success: true,
+        message: 'Удаление задач недоступно в режиме разработки'
+      }
+    }
+
+    // Импортируем Supabase только если есть переменные окружения
+    const { getSupabaseClient } = await import('./supabase')
     const supabase = getSupabaseClient()
 
     const { error } = await supabase
@@ -232,6 +255,24 @@ export async function getTasksStats(userId: string): Promise<{
   error?: string
 }> {
   try {
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+      return {
+        success: true,
+        stats: {
+          total: 0,
+          completed: 0,
+          pending: 0,
+          overdue: 0,
+          completionRate: 0,
+          averageCompletionTime: 0
+        }
+      }
+    }
+
+    // Импортируем Supabase только если есть переменные окружения
+    const { getSupabaseClient } = await import('./supabase')
     const supabase = getSupabaseClient()
 
     // Получаем все задачи пользователя
@@ -287,6 +328,18 @@ export async function getTasksStats(userId: string): Promise<{
 
 export async function syncTasks(userId: string): Promise<TasksResponse> {
   try {
+    // Проверяем наличие переменных окружения Supabase
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+      return {
+        success: true,
+        tasks: [],
+        message: 'Синхронизация задач недоступна в режиме разработки'
+      }
+    }
+
+    // Импортируем Supabase только если есть переменные окружения
+    const { getSupabaseClient } = await import('./supabase')
     const supabase = getSupabaseClient()
 
     // Получаем все задачи пользователя для синхронизации

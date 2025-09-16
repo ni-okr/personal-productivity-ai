@@ -21,7 +21,8 @@ export function getSupabaseClient() {
 }
 
 // Для обратной совместимости
-export const supabase = getSupabaseClient()
+// Удаляем автоматический экспорт supabase клиента
+// export const supabase = getSupabaseClient()
 
 // Временные типы
 export interface Subscriber {

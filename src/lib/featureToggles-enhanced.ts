@@ -9,7 +9,7 @@
  * - TypeScript типизация
  */
 
-import { getSupabaseClient } from './supabase'
+// Условный импорт Supabase будет добавлен в функциях
 
 // Типы для Feature Toggles
 export type ToggleType = 'hot' | 'cold'
@@ -114,7 +114,14 @@ class FeatureToggleManager {
         return cached
       }
 
-      // Получаем из базы данных
+      // Проверяем наличие переменных окружения Supabase
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        return false
+      }
+
+      // Импортируем Supabase только если есть переменные окружения
+      const { getSupabaseClient } = await import('./supabase')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -146,6 +153,14 @@ class FeatureToggleManager {
    */
   async getAllToggles(): Promise<FeatureToggleConfig> {
     try {
+      // Проверяем наличие переменных окружения Supabase
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        return {}
+      }
+
+      // Импортируем Supabase только если есть переменные окружения
+      const { getSupabaseClient } = await import('./supabase')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -222,6 +237,14 @@ class FeatureToggleManager {
    */
   async isHotToggle(toggleName: FeatureToggleName): Promise<boolean> {
     try {
+      // Проверяем наличие переменных окружения Supabase
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        return false
+      }
+
+      // Импортируем Supabase только если есть переменные окружения
+      const { getSupabaseClient } = await import('./supabase')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('feature_toggles')

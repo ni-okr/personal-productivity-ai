@@ -3,7 +3,7 @@
  * Система управления функциональностью в продакшене
  */
 
-import { getSupabaseClient } from './supabase';
+// Условный импорт Supabase будет добавлен в функциях
 
 export interface FeatureToggle {
   id: string;
@@ -35,8 +35,15 @@ class FeatureToggleManager {
         return cached?.enabled || false;
       }
 
-      // Загружаем из базы данных
-      const supabase = getSupabaseClient();
+      // Проверяем наличие переменных окружения Supabase
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        return false
+      }
+
+      // Импортируем Supabase только если есть переменные окружения
+      const { getSupabaseClient } = await import('./supabase')
+      const supabase = getSupabaseClient()
 
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -65,7 +72,15 @@ class FeatureToggleManager {
    */
   async getAllToggles(): Promise<FeatureToggleConfig> {
     try {
-      const supabase = getSupabaseClient();
+      // Проверяем наличие переменных окружения Supabase
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        return {}
+      }
+
+      // Импортируем Supabase только если есть переменные окружения
+      const { getSupabaseClient } = await import('./supabase')
+      const supabase = getSupabaseClient()
 
       const { data, error } = await supabase
         .from('feature_toggles')
