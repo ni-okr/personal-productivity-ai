@@ -16,7 +16,7 @@ const mockUsers: MockUser[] = []
 
 export function mockSignUp(email: string, password: string, name: string): { success: boolean; user?: User; error?: string } {
     console.log('🧪 MOCK РЕЖИМ: Регистрация без реальных запросов к Supabase')
-    
+
     // Проверяем, не существует ли уже пользователь
     const existingUser = mockUsers.find(u => u.email === email)
     if (existingUser) {
@@ -46,7 +46,7 @@ export function mockSignUp(email: string, password: string, name: string): { suc
 
 export function mockSignIn(email: string, password: string): { success: boolean; user?: User; error?: string } {
     console.log('🧪 MOCK РЕЖИМ: Вход без реальных запросов к Supabase')
-    
+
     const user = mockUsers.find(u => u.email === email)
     if (!user) {
         return {
@@ -80,4 +80,60 @@ export function mockGetCurrentUser(): User | null {
 export function clearMockUsers(): void {
     console.log('🧪 MOCK РЕЖИМ: Очистка mock пользователей')
     mockUsers.length = 0
+}
+
+// Mock для onAuthStateChange
+let currentMockUser: MockUser | null = null
+let authStateListeners: ((user: User | null) => void)[] = []
+
+export function mockOnAuthStateChange(callback: (user: User | null) => void) {
+    console.log('🧪 MOCK РЕЖИМ: Подписка на изменения авторизации')
+    authStateListeners.push(callback)
+    
+    // Сразу вызываем callback с текущим пользователем
+    callback(currentMockUser)
+    
+    return {
+        data: {
+            subscription: {
+                unsubscribe: () => {
+                    const index = authStateListeners.indexOf(callback)
+                    if (index > -1) {
+                        authStateListeners.splice(index, 1)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Функция для уведомления слушателей об изменении пользователя
+function notifyAuthStateChange(user: User | null) {
+    currentMockUser = user
+    authStateListeners.forEach(callback => callback(user))
+}
+
+// Обновляем mockSignUp и mockSignIn для уведомления слушателей
+export function mockSignUpWithState(email: string, password: string, name: string): { success: boolean; user?: User; error?: string } {
+    const result = mockSignUp(email, password, name)
+    if (result.success && result.user) {
+        notifyAuthStateChange(result.user)
+    }
+    return result
+}
+
+export function mockSignInWithState(email: string, password: string): { success: boolean; user?: User; error?: string } {
+    const result = mockSignIn(email, password)
+    if (result.success && result.user) {
+        notifyAuthStateChange(result.user)
+    }
+    return result
+}
+
+export function mockSignOutWithState(): { success: boolean; error?: string } {
+    const result = mockSignOut()
+    if (result.success) {
+        notifyAuthStateChange(null)
+    }
+    return result
 }

@@ -2,7 +2,7 @@
 import { User } from '@/types'
 import { validateEmail, validateName, validatePassword } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
-import { mockSignUp, mockSignIn, mockSignOut, mockGetCurrentUser } from './auth-mock'
+import { mockSignIn, mockSignUp, mockSignOut, mockGetCurrentUser, mockOnAuthStateChange, mockSignUpWithState, mockSignInWithState, mockSignOutWithState } from './auth-mock'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
@@ -82,7 +82,7 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
 
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            return mockSignUp(email, password, name)
+            return mockSignUpWithState(email, password, name)
         }
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
@@ -209,7 +209,7 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
 
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            return mockSignIn(email, password)
+            return mockSignInWithState(email, password)
         }
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
@@ -296,6 +296,11 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
  */
 export async function signOut(): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockSignOutWithState()
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -491,6 +496,11 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
  */
 export async function getCurrentUser(): Promise<User | null> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockGetCurrentUser()
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -596,6 +606,11 @@ export async function updatePassword(newPassword: string): Promise<AuthResponse>
  * 📱 Подписка на изменения авторизации
  */
 export function onAuthStateChange(callback: (user: User | null) => void) {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+        return mockOnAuthStateChange(callback)
+    }
+
     // Временно закомментировано для build
     /*
     return supabase.auth.onAuthStateChange(async (event, session) => {
