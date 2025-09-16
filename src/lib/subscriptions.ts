@@ -1,6 +1,7 @@
 // 💳 Система подписок с Тинькофф интеграцией
 import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } from '@/types'
 import type { SubscriptionInsert } from '@/types/supabase'
+import { getSupabaseClient } from './supabase'
 
 export interface CreateSubscriptionData {
     userId: string
@@ -149,8 +150,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
             }
         }
 
-        // Импортируем Supabase только если есть переменные окружения
-        const { getSupabaseClient } = await import('./supabase')
+        // Используем Supabase клиент
         const supabase = getSupabaseClient()
 
         const { data, error } = await supabase
@@ -240,8 +240,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
             }
         }
 
-        // Импортируем Supabase только если есть переменные окружения
-        const { getSupabaseClient } = await import('./supabase')
+        // Используем Supabase клиент
         const supabase = getSupabaseClient()
 
         const subscriptionData: SubscriptionInsert = {
