@@ -3,6 +3,25 @@ import { User } from '@/types'
 import { validateEmail, validateName, validatePassword } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
 
+// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+const TEST_EMAIL_DOMAIN = process.env.TEST_EMAIL_DOMAIN || '@example.test'
+
+// Проверка на тестовые email адреса
+const isTestEmail = (email: string): boolean => {
+  return email.endsWith('@example.test') || 
+         email.endsWith('@test.local') || 
+         email.includes('test@') ||
+         email.includes('demo@')
+}
+
+// Проверка на реальные email адреса (запрещены в dev режиме)
+const isRealEmail = (email: string): boolean => {
+  const realDomains = ['@gmail.com', '@yahoo.com', '@outlook.com', '@hotmail.com', '@yandex.ru', '@mail.ru']
+  return realDomains.some(domain => email.endsWith(domain))
+}
+
 export interface AuthUser {
     id: string
     email: string
@@ -57,6 +76,14 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
             return {
                 success: false,
                 error: nameValidation.errors[0]
+            }
+        }
+
+        // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
+        if (DEV_MODE && isRealEmail(email)) {
+            return {
+                success: false,
+                error: 'В режиме разработки запрещено использовать реальные email адреса. Используйте @example.test'
             }
         }
 
@@ -171,6 +198,14 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
             return {
                 success: false,
                 error: 'Пароль обязателен'
+            }
+        }
+
+        // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
+        if (DEV_MODE && isRealEmail(email)) {
+            return {
+                success: false,
+                error: 'В режиме разработки запрещено использовать реальные email адреса. Используйте @example.test'
             }
         }
 
