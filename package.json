@@ -31,7 +31,8 @@
     "security:check": "./scripts/security-check.sh",
     "security:update": "./scripts/update-dependencies.sh",
     "security:audit": "npm audit --audit-level=high",
-    "security:audit:prod": "npm audit --production --audit-level=high",
+    "security:audit:prod": "./scripts/audit-production.sh",
+    "security:audit:dev": "npm audit --audit-level=moderate",
     "security:fix": "npm audit fix --force",
     "deps:update": "npm update && npm audit fix --force",
     "deps:outdated": "npm outdated"
