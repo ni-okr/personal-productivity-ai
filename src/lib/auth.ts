@@ -99,6 +99,9 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
         }
 
         // 2. Создаем профиль пользователя в нашей таблице users
+        // ВРЕМЕННО ОТКЛЮЧЕНО: Требует исправления RLS политик в Supabase
+        // См. SUPABASE_RLS_FIX.md для инструкций по исправлению
+        /*
         const userProfile = {
             id: authData.user.id,
             email: authData.user.email!,
@@ -121,6 +124,7 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
             console.error('Ошибка создания профиля:', profileError)
             // Не критично, профиль можно создать позже
         }
+        */
 
         return {
             success: true,
