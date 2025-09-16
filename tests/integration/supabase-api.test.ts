@@ -101,7 +101,7 @@ describe('🗄️ Supabase API Integration', () => {
             const testSubscribers = subscribers.filter(s =>
                 s.email === testEmail || s.email === testEmail2
             )
-            
+
             // Проверяем, что есть хотя бы наши тестовые подписчики
             expect(testSubscribers.length).toBeGreaterThanOrEqual(2)
 
@@ -139,7 +139,7 @@ describe('🗄️ Supabase API Integration', () => {
                     .from('subscribers')
                     .select('is_active')
                     .eq('email', testEmail)
-                
+
                 if (allData && allData.length > 0) {
                     expect(allData[0].is_active).toBe(false)
                 }
