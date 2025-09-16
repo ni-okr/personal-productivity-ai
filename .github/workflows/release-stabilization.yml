@@ -60,7 +60,7 @@ jobs:
       run: npm install jest-environment-jsdom --save-dev
       
     - name: 🔧 Запуск Unit тестов
-      run: npm run test:unit:ci
+      run: npx jest tests/unit --coverage --ci --testEnvironment=jsdom
       
     - name: 📊 Загрузка покрытия кода
       uses: codecov/codecov-action@v3
@@ -93,7 +93,7 @@ jobs:
       run: npm install jest-environment-jsdom --save-dev
       
     - name: 🔗 Запуск Integration тестов
-      run: npm run test:integration:ci
+      run: npx jest tests/integration --ci --testEnvironment=jsdom
 
   # 🎭 E2E тесты для релизной ветки
   e2e-tests:
