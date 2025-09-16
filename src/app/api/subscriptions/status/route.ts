@@ -1,10 +1,37 @@
 // 📊 API для получения статуса подписки
-import { getCurrentUser } from '@/lib/auth'
-import { getSubscription, getSubscriptionPlan } from '@/lib/subscriptions'
+import { getSubscriptionPlan } from '@/lib/subscription-plans'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
     try {
+        // Проверяем переменные окружения
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+            
+            // Заглушка для режима разработки
+            return NextResponse.json({
+                success: true,
+                data: {
+                    subscription: {
+                        id: 'free',
+                        userId: 'dev-user',
+                        tier: 'free',
+                        status: 'active',
+                        currentPeriodStart: new Date(),
+                        currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                        cancelAtPeriodEnd: false,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    },
+                    plan: getSubscriptionPlan('free')
+                }
+            })
+        }
+
+        // Импортируем getCurrentUser и getSubscription только если есть переменные окружения
+        const { getCurrentUser } = await import('@/lib/auth')
+        const { getSubscription } = await import('@/lib/subscriptions')
+        
         // Проверяем авторизацию
         const user = await getCurrentUser()
         if (!user) {
