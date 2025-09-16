@@ -1,30 +1,33 @@
 export interface Database {
   public: {
     Tables: {
-      subscribers: {
+      subscriptions: {
         Row: {
           id: string
           email: string
-          source: string
-          is_active: boolean
-          created_at: string
-          updated_at: string
+          source: string | null
+          subscribed_at: string | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
           email: string
-          source?: string
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          source?: string | null
+          subscribed_at?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
           email?: string
-          source?: string
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
+          source?: string | null
+          subscribed_at?: string | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       tasks: {
@@ -244,9 +247,9 @@ export type Enums<
     : never
 
 // Convenience types
-export type Subscriber = Tables<'subscribers'>
-export type SubscriberInsert = TablesInsert<'subscribers'>
-export type SubscriberUpdate = TablesUpdate<'subscribers'>
+export type Subscriber = Tables<'subscriptions'>
+export type SubscriberInsert = TablesInsert<'subscriptions'>
+export type SubscriberUpdate = TablesUpdate<'subscriptions'>
 
 export type Task = Tables<'tasks'>
 export type TaskInsert = TablesInsert<'tasks'>

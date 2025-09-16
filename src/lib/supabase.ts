@@ -45,14 +45,14 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
     }
 
     const { data, error } = await supabase
-      .from('subscribers' as any)
+      .from('subscriptions' as any)
       .insert(subscriberData as any)
       .select()
       .single()
 
     if (error) {
       console.error('🚨 Ошибка добавления подписчика:', error)
-      
+
       // Handle duplicate key error
       if (error.code === '23505') {
         return {
@@ -60,7 +60,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
           message: 'Этот email уже подписан на рассылку'
         }
       }
-      
+
       return {
         success: false,
         message: 'Ошибка при добавлении подписчика'
@@ -93,7 +93,7 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscribers' as any)
+      .from('subscriptions' as any)
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -115,7 +115,7 @@ export async function unsubscribe(email: string): Promise<{ success: boolean; me
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscribers' as any)
+      .from('subscriptions' as any)
       .update({ is_active: false } as any)
       .eq('email', email)
       .select()
