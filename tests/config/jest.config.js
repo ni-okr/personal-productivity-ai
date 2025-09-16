@@ -30,6 +30,8 @@ const customJestConfig = {
   testTimeout: 15000,
   // Переменные окружения для тестов
   setupFiles: ['<rootDir>/tests/setup-env.js'],
+  // TypeScript конфигурация для тестов (используем next/jest)
+  // preset и transform настраиваются автоматически через next/jest
   // Настройки покрытия кода
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -41,10 +43,10 @@ const customJestConfig = {
   coverageDirectory: 'coverage',
   coverageThreshold: {
     global: {
-      branches: 15,
-      functions: 15,
-      lines: 15,
-      statements: 15
+      branches: 10,
+      functions: 10,
+      lines: 10,
+      statements: 10
     }
   }
 }

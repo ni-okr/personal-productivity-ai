@@ -26,6 +26,28 @@ export default function HomePage() {
     message: string
   }>({ type: null, message: '' })
 
+  // Валидация email в реальном времени
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setEmail(value)
+    
+    // Очищаем статус при изменении email
+    if (subscriptionStatus.type) {
+      setSubscriptionStatus({ type: null, message: '' })
+    }
+    
+    // Валидация в реальном времени
+    if (value.trim() && value !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(value)) {
+        setSubscriptionStatus({
+          type: 'error',
+          message: 'Введите корректный email'
+        })
+      }
+    }
+  }
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
@@ -180,6 +202,16 @@ export default function HomePage() {
       return
     }
 
+    // Валидация email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setSubscriptionStatus({
+        type: 'error',
+        message: 'Введите корректный email'
+      })
+      return
+    }
+
     setIsSubscribing(true)
     setSubscriptionStatus({ type: null, message: '' })
 
@@ -229,16 +261,21 @@ export default function HomePage() {
               <span className="text-xl font-bold text-gray-900">Personal AI</span>
             </div>
 
-            <div className="flex items-center gap-4">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = '/planner'}
-                className="gap-2"
+            <div className="flex items-center gap-4 relative z-10">
+              <Link
+                href="/planner"
+                className="text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                data-testid="planner-link"
               >
-                🧠 Планировщик
-              </Button>
+                Планировщик
+              </Link>
+              <Link
+                href="/roadmap"
+                className="text-gray-600 hover:text-gray-900 font-medium px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                data-testid="roadmap-link"
+              >
+                Roadmap
+              </Link>
               <Button
                 type="button"
                 variant="ghost"
@@ -252,6 +289,8 @@ export default function HomePage() {
                     console.log('❌ Серверная среда - alert недоступен')
                   }
                 }}
+                className="relative z-10"
+                data-testid="login-button"
               >
                 Войти
               </Button>
@@ -260,6 +299,8 @@ export default function HomePage() {
                   type="button"
                   onClick={handleInstallClick}
                   size="sm"
+                  className="relative z-20"
+                  data-testid="install-app-button"
                 >
                   Установить приложение
                 </Button>
@@ -282,15 +323,13 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 text-balance">
-                Встречайте
                 <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {' '}Personal AI{' '}
+                  Personal Productivity AI
                 </span>
-                - ваш будущий ассистент
               </h1>
 
               <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto text-balance">
-                Мы создаем ИИ-ассистента, который превратит хаос в систему за 5 минут.
+                Умный планировщик задач с ИИ-ассистентом, который превратит хаос в систему за 5 минут.
                 Автоматизация рутины, обучение планированию, умные предложения.
               </p>
 
@@ -301,20 +340,41 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link href="/planner">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="text-lg px-8 py-4 bg-indigo-600 hover:bg-indigo-700"
+                    data-testid="planner-button"
+                  >
+                    🧠 Планировщик
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
                 <Button
                   type="button"
                   onClick={scrollToSubscription}
                   size="lg"
                   className="text-lg px-8 py-4 bg-orange-600 hover:bg-orange-700"
+                  data-testid="notify-release-button"
                 >
                   🔔 Уведомить о релизе
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                <Link href="/roadmap">
-                  <Button variant="ghost" size="lg" className="text-lg px-8 py-4">
-                    📋 Roadmap разработки
-                  </Button>
-                </Link>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const pricingSection = document.querySelector('[data-testid="pricing-section"]')
+                    if (pricingSection) {
+                      pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    }
+                  }}
+                  size="lg"
+                  className="text-lg px-8 py-4"
+                  data-testid="pricing-button"
+                >
+                  💰 Посмотреть цены
+                </Button>
               </div>
 
               <p className="text-sm text-gray-500 mt-4">
@@ -397,23 +457,80 @@ export default function HomePage() {
             </div>
           </section>
 
+          {/* Pricing Section */}
+          <section className="py-20" data-testid="pricing-section">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Тарифные планы
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Выберите подходящий план для ваших потребностей
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Free Plan */}
+              <div className="card text-center" data-testid="plan-free">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Free</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-4">0 ₽</div>
+                <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                  <li>До 50 задач в месяц</li>
+                  <li>Базовое планирование</li>
+                  <li>Email поддержка</li>
+                </ul>
+                <Button variant="outline" className="w-full" data-testid="select-free-plan">
+                  Выбрать Free
+                </Button>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="card text-center border-indigo-200 bg-indigo-50" data-testid="plan-premium">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Premium</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-4">999 ₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
+                <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                  <li>До 500 задач в месяц</li>
+                  <li>ИИ планировщик</li>
+                  <li>Приоритетная поддержка</li>
+                </ul>
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700" data-testid="select-premium-plan">
+                  Выбрать Premium
+                </Button>
+              </div>
+
+              {/* Pro Plan */}
+              <div className="card text-center" data-testid="plan-pro">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Pro</h3>
+                <div className="text-3xl font-bold text-gray-900 mb-4">1999 ₽<span className="text-sm font-normal text-gray-500">/мес</span></div>
+                <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                  <li>Неограниченно</li>
+                  <li>Все ИИ модели</li>
+                  <li>Персональный менеджер</li>
+                </ul>
+                <Button variant="outline" className="w-full" data-testid="select-pro-plan">
+                  Выбрать Pro
+                </Button>
+              </div>
+            </div>
+          </section>
+
           {/* CTA */}
-          <section id="subscription-form" className="py-20">
-            <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center">
+          <section id="subscription-form" className="py-20 pointer-events-none">
+            <div className="card bg-gradient-to-r from-orange-600 to-red-600 text-white text-center pointer-events-auto">
               <h2 className="text-3xl font-bold mb-4">
                 Хотите первыми узнать о релизе?
               </h2>
-              <p className="text-lg mb-8 opacity-90">
+              <p className="text-lg mb-8 opacity-90 pointer-events-none">
                 Подпишитесь на уведомления и получите эксклюзивный ранний доступ к Personal AI
               </p>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6 pointer-events-auto" data-testid="subscription-form">
                 <input
                   type="email"
                   placeholder="Ваш email для уведомлений"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   disabled={isSubscribing}
                   className="px-4 py-3 rounded-lg text-gray-900 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid="email-input"
                 />
                 <Button
                   type="submit"
@@ -421,6 +538,7 @@ export default function HomePage() {
                   size="lg"
                   disabled={isSubscribing}
                   className="text-lg px-8 py-3 bg-white text-orange-600 hover:bg-gray-50 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid="subscribe-button"
                 >
                   {isSubscribing ? '⏳ Подписываем...' : '🔔 Подписаться'}
                 </Button>
@@ -431,7 +549,7 @@ export default function HomePage() {
                 <div className={`mb-4 p-3 rounded-lg text-center ${subscriptionStatus.type === 'success'
                   ? 'bg-green-100 text-green-800 border border-green-200'
                   : 'bg-red-100 text-red-800 border border-red-200'
-                  }`}>
+                  }`} data-testid="subscription-status">
                   {subscriptionStatus.message}
                 </div>
               )}

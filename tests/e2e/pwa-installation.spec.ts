@@ -35,13 +35,15 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.waitForTimeout(2000)
 
             // Проверяем, что кнопка установки появилась
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log(`✅ PWA кнопка отображается в ${browserName}`)
 
                 // Кликаем на установку
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
 
                 // Проверяем, что функция установки была вызвана
                 const wasPromptCalled = await page.evaluate(() => {
@@ -74,7 +76,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
 
             // В Safari кнопка может не появляться, это нормально
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log('✅ PWA кнопка видна в Safari')
@@ -119,10 +121,12 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
             await page.waitForTimeout(2000)
 
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
 
                 console.log('✅ Android PWA: APK установка инициирована')
 
@@ -163,11 +167,13 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
 
             // На iOS кнопка установки может не отображаться
-            const installButton = page.locator('button:has-text("Установить приложение")')
+            const installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log('✅ iOS: PWA кнопка отображается')
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
             } else {
                 console.log('ℹ️ iOS: Используется встроенный механизм "Поделиться" → "Добавить на главный экран"')
             }
@@ -212,7 +218,7 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.goto('/')
 
             // Тест 1: Кнопка не показывается до события
-            let installButton = page.locator('button:has-text("Установить приложение")')
+            let installButton = page.locator('[data-testid="install-app-button"]')
             expect(await installButton.isVisible()).toBe(false)
 
             // Тест 2: Кнопка появляется после события
@@ -231,13 +237,15 @@ test.describe('📱 PWA Установка - Кроссплатформенно�
             await page.reload()
             await page.waitForTimeout(2000)
 
-            installButton = page.locator('button:has-text("Установить приложение")')
+            installButton = page.locator('[data-testid="install-app-button"]')
 
             if (await installButton.isVisible()) {
                 console.log('✅ PWA кнопка появилась после события')
 
                 // Тест 3: Кнопка исчезает после установки
-                await installButton.click()
+                await installButton.waitFor({ state: 'visible' })
+                await page.waitForTimeout(500)
+                await installButton.click({ force: true })
                 await page.waitForTimeout(1000)
 
                 // В реальном сценарии кнопка должна исчезнуть

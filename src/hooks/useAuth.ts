@@ -45,7 +45,9 @@ export function useAuth() {
 
         return () => {
             mounted = false
-            subscription.unsubscribe()
+            if (subscription && typeof (subscription as any).unsubscribe === 'function') {
+                (subscription as any).unsubscribe()
+            }
         }
     }, [setUser, clearUserData])
 

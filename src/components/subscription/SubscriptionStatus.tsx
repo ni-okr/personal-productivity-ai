@@ -165,7 +165,7 @@ export function SubscriptionStatus({ userId, onUpgrade }: SubscriptionStatusProp
     }
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6" data-testid="subscription-status">
             <div className="flex items-start justify-between mb-4">
                 <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-1">

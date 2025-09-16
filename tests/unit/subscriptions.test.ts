@@ -29,7 +29,7 @@ const mockUpdate = jest.fn().mockReturnValue({
 })
 
 jest.mock('@/lib/supabase', () => ({
-    supabase: {
+    getSupabaseClient: jest.fn(() => ({
         from: jest.fn().mockImplementation((table: string) => ({
             insert: mockInsert,
             select: mockSelect,
@@ -38,7 +38,7 @@ jest.mock('@/lib/supabase', () => ({
                 eq: jest.fn()
             }))
         }))
-    }
+    }))
 }))
 
 describe('Subscription Management', () => {

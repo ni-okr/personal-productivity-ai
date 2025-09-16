@@ -14,36 +14,41 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [
-    ['html'],
-    ['allure-playwright', {
-      detail: true,
-      outputFolder: 'allure-results',
-      suiteTitle: false,
-      categories: [
-        {
-          name: 'Критические дефекты',
-          messageRegex: '.*AssertionError.*',
-          traceRegex: '.*AssertionError.*'
-        },
-        {
-          name: 'Проблемы сети',
-          messageRegex: '.*net::ERR.*'
-        },
-        {
-          name: 'Таймауты',
-          messageRegex: '.*Timeout.*'
+  reporter: process.env.CI
+    ? [
+      ['line'],
+      ['html', { outputFolder: 'playwright-report' }]
+    ]
+    : [
+      ['html', { outputFolder: 'playwright-report' }],
+      ['allure-playwright', {
+        detail: true,
+        outputFolder: 'allure-results',
+        suiteTitle: false,
+        categories: [
+          {
+            name: 'Критические дефекты',
+            messageRegex: '.*AssertionError.*',
+            traceRegex: '.*AssertionError.*'
+          },
+          {
+            name: 'Проблемы сети',
+            messageRegex: '.*net::ERR.*'
+          },
+          {
+            name: 'Таймауты',
+            messageRegex: '.*Timeout.*'
+          }
+        ],
+        environmentInfo: {
+          'Проект': 'Personal Productivity AI',
+          'Версия': '1.0.0',
+          'Среда': process.env.NODE_ENV || 'test',
+          'Браузер': 'Chrome/Firefox/Safari',
+          'ОС': process.platform
         }
-      ],
-      environmentInfo: {
-        'Проект': 'Personal Productivity AI',
-        'Версия': '1.0.0',
-        'Среда': process.env.NODE_ENV || 'test',
-        'Браузер': 'Chrome/Firefox/Safari',
-        'ОС': process.platform
-      }
-    }]
-  ],
+      }]
+    ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -100,9 +105,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run build && npm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 180 * 1000,
   },
 })

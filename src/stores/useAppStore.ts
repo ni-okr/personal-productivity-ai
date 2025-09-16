@@ -238,12 +238,9 @@ export const useAppStore = create<AppStore>()(
         if (!user) return
 
         try {
-          const result = await getTasksStats(user.id)
-
-          if (result.success && result.stats) {
-            // Можно добавить статистику в store или использовать для обновления метрик
-            console.log('Tasks stats:', result.stats)
-          }
+          const stats = await getTasksStats(user.id)
+          // Можно добавить статистику в store или использовать для обновления метрик
+          console.log('Tasks stats:', stats)
         } catch (error: any) {
           console.error('Ошибка загрузки статистики задач:', error)
         }

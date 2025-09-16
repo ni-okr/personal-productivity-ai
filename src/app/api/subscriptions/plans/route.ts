@@ -1,5 +1,5 @@
 // 📋 API для получения планов подписок
-import { getSubscriptionPlans } from '@/lib/subscriptions'
+import { getSubscriptionPlans } from '@/lib/subscription-plans'
 import { NextResponse } from 'next/server'
 
 export async function GET() {

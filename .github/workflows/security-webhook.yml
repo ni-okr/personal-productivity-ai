@@ -1,0 +1,38 @@
+name: Security Webhook Notifications
+
+on:
+  repository_dispatch:
+    types: [security-alert]
+  workflow_dispatch:
+    inputs:
+      alert_type:
+        description: 'Тип уведомления'
+        required: true
+        default: 'security-scan'
+        type: choice
+        options:
+          - security-scan
+          - vulnerability-found
+          - code-scanning
+          - secret-scanning
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📢 Отправка уведомления о безопасности
+        run: |
+          echo "🔒 Security Alert: ${{ github.event.inputs.alert_type || 'security-scan' }}"
+          echo "📅 Time: $(date)"
+          echo "🔗 Repository: ${{ github.repository }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "👤 Actor: ${{ github.actor }}"
+          
+          # Здесь можно добавить отправку в Slack, Discord, Email и т.д.
+          # Пример для Slack:
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🔒 Security Alert: '${{ github.event.inputs.alert_type }}' in '${{ github.repository }}'"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+          
+          echo "✅ Уведомление отправлено"
+

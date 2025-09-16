@@ -304,6 +304,7 @@ function PlannerPageContent() {
                                 onClick={() => setShowAddTask(true)}
                                 className="gap-2"
                                 disabled={isLoading}
+                                data-testid="add-task-button"
                             >
                                 <PlusIcon className="w-4 h-4" />
                                 Добавить задачу
@@ -579,6 +580,7 @@ function PlannerPageContent() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Что нужно сделать?"
                                     autoFocus
+                                    data-testid="task-title"
                                 />
                             </div>
 
@@ -646,6 +648,7 @@ function PlannerPageContent() {
                                 className="flex-1"
                                 disabled={isSubmitting}
                                 isLoading={isSubmitting}
+                                data-testid="save-task-button"
                             >
                                 {isSubmitting ? 'Добавление...' : 'Добавить'}
                             </Button>

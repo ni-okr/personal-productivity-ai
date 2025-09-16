@@ -2,9 +2,9 @@
 import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { useSubscription } from '@/hooks/useSubscription'
-import { beforeEach, describe, expect, it } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it } from '@jest/globals'
 import '@testing-library/jest-dom'
-import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 
 // Mock useSubscription hook
 jest.mock('@/hooks/useSubscription', () => ({
@@ -17,6 +17,10 @@ global.fetch = jest.fn()
 describe('Subscription Integration', () => {
     beforeEach(() => {
         jest.clearAllMocks()
+    })
+
+    afterEach(() => {
+        cleanup()
     })
 
     describe('SubscriptionModal', () => {
@@ -335,7 +339,7 @@ describe('Subscription Integration', () => {
             const mockUseSubscription = useSubscription as jest.MockedFunction<typeof useSubscription>
             const mockCreateCheckoutSession = jest.fn().mockResolvedValue({
                 success: true,
-                data: mockCheckoutSession
+                url: mockCheckoutSession.url
             })
 
             const mockReturnValue = {
