@@ -96,20 +96,37 @@ class TinkoffAPI {
     }
 
     /**
-     * 🔐 Генерация подписи для запроса
+     * 🔐 Генерация подписи для запроса согласно документации Тинькофф
      */
     private generateToken(data: Record<string, any>): string {
         const crypto = require('crypto')
 
-        // Сортируем параметры по алфавиту
-        const sortedKeys = Object.keys(data).sort()
-        const values = sortedKeys.map(key => data[key]).join('')
+        // 1. Создаем массив пар ключ-значение (только корневые параметры)
+        const pairs = Object.keys(data)
+            .filter(key => key !== 'Token') // Исключаем сам токен
+            .map(key => ({
+                key,
+                value: String(data[key])
+            }))
 
-        // Добавляем секретный ключ
-        const tokenString = values + this.secretKey
+        // 2. Добавляем пароль
+        pairs.push({ key: 'Password', value: this.secretKey })
 
-        // Создаем SHA-256 хеш
-        return crypto.createHash('sha256').update(tokenString).digest('hex')
+        // 3. Сортируем по алфавиту по ключу
+        pairs.sort((a, b) => a.key.localeCompare(b.key))
+
+        // 4. Конкатенируем только значения в одну строку
+        const tokenString = pairs.map(pair => pair.value).join('')
+
+        console.log('🔐 Генерация токена Тинькофф:', {
+            pairs: pairs.map(p => `${p.key}=${p.value}`),
+            tokenString: tokenString.substring(0, 100) + '...',
+            secretKey: this.secretKey ? 'SET' : 'NOT_SET',
+            length: tokenString.length
+        })
+
+        // 5. Применяем SHA-256 с поддержкой UTF-8
+        return crypto.createHash('sha256').update(tokenString, 'utf8').digest('hex')
     }
 
     /**
@@ -117,7 +134,7 @@ class TinkoffAPI {
      */
     async initPayment(request: TinkoffInitRequest): Promise<TinkoffInitResponse> {
         try {
-            const url = `${this.baseURL}Init`
+            const url = `${this.baseUrl}/Init`
 
             // Добавляем подпись
             const token = this.generateToken(request)
@@ -174,7 +191,7 @@ class TinkoffAPI {
      */
     async getState(request: TinkoffGetStateRequest): Promise<TinkoffGetStateResponse> {
         try {
-            const url = `${this.baseURL}GetState`
+            const url = `${this.baseUrl}/GetState`
 
             // Добавляем подпись
             const token = this.generateToken(request)
