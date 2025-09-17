@@ -14,9 +14,8 @@ import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { TEST_CONFIGS, MOCK_CONFIGS } from '@/tests/framework'
-import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
+import { fireEvent, screen } from '@testing-library/react'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks, testUtils } from '../framework'
 
 
 // Mock auth functions
@@ -46,11 +45,11 @@ jest.mock('@/utils/validation', () => ({
 
 describe('Auth Components', () => {
     beforeEach(() => {
-    // Настройка единого фреймворка тестирования
-    testFramework.updateConfig(TEST_CONFIGS.UNIT)
-    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
-    testMocks.setupAllMocks()
-    testLogger.startTest('Test Suite')
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.UNIT)
+        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Test Suite')
         jest.clearAllMocks()
     })
 

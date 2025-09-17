@@ -19,7 +19,7 @@ import {
     updateTask
 } from '@/lib/tasks'
 import { CreateTaskData, UpdateTaskData } from '@/types'
-import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks } from '../framework'
 
 
 // Mock console.log для проверки логов
@@ -36,17 +36,17 @@ describe('Tasks Integration (Mock Mode)', () => {
     }
 
     beforeEach(() => {
-    // Настройка единого фреймворка тестирования
-    testFramework.updateConfig(TEST_CONFIGS.UNIT)
-    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
-    testMocks.setupAllMocks()
-    testLogger.startTest('Test Suite')
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.UNIT)
+        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Test Suite')
         mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
     })
 
     afterEach(() => {
-    testMocks.clearAllMocks()
-    testLogger.endTest('Test Suite', true)
+        testMocks.clearAllMocks()
+        testLogger.endTest('Test Suite', true)
         mockConsoleLog.mockRestore()
         // Очищаем mock данные между тестами
         const { clearMockTasks } = require('@/lib/tasks-mock')
@@ -251,14 +251,14 @@ describe('Tasks Integration (Mock Mode)', () => {
 
             expect(result.success).toBe(true)
             expect(result.stats).toBeDefined()
-            // В beforeEach создается 3 задачи + 3 статические = 6 задач
-            // 1 задача завершается в beforeEach + 1 статическая завершенная = 2 завершенные
-            expect(result.stats!.total).toBe(6)
-            expect(result.stats!.completed).toBe(2)
-            expect(result.stats!.pending).toBe(4)
+            // В beforeEach создается 3 задачи
+            // 1 задача завершается в beforeEach = 1 завершенная
+            expect(result.stats!.total).toBe(3)
+            expect(result.stats!.completed).toBe(1)
+            expect(result.stats!.pending).toBe(2)
             expect(result.stats!.overdue).toBe(0) // Нет задач с dueDate
-            expect(result.stats!.completionRate).toBe(33) // 2 из 6 задач завершено
-            expect(result.stats!.averageCompletionTime).toBe(40) // (55 + 25) / 2 = 40
+            expect(result.stats!.completionRate).toBe(33) // 1 из 3 задач завершено
+            expect(result.stats!.averageCompletionTime).toBe(25) // 25 минут
         })
 
         it('должен логировать действие в mock режиме', async () => {

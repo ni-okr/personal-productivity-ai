@@ -10,8 +10,6 @@
 
 // 🧪 Integration тесты для auth.ts с mock режимом
 import {
-import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
-
     confirmEmail,
     getCurrentUser,
     getUserProfile,
@@ -24,6 +22,7 @@ import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CON
     updatePassword,
     updateUserProfile
 } from '@/lib/auth'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks } from '../framework'
 
 // Mock console.log для проверки логов
 let mockConsoleLog: jest.SpyInstance
@@ -36,11 +35,11 @@ describe('Auth Integration (Mock Mode)', () => {
     }
 
     beforeEach(() => {
-    // Настройка единого фреймворка тестирования
-    testFramework.updateConfig(TEST_CONFIGS.UNIT)
-    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
-    testMocks.setupAllMocks()
-    testLogger.startTest('Test Suite')
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.UNIT)
+        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Test Suite')
         mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
         // Очищаем mock данные перед каждым тестом
         const { setCurrentMockUser } = require('@/lib/auth-mock')
@@ -48,8 +47,8 @@ describe('Auth Integration (Mock Mode)', () => {
     })
 
     afterEach(() => {
-    testMocks.clearAllMocks()
-    testLogger.endTest('Test Suite', true)
+        testMocks.clearAllMocks()
+        testLogger.endTest('Test Suite', true)
         mockConsoleLog.mockRestore()
     })
 

@@ -141,7 +141,26 @@ class TestUtils {
 
         await waitFor(() => {
             const currentValue = stateGetter()
-            expect(currentValue).toEqual(expectedValue)
+            if (currentValue !== expectedValue) {
+                throw new Error(`Expected ${expectedValue}, but got ${currentValue}`)
+            }
+        }, { timeout })
+    }
+
+    // Улучшенная версия waitForState для условий
+    public async waitForCondition(
+        condition: () => boolean,
+        timeout = this.config.defaultTimeout
+    ): Promise<void> {
+        if (this.config.enableLogging) {
+            testLogger.debug('WAIT', 'Waiting for condition', { timeout })
+        }
+
+        await waitFor(() => {
+            const result = condition()
+            if (!result) {
+                throw new Error('Condition not met')
+            }
         }, { timeout })
     }
 
@@ -171,7 +190,10 @@ class TestUtils {
         }
 
         await waitFor(() => {
-            expect(condition()).toBe(true)
+            const result = condition()
+            if (!result) {
+                throw new Error('Condition not met')
+            }
         }, { timeout })
     }
 
@@ -199,6 +221,21 @@ class TestUtils {
             testLogger.debug('DATA', 'Generated task', task)
         }
         return task
+    }
+
+    public generateTasks(count: number, overrides?: any): any[] {
+        const tasks = Array.from({ length: count }, (_, index) =>
+            this.dataGenerator.task({
+                ...overrides,
+                id: `test-task-${index + 1}`,
+                title: `Test Task ${index + 1}`,
+                description: `Test Description ${index + 1}`
+            })
+        )
+        if (this.config.enableLogging) {
+            testLogger.debug('DATA', `Generated ${count} tasks`, tasks)
+        }
+        return tasks
     }
 
     public generateSubscription(overrides?: any): any {
@@ -399,10 +436,11 @@ export const testUtils = TestUtils.getInstance()
 export const {
     renderWithProviders,
     waitForState,
-    waitForElement,
     waitForCondition,
+    waitForElement,
     generateUser,
     generateTask,
+    generateTasks,
     generateSubscription,
     generateMetric,
     generateSuggestion,

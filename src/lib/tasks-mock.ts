@@ -269,6 +269,7 @@ export async function mockGetAISuggestions(userId: string): Promise<AICoachSugge
 }
 
 
+
 // Функция для добавления тестовых задач
 export function addMockTask(task: Task): void {
   console.log('🧪 MOCK РЕЖИМ: Добавление тестовой задачи')

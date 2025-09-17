@@ -10,8 +10,6 @@
 
 // 🧪 Unit тесты для mock режима авторизации
 import {
-import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CONFIGS } from '../framework'
-
     clearMockUsers,
     mockGetCurrentUser,
     mockOnAuthStateChange,
@@ -19,24 +17,25 @@ import { testFramework, testLogger, testMocks, testUtils, TEST_CONFIGS, MOCK_CON
     mockSignOutWithState,
     mockSignUpWithState
 } from '@/lib/auth-mock'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks } from '../framework'
 
 // Mock console.log для проверки логов
 let mockConsoleLog: jest.SpyInstance
 
 describe('Auth Mock Functions', () => {
     beforeEach(() => {
-    // Настройка единого фреймворка тестирования
-    testFramework.updateConfig(TEST_CONFIGS.UNIT)
-    testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
-    testMocks.setupAllMocks()
-    testLogger.startTest('Test Suite')
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.UNIT)
+        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Test Suite')
         clearMockUsers()
         mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
     })
 
     afterEach(() => {
-    testMocks.clearAllMocks()
-    testLogger.endTest('Test Suite', true)
+        testMocks.clearAllMocks()
+        testLogger.endTest('Test Suite', true)
         mockConsoleLog.mockRestore()
     })
 
