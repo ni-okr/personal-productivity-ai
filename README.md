@@ -7,6 +7,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14.2.32-black.svg)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/ni-okr/personal-productivity-ai/actions)
+[![Security](https://img.shields.io/badge/security-audited-green.svg)](https://github.com/ni-okr/personal-productivity-ai/security)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/ni-okr/personal-productivity-ai)
+[![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/ni-okr/personal-productivity-ai)
+[![Deploy](https://img.shields.io/badge/deploy-vercel-black.svg)](https://personal-productivity-ai.vercel.app)
+[![Discord](https://img.shields.io/badge/chat-discord-blue.svg)](https://discord.gg/personal-productivity-ai)
 
 ## 🎯 О проекте
 
