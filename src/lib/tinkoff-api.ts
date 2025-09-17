@@ -255,6 +255,7 @@ class TinkoffAPI {
      * 🧪 Создание тестового платежа
      */
     async createTestPayment(amount: number, description: string, orderId: string): Promise<TinkoffInitResponse> {
+        console.log('💳 Создание тестового платежа:', { amount, description, orderId })
         const request: TinkoffInitRequest = {
             TerminalKey: this.terminalKey,
             Amount: amount * 100, // Конвертируем в копейки

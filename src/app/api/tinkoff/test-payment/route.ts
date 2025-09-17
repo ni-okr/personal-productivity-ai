@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
         console.log('💳 Реальный режим - используем Тинькофф API')
         // Конвертируем amount в рубли (если передано в копейках)
         const amountInRubles = amount > 1000 ? amount / 100 : amount
+        console.log('💳 Конвертация amount:', { original: amount, converted: amountInRubles })
         const paymentResponse = await createTestTinkoffPayment(amountInRubles, description, orderId, terminalKey, secretKey)
 
         if (!paymentResponse.Success) {
