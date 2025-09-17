@@ -341,7 +341,7 @@ POST /api/subscriptions/create-checkout
 ```json
 {
   "success": true,
-  "checkoutUrl": "https://checkout.stripe.com/pay/cs_123...",
+  "checkoutUrl": "https://securepay.tinkoff.ru/v2/Checkout?OrderId=123...",
   "sessionId": "cs_1234567890"
 }
 ```

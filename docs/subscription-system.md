@@ -201,9 +201,9 @@ function ManageSubscription() {
 // src/app/api/subscriptions/webhook/route.ts
 export async function POST(request: NextRequest) {
   const body = await request.text()
-  const signature = headers().get('stripe-signature')
+  const signature = headers().get('tinkoff-signature')
 
-  const result = await handleStripeWebhook(body, signature)
+  const result = await handleTinkoffWebhook(body, signature)
   
   if (result.success) {
     return NextResponse.json({ received: true })

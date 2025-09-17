@@ -19,8 +19,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://zpgkzvflmgxrlgkecscg.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ2t6dmZsbWd4cmxna2Vjc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDM5MDcsImV4cCI6MjA3MzQxOTkwN30.usDTWCrgyMiGY1BDhy-FBy-YTSOhPNEuAm1lh1FMH5c
       SUPABASE_SERVICE_ROLE_KEY: dummy_key_for_build
-      STRIPE_SECRET_KEY: dummy_key_for_build
-      STRIPE_PUBLISHABLE_KEY: dummy_key_for_build
+      TINKOFF_TERMINAL_KEY: dummy_key_for_build
+      TINKOFF_SECRET_KEY: dummy_key_for_build
     
     steps:
     - name: 📥 Checkout code
