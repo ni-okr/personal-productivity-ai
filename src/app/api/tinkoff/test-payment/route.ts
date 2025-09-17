@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
             hasSecretKey: !!process.env.TINKOFF_SECRET_KEY
         })
 
-        // Временно включаем mock режим до обновления ключей в Vercel
-        const hasTinkoffKeys = false // process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
+    // Проверяем наличие ключей Тинькофф
+    const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
 
         if (!hasTinkoffKeys) {
             // Mock режим - возвращаем тестовые данные
