@@ -342,82 +342,82 @@ export class TestUtils {
     return TestUtils.instance
   }
 
-      // Асинхронные операции
-      async act<T>(callback: () => T | Promise<T>): Promise<T> {
-        this.logger.debug('ACT', 'Executing async operation')
-        const { act } = require('@testing-library/react')
-        return await act(callback)
+  // Асинхронные операции
+  async act<T>(callback: () => T | Promise<T>): Promise<T> {
+    this.logger.debug('ACT', 'Executing async operation')
+    const { act } = require('@testing-library/react')
+    return await act(callback)
+  }
+
+  // Ожидание элементов
+  async waitForElement<T>(
+    callback: () => T,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<T> {
+    this.logger.debug('WAIT', 'Waiting for element')
+    const { waitFor } = require('@testing-library/react')
+    return await waitFor(callback, options)
+  }
+
+  // Ожидание состояния
+  async waitForState<T>(
+    getState: () => T,
+    expectedState: T,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<T> {
+    this.logger.debug('WAIT', 'Waiting for state change')
+    const { waitFor } = require('@testing-library/react')
+
+    return await waitFor(() => {
+      try {
+        const currentState = getState()
+        if (currentState === expectedState) {
+          return currentState
+        }
+        throw new Error(`State mismatch: expected ${expectedState}, got ${currentState}`)
+      } catch (error) {
+        throw error
       }
+    }, options)
+  }
 
-      // Ожидание элементов
-      async waitForElement<T>(
-        callback: () => T,
-        options?: { timeout?: number; interval?: number }
-      ): Promise<T> {
-        this.logger.debug('WAIT', 'Waiting for element')
-        const { waitFor } = require('@testing-library/react')
-        return await waitFor(callback, options)
+  // Ожидание состояния с условием
+  async waitForStateCondition<T>(
+    getState: () => T,
+    condition: (state: T) => boolean,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<T> {
+    this.logger.debug('WAIT', 'Waiting for state condition')
+    const { waitFor } = require('@testing-library/react')
+
+    return await waitFor(() => {
+      try {
+        const currentState = getState()
+        if (condition(currentState)) {
+          return currentState
+        }
+        throw new Error(`State condition not met`)
+      } catch (error) {
+        throw error
       }
+    }, options)
+  }
 
-      // Ожидание состояния
-      async waitForState<T>(
-        getState: () => T,
-        expectedState: T,
-        options?: { timeout?: number; interval?: number }
-      ): Promise<T> {
-        this.logger.debug('WAIT', 'Waiting for state change')
-        const { waitFor } = require('@testing-library/react')
+  // Ожидание условия
+  async waitForCondition(
+    condition: () => boolean,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<void> {
+    this.logger.debug('WAIT', 'Waiting for condition')
+    const { waitFor } = require('@testing-library/react')
 
-        return await waitFor(() => {
-          try {
-            const currentState = getState()
-            if (currentState === expectedState) {
-              return currentState
-            }
-            throw new Error(`State mismatch: expected ${expectedState}, got ${currentState}`)
-          } catch (error) {
-            throw error
-          }
-        }, options)
+    return await waitFor(() => {
+      if (condition()) {
+        return
       }
-
-      // Ожидание состояния с условием
-      async waitForStateCondition<T>(
-        getState: () => T,
-        condition: (state: T) => boolean,
-        options?: { timeout?: number; interval?: number }
-      ): Promise<T> {
-        this.logger.debug('WAIT', 'Waiting for state condition')
-        const { waitFor } = require('@testing-library/react')
-
-        return await waitFor(() => {
-          try {
-            const currentState = getState()
-            if (condition(currentState)) {
-              return currentState
-            }
-            throw new Error(`State condition not met`)
-          } catch (error) {
-            throw error
-          }
-        }, options)
-      }
-
-      // Ожидание условия
-      async waitForCondition(
-        condition: () => boolean,
-        options?: { timeout?: number; interval?: number }
-      ): Promise<void> {
-        this.logger.debug('WAIT', 'Waiting for condition')
-        const { waitFor } = require('@testing-library/react')
-
-        return await waitFor(() => {
-          if (condition()) {
-            return
-          }
-          throw new Error('Condition not met')
-        }, options)
-      }
+      throw new Error('Condition not met')
+    }, options)
+  }
 
   // Генерация тестовых данных
   generateUser(overrides: Partial<any> = {}): any {
@@ -448,39 +448,39 @@ export class TestUtils {
     return { ...baseTask, ...overrides }
   }
 
-      generateSubscription(overrides: Partial<any> = {}): any {
-        const baseSubscription = {
-          id: 'test-subscription-id',
-          userId: 'test-user-id',
-          plan: 'free',
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
+  generateSubscription(overrides: Partial<any> = {}): any {
+    const baseSubscription = {
+      id: 'test-subscription-id',
+      userId: 'test-user-id',
+      plan: 'free',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
 
-        return { ...baseSubscription, ...overrides }
-      }
+    return { ...baseSubscription, ...overrides }
+  }
 
-      generateTasks(count: number, overrides: Partial<any> = {}): any[] {
-        const tasks = []
-        for (let i = 0; i < count; i++) {
-          const baseTask = {
-            id: `test-task-${i + 1}`,
-            title: `Test Task ${i + 1}`,
-            description: `Test Description ${i + 1}`,
-            priority: 'medium',
-            status: 'pending',
-            estimatedMinutes: 30,
-            source: 'manual',
-            tags: ['test'],
-            userId: 'test-user-id',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-          tasks.push({ ...baseTask, ...overrides })
-        }
-        return tasks
+  generateTasks(count: number, overrides: Partial<any> = {}): any[] {
+    const tasks = []
+    for (let i = 0; i < count; i++) {
+      const baseTask = {
+        id: `test-task-${i + 1}`,
+        title: `Test Task ${i + 1}`,
+        description: `Test Description ${i + 1}`,
+        priority: 'medium',
+        status: 'pending',
+        estimatedMinutes: 30,
+        source: 'manual',
+        tags: ['test'],
+        userId: 'test-user-id',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
+      tasks.push({ ...baseTask, ...overrides })
+    }
+    return tasks
+  }
 
   // Измерение производительности
   async measurePerformance<T>(
@@ -521,39 +521,39 @@ export class TestUtils {
     }
   }
 
-      // Рендеринг компонентов с провайдерами
-      renderWithProviders(
-        ui: any,
-        options?: any
-      ): any {
-        this.logger.debug('RENDER', 'Rendering component with providers')
-        const { render } = require('@testing-library/react')
+  // Рендеринг компонентов с провайдерами
+  renderWithProviders(
+    ui: any,
+    options?: any
+  ): any {
+    this.logger.debug('RENDER', 'Rendering component with providers')
+    const { render } = require('@testing-library/react')
 
-        return render(ui, {
-          ...options,
-          wrapper: ({ children }: { children: any }) => {
-            // Здесь можно добавить провайдеры (Redux, Context, etc.)
-            return children
-          }
-        })
+    return render(ui, {
+      ...options,
+      wrapper: ({ children }: { children: any }) => {
+        // Здесь можно добавить провайдеры (Redux, Context, etc.)
+        return children
       }
+    })
+  }
 
-      // Рендеринг хуков
-      renderHookWithProviders<TProps, TResult>(
-        hook: (props: TProps) => TResult,
-        options?: any
-      ): any {
-        this.logger.debug('HOOK', 'Rendering hook with providers')
-        const { renderHook } = require('@testing-library/react')
+  // Рендеринг хуков
+  renderHookWithProviders<TProps, TResult>(
+    hook: (props: TProps) => TResult,
+    options?: any
+  ): any {
+    this.logger.debug('HOOK', 'Rendering hook with providers')
+    const { renderHook } = require('@testing-library/react')
 
-        return renderHook(hook, {
-          ...options,
-          wrapper: ({ children }: { children: any }) => {
-            // Здесь можно добавить провайдеры
-            return children
-          }
-        })
+    return renderHook(hook, {
+      ...options,
+      wrapper: ({ children }: { children: any }) => {
+        // Здесь можно добавить провайдеры
+        return children
       }
+    })
+  }
 
   // Очистка после тестов
   cleanup(): void {

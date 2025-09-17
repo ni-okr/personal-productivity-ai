@@ -32,6 +32,18 @@ export default function HomePage() {
   // Используем хук авторизации
   const { user, isAuthModalOpen, openAuthModal, closeAuthModal, signOut, isAuthenticated } = useAuth()
 
+  // Обработка авторизации с выбранным планом
+  useEffect(() => {
+    if (isAuthenticated && selectedPlan && !isAuthModalOpen) {
+      console.log('✅ Пользователь авторизован, переходим к оплате плана:', selectedPlan)
+      // Небольшая задержка для обновления состояния
+      setTimeout(() => {
+        handleSubscriptionFlow(selectedPlan)
+        setSelectedPlan(null) // Сбрасываем выбранный план
+      }, 100)
+    }
+  }, [isAuthenticated, selectedPlan, isAuthModalOpen])
+
   // Валидация email в реальном времени
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -260,15 +272,47 @@ export default function HomePage() {
     
     // Если пользователь не авторизован, показываем модальное окно входа
     if (!isAuthenticated) {
+      // Сохраняем выбранный план для после авторизации
+      setSelectedPlan(planId)
       openAuthModal('login')
       return
     }
 
-    // Устанавливаем выбранный план
-    setSelectedPlan(planId)
+    // Если пользователь авторизован, переходим к оплате
+    handleSubscriptionFlow(planId)
+  }
+
+  // Обработчик потока подписки
+  const handleSubscriptionFlow = async (planId: string) => {
+    console.log('💳 Начинаем процесс подписки для плана:', planId)
     
-    // Перенаправляем на страницу планировщика с параметром плана
-    window.location.href = `/planner?plan=${planId}`
+    try {
+      // Создаем checkout сессию
+      const response = await fetch('/api/subscriptions/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId,
+          successUrl: `${window.location.origin}/planner?payment=success&plan=${planId}`,
+          cancelUrl: `${window.location.origin}/?canceled=true`
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Перенаправляем на страницу оплаты
+        window.location.href = result.data.url || `/planner?plan=${planId}`
+      } else {
+        console.error('Ошибка создания checkout сессии:', result.error)
+        // Fallback - переходим на планировщик
+        window.location.href = `/planner?plan=${planId}`
+      }
+    } catch (error) {
+      console.error('Ошибка при создании подписки:', error)
+      // Fallback - переходим на планировщик
+      window.location.href = `/planner?plan=${planId}`
+    }
   }
 
   return (

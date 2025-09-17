@@ -4,19 +4,20 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
     try {
-        // Проверяем переменные окружения
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        const { planId, successUrl, cancelUrl } = await request.json()
 
-            const { planId } = await request.json()
+        // Проверяем режим разработки (mock режим)
+        if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' || !process.env.TINKOFF_TERMINAL_KEY) {
+            console.log('🧪 MOCK РЕЖИМ: Создание checkout сессии для плана:', planId)
 
             // Заглушка для режима разработки
             return NextResponse.json({
                 success: true,
                 data: {
-                    sessionId: 'dev-session-' + Date.now(),
-                    url: '/planner?payment=success',
-                    message: 'Checkout сессия (заглушка - режим разработки)'
+                    sessionId: 'mock-session-' + Date.now(),
+                    url: successUrl || '/planner?payment=success&plan=' + planId,
+                    message: 'Checkout сессия (заглушка - режим разработки)',
+                    planId: planId
                 }
             })
         }

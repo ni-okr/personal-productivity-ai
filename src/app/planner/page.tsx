@@ -12,7 +12,8 @@ import { analyzeProductivityAndSuggest, smartTaskPrioritization } from '@/lib/sm
 import { useAppStore } from '@/stores/useAppStore'
 import { Task, TaskPriority } from '@/types'
 import { validateTask } from '@/utils/validation'
-import { BrainIcon, CalendarIcon, CheckCircleIcon, ClockIcon, CrownIcon, LightbulbIcon, LockIcon, PlusIcon, TrendingUpIcon, ZapIcon } from 'lucide-react'
+import { BrainIcon, CalendarIcon, CheckCircleIcon, ClockIcon, CrownIcon, HomeIcon, LightbulbIcon, LockIcon, LogOutIcon, PlusIcon, SettingsIcon, TrendingUpIcon, UserIcon, ZapIcon } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 function PlannerPageContent() {
@@ -70,6 +71,7 @@ function PlannerPageContent() {
     } : null
 
     const [showAddTask, setShowAddTask] = useState(false)
+    const [showMobileMenu, setShowMobileMenu] = useState(false)
     const [newTask, setNewTask] = useState({
         title: '',
         description: '',
@@ -339,11 +341,41 @@ function PlannerPageContent() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
+                            {/* Мобильное меню */}
+                            <div className="md:hidden">
+                                <Button
+                                    onClick={() => setShowMobileMenu(!showMobileMenu)}
+                                    variant="outline"
+                                    size="sm"
+                                >
+                                    ☰
+                                </Button>
+                            </div>
+
+                            {/* Навигационное меню */}
+                            <div className="hidden md:flex items-center gap-2">
+                                <Link href="/" className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <HomeIcon className="w-4 h-4" />
+                                    Главная
+                                </Link>
+                                <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <UserIcon className="w-4 h-4" />
+                                    Профиль
+                                </Link>
+                                <Link href="/settings" className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <SettingsIcon className="w-4 h-4" />
+                                    Настройки
+                                </Link>
+                            </div>
+
+                            {/* Статистика */}
                             <div className="text-right">
                                 <p className="text-sm text-gray-600">Сегодня выполнено</p>
                                 <p className="text-lg font-semibold text-green-600">{completedTasksToday().length} задач</p>
                             </div>
+
+                            {/* Кнопка добавления задачи */}
                             <Button
                                 onClick={() => setShowAddTask(true)}
                                 className="gap-2"
@@ -353,10 +385,70 @@ function PlannerPageContent() {
                                 <PlusIcon className="w-4 h-4" />
                                 Добавить задачу
                             </Button>
+
+                            {/* Кнопка выхода */}
+                            <Button
+                                onClick={() => {
+                                    if (typeof window !== 'undefined') {
+                                        window.location.href = '/'
+                                    }
+                                }}
+                                variant="outline"
+                                className="gap-2"
+                            >
+                                <LogOutIcon className="w-4 h-4" />
+                                Выйти
+                            </Button>
                         </div>
                     </div>
                 </div>
             </header>
+
+            {/* Мобильное меню */}
+            {showMobileMenu && (
+                <div className="md:hidden bg-white border-b shadow-sm">
+                    <div className="container mx-auto px-4 py-4">
+                        <div className="flex flex-col gap-2">
+                            <Link 
+                                href="/" 
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                onClick={() => setShowMobileMenu(false)}
+                            >
+                                <HomeIcon className="w-4 h-4" />
+                                Главная
+                            </Link>
+                            <Link 
+                                href="/profile" 
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                onClick={() => setShowMobileMenu(false)}
+                            >
+                                <UserIcon className="w-4 h-4" />
+                                Профиль
+                            </Link>
+                            <Link 
+                                href="/settings" 
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                onClick={() => setShowMobileMenu(false)}
+                            >
+                                <SettingsIcon className="w-4 h-4" />
+                                Настройки
+                            </Link>
+                            <button
+                                onClick={() => {
+                                    setShowMobileMenu(false)
+                                    if (typeof window !== 'undefined') {
+                                        window.location.href = '/'
+                                    }
+                                }}
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-left"
+                            >
+                                <LogOutIcon className="w-4 h-4" />
+                                Выйти
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Ошибки */}
             {error && (
