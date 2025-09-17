@@ -267,6 +267,7 @@ class TinkoffAPI {
             PayType: 'T', // Тестовый режим
             Language: 'ru',
             Email: 'test@taskai.space',
+            Phone: '+79001234567', // Добавляем телефон для избежания ошибки 329
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
             FailURL: `https://taskai.space/planner?payment=failed`
