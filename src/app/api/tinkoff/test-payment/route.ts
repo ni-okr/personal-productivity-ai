@@ -27,42 +27,22 @@ export async function POST(request: NextRequest) {
             hasSecretKey: !!process.env.TINKOFF_SECRET_KEY
         })
 
-        // Временно отключаем реальный API Тинькофф (ключи не работают)
-        const hasTinkoffKeys = false // process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
+        // Проверяем есть ли ключи Тинькофф
+        const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
+        
+        // Временно используем тестовые ключи из документации
+        const terminalKey = process.env.TINKOFF_TERMINAL_KEY || 'TestTerminalKey'
+        const secretKey = process.env.TINKOFF_SECRET_KEY || 'usaf8fw8fsw21g'
 
-        if (!hasTinkoffKeys) {
-            // Mock режим - возвращаем тестовые данные
-            console.log('🧪 Mock режим - ключи Тинькофф не настроены')
-
-               return NextResponse.json({
-                   success: true,
-                   data: {
-                       paymentId: `mock_${orderId}`,
-                       paymentUrl: `https://personal-productivity-ai.vercel.app/planner?payment=success&orderId=${orderId}`,
-                       orderId: orderId,
-                       amount: amount,
-                       description: description,
-                       testCardData: {
-                           number: '4300 0000 0000 0777',
-                           expiry: '12/30',
-                           cvv: '111'
-                       },
-                       instructions: {
-                           step1: 'Перейдите по ссылке для оплаты',
-                           step2: 'Используйте тестовую карту: 4300 0000 0000 0777',
-                           step3: 'Срок действия: 12/30, CVV: 111',
-                           step4: 'Ожидайте статус "Оплачено"'
-                       },
-                       mockMode: true,
-                       setupRequired: false,
-                       setupMessage: 'Mock режим - тестовые платежи работают без реальных API ключей'
-                   }
-               })
-        }
+        // Всегда пытаемся использовать реальный API Тинькофф
+        console.log('💳 Используем API Тинькофф с ключами:', {
+            terminalKey: terminalKey,
+            secretKey: secretKey ? 'SET' : 'NOT_SET'
+        })
 
         // Реальный режим - используем Тинькофф API
         console.log('💳 Реальный режим - используем Тинькофф API')
-        const paymentResponse = await createTestTinkoffPayment(amount, description, orderId)
+        const paymentResponse = await createTestTinkoffPayment(amount, description, orderId, terminalKey, secretKey)
 
         if (!paymentResponse.Success) {
             console.error('Ошибка Тинькофф API:', {
@@ -70,7 +50,7 @@ export async function POST(request: NextRequest) {
                 Message: paymentResponse.Message,
                 Details: paymentResponse.Details
             })
-            
+
             return NextResponse.json(
                 {
                     success: false,

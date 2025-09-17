@@ -1,7 +1,6 @@
 // 💳 Компонент карточки плана подписки
 'use client'
 
-import { TestPaymentModal } from '@/components/payment/TestPaymentModal'
 import { Button } from '@/components/ui/Button'
 import { SubscriptionPlan } from '@/types'
 import { CheckIcon, StarIcon } from 'lucide-react'
@@ -20,7 +19,6 @@ export function SubscriptionCard({
     onSelect,
     isLoading = false
 }: SubscriptionCardProps) {
-    const [showTestPayment, setShowTestPayment] = useState(false)
     const isCurrentPlan = currentTier === plan.tier
     const isPopular = plan.tier === 'premium'
     const isEnterprise = plan.tier === 'enterprise'
@@ -149,7 +147,34 @@ export function SubscriptionCard({
                 {/* Кнопка тестирования для платных планов */}
                 {plan.price > 0 && !isCurrentPlan && (
                     <Button
-                        onClick={() => setShowTestPayment(true)}
+                        onClick={async () => {
+                            try {
+                                // Вызываем API для создания платежа
+                                const response = await fetch('/api/tinkoff/test-payment', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        amount: plan.price,
+                                        description: `Подписка ${plan.name}`,
+                                        planId: plan.id
+                                    })
+                                })
+                                
+                                const result = await response.json()
+                                
+                                if (result.success && result.data.paymentUrl) {
+                                    // Открываем окно Тинькофф
+                                    window.open(result.data.paymentUrl, '_blank', 'width=800,height=600')
+                                } else {
+                                    alert('Ошибка создания платежа: ' + result.error)
+                                }
+                            } catch (error) {
+                                console.error('Ошибка:', error)
+                                alert('Ошибка создания платежа')
+                            }
+                        }}
                         variant="outline"
                         size="sm"
                         className="w-full"
@@ -159,23 +184,6 @@ export function SubscriptionCard({
                 )}
             </div>
 
-            {/* Модальное окно тестового платежа */}
-            <TestPaymentModal
-                isOpen={showTestPayment}
-                onClose={() => setShowTestPayment(false)}
-                onSuccess={() => {
-                    setShowTestPayment(false)
-                    // Здесь можно добавить логику успешной оплаты
-                    alert('Тестовый платеж успешно выполнен!')
-                }}
-                testCardData={{
-                    number: '4300 0000 0000 0777',
-                    expiry: '12/30',
-                    cvv: '111'
-                }}
-                amount={plan.price / 100}
-                description={`Подписка ${plan.name}`}
-            />
         </div>
     )
 }

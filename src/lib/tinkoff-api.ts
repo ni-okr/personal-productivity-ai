@@ -96,6 +96,14 @@ class TinkoffAPI {
     }
 
     /**
+     * Установить ключи API
+     */
+    setKeys(terminalKey: string, secretKey: string) {
+        this.terminalKey = terminalKey
+        this.secretKey = secretKey
+    }
+
+    /**
      * 🔐 Генерация подписи для запроса согласно документации Тинькофф
      */
     private generateToken(data: Record<string, any>): string {
@@ -285,7 +293,13 @@ export async function getTinkoffPaymentState(request: TinkoffGetStateRequest): P
     return tinkoffAPI.getState(request)
 }
 
-export async function createTestTinkoffPayment(amount: number, description: string, orderId: string): Promise<TinkoffInitResponse> {
+export async function createTestTinkoffPayment(amount: number, description: string, orderId: string, terminalKey?: string, secretKey?: string): Promise<TinkoffInitResponse> {
+    if (terminalKey && secretKey) {
+        // Создаем новый экземпляр с переданными ключами
+        const customTinkoffAPI = new TinkoffAPI()
+        customTinkoffAPI.setKeys(terminalKey, secretKey)
+        return customTinkoffAPI.createTestPayment(amount, description, orderId)
+    }
     return tinkoffAPI.createTestPayment(amount, description, orderId)
 }
 
