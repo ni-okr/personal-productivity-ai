@@ -15,6 +15,7 @@ export interface TinkoffInitRequest {
     SuccessURL?: string
     FailURL?: string
     Receipt?: {
+        Email?: string
         EmailCompany: string
         Taxation: 'osn' | 'usn_income' | 'usn_income_outcome' | 'envd' | 'esn' | 'patent'
         Items: Array<{
@@ -271,8 +272,9 @@ class TinkoffAPI {
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
             FailURL: `https://taskai.space/planner?payment=failed`,
-            // Минимальный Receipt без Email внутри (Email уже в корне)
+            // Receipt с Email внутри
             Receipt: {
+                Email: 'test@taskai.space', // Добавляем Email в Receipt
                 EmailCompany: 'support@taskai.space',
                 Taxation: 'usn_income',
                 Items: [{
