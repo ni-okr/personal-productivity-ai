@@ -34,30 +34,30 @@ export async function POST(request: NextRequest) {
             // Mock режим - возвращаем тестовые данные
             console.log('🧪 Mock режим - ключи Тинькофф не настроены')
 
-            return NextResponse.json({
-                success: true,
-                data: {
-                    paymentId: `mock_${orderId}`,
-                    paymentUrl: `https://personal-productivity-ai.vercel.app/planner?payment=success&orderId=${orderId}`,
-                    orderId: orderId,
-                    amount: amount,
-                    description: description,
-                    testCardData: {
-                        number: '4300 0000 0000 0777',
-                        expiry: '12/30',
-                        cvv: '111'
-                    },
-                    instructions: {
-                        step1: 'Перейдите по ссылке для оплаты',
-                        step2: 'Используйте тестовую карту: 4300 0000 0000 0777',
-                        step3: 'Срок действия: 12/30, CVV: 111',
-                        step4: 'Ожидайте статус "Оплачено"'
-                    },
-                    mockMode: true,
-                    setupRequired: true,
-                    setupMessage: 'Для реальных платежей настройте TINKOFF_TERMINAL_KEY и TINKOFF_SECRET_KEY в Vercel'
-                }
-            })
+               return NextResponse.json({
+                   success: true,
+                   data: {
+                       paymentId: `mock_${orderId}`,
+                       paymentUrl: `https://personal-productivity-ai.vercel.app/planner?payment=success&orderId=${orderId}`,
+                       orderId: orderId,
+                       amount: amount,
+                       description: description,
+                       testCardData: {
+                           number: '4300 0000 0000 0777',
+                           expiry: '12/30',
+                           cvv: '111'
+                       },
+                       instructions: {
+                           step1: 'Перейдите по ссылке для оплаты',
+                           step2: 'Используйте тестовую карту: 4300 0000 0000 0777',
+                           step3: 'Срок действия: 12/30, CVV: 111',
+                           step4: 'Ожидайте статус "Оплачено"'
+                       },
+                       mockMode: true,
+                       setupRequired: false,
+                       setupMessage: 'Mock режим - тестовые платежи работают без реальных API ключей'
+                   }
+               })
         }
 
         // Реальный режим - используем Тинькофф API

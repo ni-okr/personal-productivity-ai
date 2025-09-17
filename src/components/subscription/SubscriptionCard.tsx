@@ -163,9 +163,18 @@ export function SubscriptionCard({
             <TestPaymentModal
                 isOpen={showTestPayment}
                 onClose={() => setShowTestPayment(false)}
-                planId={plan.id}
-                planName={plan.name}
+                onSuccess={() => {
+                    setShowTestPayment(false)
+                    // Здесь можно добавить логику успешной оплаты
+                    alert('Тестовый платеж успешно выполнен!')
+                }}
+                testCardData={{
+                    number: '4300 0000 0000 0777',
+                    expiry: '12/30',
+                    cvv: '111'
+                }}
                 amount={plan.price / 100}
+                description={`Подписка ${plan.name}`}
             />
         </div>
     )
