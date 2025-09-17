@@ -1,10 +1,10 @@
 // 💳 Компонент карточки плана подписки
 'use client'
 
+import { TestPaymentModal } from '@/components/payment/TestPaymentModal'
 import { Button } from '@/components/ui/Button'
 import { SubscriptionPlan } from '@/types'
 import { CheckIcon, StarIcon } from 'lucide-react'
-import { TestPaymentModal } from '@/components/payment/TestPaymentModal'
 import { useState } from 'react'
 
 interface SubscriptionCardProps {
@@ -145,7 +145,7 @@ export function SubscriptionCard({
                         isEnterprise ? 'Связаться с нами' :
                             'Выбрать план'}
                 </Button>
-                
+
                 {/* Кнопка тестирования для платных планов */}
                 {plan.price > 0 && !isCurrentPlan && (
                     <Button
