@@ -268,17 +268,18 @@ class TinkoffAPI {
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
             FailURL: `https://taskai.space/planner?payment=failed`,
-            Receipt: {
-                EmailCompany: 'support@taskai.space',
-                Taxation: 'usn_income',
-                Items: [{
-                    Name: description,
-                    Price: amount * 100,
-                    Quantity: 1,
-                    Amount: amount * 100,
-                    Tax: 'vat20'
-                }]
-            }
+            // Временно убираем Receipt для избежания ошибки 329
+            // Receipt: {
+            //     EmailCompany: 'support@taskai.space',
+            //     Taxation: 'usn_income',
+            //     Items: [{
+            //         Name: description,
+            //         Price: amount * 100,
+            //         Quantity: 1,
+            //         Amount: amount * 100,
+            //         Tax: 'vat20'
+            //     }]
+            // }
         }
 
         return this.initPayment(request)
