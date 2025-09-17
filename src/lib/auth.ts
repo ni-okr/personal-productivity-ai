@@ -1,6 +1,27 @@
 // 🔐 Система авторизации с Supabase Auth
 import { User } from '@/types'
+import { validateEmail, validateName, validatePassword } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
+import { mockGetCurrentUser, mockGetUserProfile, mockOnAuthStateChange, mockSignInWithState, mockSignOutWithState, mockSignUpWithState, mockUpdateUserProfile } from './auth-mock'
+
+// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
+const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
+const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+const TEST_EMAIL_DOMAIN = process.env.TEST_EMAIL_DOMAIN || '@example.test'
+
+// Проверка на тестовые email адреса
+const isTestEmail = (email: string): boolean => {
+    return email.endsWith('@example.test') ||
+        email.endsWith('@test.local') ||
+        email.includes('test@') ||
+        email.includes('demo@')
+}
+
+// Проверка на реальные email адреса (запрещены в dev режиме)
+const isRealEmail = (email: string): boolean => {
+    const realDomains = ['@gmail.com', '@yahoo.com', '@outlook.com', '@hotmail.com', '@yandex.ru', '@mail.ru']
+    return realDomains.some(domain => email.endsWith(domain))
+}
 
 export interface AuthUser {
     id: string
@@ -34,16 +55,54 @@ export interface AuthResponse {
  */
 export async function signUp({ email, password, name }: SignUpData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
-        // Проверяем наличие переменных окружения Supabase
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        // Валидация входных данных
+        const emailValidation = validateEmail(email)
+        if (!emailValidation.isValid) {
             return {
                 success: false,
-                error: 'Авторизация недоступна в режиме разработки'
+                error: emailValidation.errors[0]
             }
         }
 
-        // Импортируем Supabase только если есть переменные окружения
+        const passwordValidation = validatePassword(password)
+        if (!passwordValidation.isValid) {
+            return {
+                success: false,
+                error: passwordValidation.errors[0]
+            }
+        }
+
+        const nameValidation = validateName(name)
+        if (!nameValidation.isValid) {
+            return {
+                success: false,
+                error: nameValidation.errors[0]
+            }
+        }
+
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockSignUpWithState(email, password, name)
+        }
+
+        // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
+        if (DEV_MODE && isRealEmail(email)) {
+            return {
+                success: false,
+                error: 'В режиме разработки запрещено использовать реальные email адреса. Используйте @example.test'
+            }
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return {
+                success: false,
+                error: 'Авторизация недоступна - не настроены переменные окружения'
+            }
+        }
+
+        // Импортируем Supabase
         const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
@@ -73,24 +132,29 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
         }
 
         // 2. Создаем профиль пользователя в нашей таблице users
-        // Временно закомментировано для build
-        /*
-        const { error: profileError } = await supabase
+        // RLS политики исправлены - создание профиля включено
+        const userProfile = {
+            id: authData.user.id,
+            email: authData.user.email!,
+            name: name,
+            subscription: 'free' as const,
+            preferences: {
+                workingHours: { start: '09:00', end: '18:00' },
+                focusTime: 25,
+                breakTime: 5,
+                notifications: { email: true, push: true, desktop: true },
+                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+            }
+        }
+
+        const { error: profileError } = await (supabase as any)
             .from('users')
-            .insert({
-                id: authData.user.id,
-                email: authData.user.email,
-                name: name,
-                subscription: 'free',
-                created_at: new Date().toISOString(),
-                last_login_at: new Date().toISOString()
-            })
+            .insert(userProfile)
 
         if (profileError) {
             console.error('Ошибка создания профиля:', profileError)
             // Не критично, профиль можно создать позже
         }
-        */
 
         return {
             success: true,
@@ -127,16 +191,45 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
  */
 export async function signIn({ email, password }: SignInData): Promise<{ success: boolean; user?: User; error?: string }> {
     try {
-        // Проверяем наличие переменных окружения Supabase
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        // Валидация входных данных
+        const emailValidation = validateEmail(email)
+        if (!emailValidation.isValid) {
             return {
                 success: false,
-                error: 'Авторизация недоступна в режиме разработки'
+                error: emailValidation.errors[0]
             }
         }
 
-        // Импортируем Supabase только если есть переменные окружения
+        if (!password || password.length === 0) {
+            return {
+                success: false,
+                error: 'Пароль обязателен'
+            }
+        }
+
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockSignInWithState(email, password)
+        }
+
+        // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
+        if (DEV_MODE && isRealEmail(email)) {
+            return {
+                success: false,
+                error: 'В режиме разработки запрещено использовать реальные email адреса. Используйте @example.test'
+            }
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return {
+                success: false,
+                error: 'Авторизация недоступна - не настроены переменные окружения'
+            }
+        }
+
+        // Импортируем Supabase
         const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
@@ -160,20 +253,17 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
         }
 
         // Обновляем время последнего входа
-        // Временно закомментировано для build
-        /*
-        await supabase
+        await (supabase as any)
             .from('users')
             .update({ last_login_at: new Date().toISOString() })
             .eq('id', data.user.id)
-        */
 
         // Получаем полный профиль пользователя
-        const userProfile = await getUserProfile(data.user.id)
+        const userProfileResponse = await getUserProfile(data.user.id)
 
         return {
             success: true,
-            user: userProfile ?? {
+            user: userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : {
                 id: data.user.id,
                 email: data.user.email!,
                 name: data.user.user_metadata?.name || 'Пользователь',
@@ -206,16 +296,21 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
  */
 export async function signOut(): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockSignOutWithState()
+        }
+
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+            console.log('⚠️ Переменные окружения Supabase не настроены')
             return {
-                success: true,
-                message: 'Выход выполнен (заглушка)'
+                success: false,
+                error: 'Авторизация недоступна - не настроены переменные окружения'
             }
         }
 
-        // Импортируем Supabase только если есть переменные окружения
+        // Импортируем Supabase
         const { getSupabaseClient } = await import('./supabase')
         const supabase = getSupabaseClient()
 
@@ -244,11 +339,27 @@ export async function signOut(): Promise<AuthResponse> {
 /**
  * 👤 Получение профиля пользователя
  */
-export async function getUserProfile(userId: string): Promise<User | null> {
+export async function getUserProfile(userId: string): Promise<AuthResponse> {
     try {
-        // Временно закомментировано для build
-        /*
-        const { data, error } = await supabase
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Получение профиля без реальных запросов к Supabase')
+            return await mockGetUserProfile(userId)
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return {
+                success: false,
+                error: 'Профиль не найден'
+            }
+        }
+
+        const { getSupabaseClient } = await import('./supabase')
+        const supabase = getSupabaseClient()
+
+        const { data, error } = await (supabase as any)
             .from('users')
             .select('*')
             .eq('id', userId)
@@ -256,51 +367,39 @@ export async function getUserProfile(userId: string): Promise<User | null> {
 
         if (error || !data) {
             console.error('Ошибка получения профиля:', error)
-            return null
+            return {
+                success: false,
+                error: 'Профиль не найден'
+            }
         }
 
         return {
-            id: data.id,
-            email: data.email,
-            name: data.name,
-            avatar: data.avatar,
-            timezone: data.timezone || 'Europe/Moscow',
-            subscription: data.subscription || 'free',
-            subscriptionStatus: data.subscription_status || 'active',
-            preferences: data.preferences || {
-                workingHours: { start: '09:00', end: '18:00' },
-                focusTime: 25,
-                breakTime: 5,
-                notifications: { email: true, push: true, desktop: true },
-                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-            },
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at || data.created_at)
-        }
-        */
-
-        // Временная заглушка
-        return {
-            id: userId,
-            email: 'user@example.com',
-            name: 'User',
-            avatar: undefined,
-            timezone: 'Europe/Moscow',
-            subscription: 'free' as const,
-            subscriptionStatus: 'active' as const,
-            preferences: {
-                workingHours: { start: '09:00', end: '18:00' },
-                focusTime: 25,
-                breakTime: 5,
-                notifications: { email: true, push: true, desktop: true },
-                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-            },
-            createdAt: new Date(),
-            updatedAt: new Date()
+            success: true,
+            user: {
+                id: data.id,
+                email: data.email,
+                name: data.name,
+                avatar: data.avatar,
+                timezone: data.timezone || 'Europe/Moscow',
+                subscription: data.subscription || 'free',
+                subscriptionStatus: data.subscription_status || 'active',
+                preferences: data.preferences || {
+                    workingHours: { start: '09:00', end: '18:00' },
+                    focusTime: 25,
+                    breakTime: 5,
+                    notifications: { email: true, push: true, desktop: true },
+                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                },
+                createdAt: new Date(data.created_at),
+                updatedAt: new Date(data.updated_at || data.created_at)
+            }
         }
     } catch (error) {
         console.error('Ошибка получения профиля:', error)
-        return null
+        return {
+            success: false,
+            error: 'Профиль не найден'
+        }
     }
 }
 
@@ -312,9 +411,25 @@ export async function updateUserProfile(
     updates: Partial<Pick<AuthUser, 'name' | 'subscription'>>
 ): Promise<AuthResponse> {
     try {
-        // Временно закомментировано для build
-        /*
-        const { data, error } = await supabase
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Обновление профиля без реальных запросов к Supabase')
+            return await mockUpdateUserProfile(userId, updates)
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return {
+                success: false,
+                error: 'Авторизация недоступна - не настроены переменные окружения'
+            }
+        }
+
+        const { getSupabaseClient } = await import('./supabase')
+        const supabase = getSupabaseClient()
+
+        const { data, error } = await (supabase as any)
             .from('users')
             .update(updates)
             .eq('id', userId)
@@ -350,31 +465,6 @@ export async function updateUserProfile(
                 updatedAt: new Date(data.updated_at || data.created_at)
             }
         }
-        */
-
-        // Временная заглушка
-        return {
-            success: true,
-            message: 'Профиль успешно обновлен',
-            user: {
-                id: userId,
-                email: 'user@example.com',
-                name: updates.name || 'User',
-                avatar: undefined,
-                timezone: 'Europe/Moscow',
-                subscription: updates.subscription || 'free',
-                subscriptionStatus: 'active' as const,
-                preferences: {
-                    workingHours: { start: '09:00', end: '18:00' },
-                    focusTime: 25,
-                    breakTime: 5,
-                    notifications: { email: true, push: true, desktop: true },
-                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-                },
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-        }
     } catch (error) {
         console.error('Ошибка обновления профиля:', error)
         return {
@@ -389,10 +479,29 @@ export async function updateUserProfile(
  */
 export async function resetPassword(email: string): Promise<AuthResponse> {
     try {
-        // Временно закомментировано для build
-        /*
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Сброс пароля без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock инструкции по сбросу пароля отправлены'
+            }
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return {
+                success: false,
+                error: 'Авторизация недоступна - не настроены переменные окружения'
+            }
+        }
+
+        const { getSupabaseClient } = await import('./supabase')
+        const supabase = getSupabaseClient()
+
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`
+            redirectTo: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/reset-password`
         })
 
         if (error) {
@@ -402,13 +511,6 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
             }
         }
 
-        return {
-            success: true,
-            message: 'Инструкции по сбросу пароля отправлены на email'
-        }
-        */
-
-        // Временная заглушка
         return {
             success: true,
             message: 'Инструкции по сбросу пароля отправлены на email'
@@ -427,36 +529,28 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
  */
 export async function getCurrentUser(): Promise<User | null> {
     try {
-        // Временно закомментировано для build
-        /*
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockGetCurrentUser()
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return null
+        }
+
+        const { getSupabaseClient } = await import('./supabase')
+        const supabase = getSupabaseClient()
+
         const { data: { user }, error } = await supabase.auth.getUser()
 
         if (error || !user) {
             return null
         }
 
-        return await getUserProfile(user.id)
-        */
-
-        // Временная заглушка
-        return {
-            id: 'test-user-id',
-            email: 'test@example.com',
-            name: 'Test User',
-            avatar: undefined,
-            timezone: 'Europe/Moscow',
-            subscription: 'free' as const,
-            subscriptionStatus: 'active' as const,
-            preferences: {
-                workingHours: { start: '09:00', end: '18:00' },
-                focusTime: 25,
-                breakTime: 5,
-                notifications: { email: true, push: true, desktop: true },
-                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-            },
-            createdAt: new Date(),
-            updatedAt: new Date()
-        }
+        const userProfileResponse = await getUserProfile(user.id)
+        return userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : null
     } catch (error) {
         console.error('Ошибка получения текущего пользователя:', error)
         return null
@@ -468,6 +562,15 @@ export async function getCurrentUser(): Promise<User | null> {
  */
 export async function confirmEmail(token: string): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Подтверждение email без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock email подтвержден успешно'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { data, error } = await supabase.auth.verifyOtp({
@@ -509,6 +612,15 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
  */
 export async function updatePassword(newPassword: string): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Обновление пароля без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock пароль обновлен успешно'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { error } = await supabase.auth.updateUser({
@@ -546,6 +658,11 @@ export async function updatePassword(newPassword: string): Promise<AuthResponse>
  * 📱 Подписка на изменения авторизации
  */
 export function onAuthStateChange(callback: (user: User | null) => void) {
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+        return mockOnAuthStateChange(callback)
+    }
+
     // Временно закомментировано для build
     /*
     return supabase.auth.onAuthStateChange(async (event, session) => {
@@ -567,6 +684,15 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
  */
 export async function signInWithGoogle(): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Вход через Google без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock вход через Google успешен'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { data, error } = await supabase.auth.signInWithOAuth({
@@ -608,6 +734,15 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
  */
 export async function signInWithGitHub(): Promise<AuthResponse> {
     try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            console.log('🧪 MOCK РЕЖИМ: Вход через GitHub без реальных запросов к Supabase')
+            return {
+                success: true,
+                message: 'Mock вход через GitHub успешен'
+            }
+        }
+
         // Временно закомментировано для build
         /*
         const { data, error } = await supabase.auth.signInWithOAuth({

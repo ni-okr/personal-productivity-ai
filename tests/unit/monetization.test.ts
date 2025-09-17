@@ -1,16 +1,37 @@
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.026Z
+ * Оригинальный файл сохранен как: tests/unit/monetization.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Unit тесты для системы монетизации
 import { getSubscriptionPlan, getSubscriptionPlans } from '@/lib/subscriptions'
 import { createPaymentSession, getTinkoffPriceId } from '@/lib/tinkoff'
 import { beforeEach, describe, expect, it } from '@jest/globals'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks } from '../framework'
+
 
 describe('Monetization System', () => {
     beforeEach(() => {
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.UNIT)
+        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Test Suite')
         jest.clearAllMocks()
     })
 
     describe('Subscription Plans - Revenue Validation', () => {
         it('должна иметь правильные цены для монетизации', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            expect(result.plans).toBeDefined()
+
+            const plans = result.plans!
 
             // Проверяем что все планы имеют правильные цены
             const freePlan = plans.find(p => p.tier === 'free')
@@ -20,26 +41,28 @@ describe('Monetization System', () => {
 
             // Free план должен быть бесплатным
             expect(freePlan?.price).toBe(0)
-            expect(freePlan?.currency).toBe('RUB')
+            expect(freePlan?.currency).toBe('rub')
 
             // Premium план - 999 рублей в месяц
             expect(premiumPlan?.price).toBe(99900) // в копейках
-            expect(premiumPlan?.currency).toBe('RUB')
+            expect(premiumPlan?.currency).toBe('rub')
             expect(premiumPlan?.interval).toBe('month')
 
             // Pro план - 1999 рублей в месяц
             expect(proPlan?.price).toBe(199900) // в копейках
-            expect(proPlan?.currency).toBe('RUB')
+            expect(proPlan?.currency).toBe('rub')
             expect(proPlan?.interval).toBe('month')
 
             // Enterprise план - 4999 рублей в месяц
             expect(enterprisePlan?.price).toBe(499900) // в копейках
-            expect(enterprisePlan?.currency).toBe('RUB')
+            expect(enterprisePlan?.currency).toBe('rub')
             expect(enterprisePlan?.interval).toBe('month')
         })
 
         it('должна иметь правильные лимиты для каждого плана', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
 
             plans.forEach(plan => {
                 expect(plan.limits).toBeDefined()
@@ -62,7 +85,9 @@ describe('Monetization System', () => {
         })
 
         it('должна иметь правильные Тинькофф ID для платежей', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
 
             plans.forEach(plan => {
                 if (plan.tier === 'free') {
@@ -122,7 +147,9 @@ describe('Monetization System', () => {
 
     describe('Revenue Calculations', () => {
         it('должна правильно рассчитывать месячную выручку', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
 
             // Симулируем 100 пользователей на каждом плане
             const usersPerPlan = 100
@@ -136,7 +163,9 @@ describe('Monetization System', () => {
         })
 
         it('должна правильно рассчитывать годовую выручку', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
 
             const usersPerPlan = 100
             const monthlyRevenue = plans.reduce((total, plan) => {
@@ -151,7 +180,9 @@ describe('Monetization System', () => {
 
     describe('Business Logic Validation', () => {
         it('должна обеспечивать правильную прогрессию цен', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
             const paidPlans = plans.filter(p => p.tier !== 'free')
 
             // Сортируем по цене
@@ -164,7 +195,9 @@ describe('Monetization System', () => {
         })
 
         it('должна обеспечивать правильную прогрессию лимитов', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
             const sortedPlans = plans.sort((a, b) => a.price - b.price)
 
             // Проверяем что лимиты растут с ценой (исключаем -1 как неограниченно)
@@ -186,7 +219,9 @@ describe('Monetization System', () => {
         })
 
         it('должна иметь разумные цены для российского рынка', () => {
-            const plans = getSubscriptionPlans()
+            const result = getSubscriptionPlans()
+            expect(result.success).toBe(true)
+            const plans = result.plans!
             const paidPlans = plans.filter(p => p.tier !== 'free')
 
             paidPlans.forEach(plan => {

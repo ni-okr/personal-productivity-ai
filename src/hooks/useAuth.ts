@@ -14,10 +14,19 @@ export function useAuth() {
     useEffect(() => {
         let mounted = true
 
+        // В mock режиме просто устанавливаем isLoading = false
+        if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true') {
+            if (mounted) {
+                setIsLoading(false)
+            }
+            return
+        }
+
         // Получаем текущего пользователя при загрузке
         const initAuth = async () => {
             try {
                 const currentUser = await getCurrentUser()
+
                 if (mounted) {
                     setUser(currentUser)
                 }
@@ -33,14 +42,24 @@ export function useAuth() {
             }
         }
 
-        initAuth()
+        // Инициализируем авторизацию и подписку
+        const initAuthAndSubscription = async () => {
+            await initAuth()
 
-        // Подписываемся на изменения авторизации
-        const { data: { subscription } } = onAuthStateChange((user: User | null) => {
-            if (mounted) {
-                setUser(user)
-                setIsLoading(false)
-            }
+            // Подписываемся на изменения авторизации
+            const { data: { subscription: realSubscription } } = onAuthStateChange((user: User | null) => {
+                if (mounted) {
+                    setUser(user)
+                    setIsLoading(false)
+                }
+            })
+
+            return realSubscription
+        }
+
+        let subscription: any = null
+        initAuthAndSubscription().then(sub => {
+            subscription = sub
         })
 
         return () => {
@@ -64,8 +83,8 @@ export function useAuth() {
     }
 
     return {
-        user,
-        isLoading,
+        user: process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' ? user : user,
+        isLoading: process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' ? false : isLoading,
         isAuthenticated: !!user,
         requireAuth,
         requireGuest

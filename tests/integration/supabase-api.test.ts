@@ -1,3 +1,15 @@
+import { testFramework, testLogger, testMocks, testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.028Z
+ * Оригинальный файл сохранен как: tests/integration/supabase-api.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 /**
  * Интеграционные тесты для Supabase API
  * 
@@ -24,7 +36,7 @@ describe('🗄️ Supabase API Integration', () => {
                 .delete()
                 .in('email', [testEmail, testEmail2])
         } catch (error) {
-            console.warn('Не удалось очистить тестовые данные перед тестом:', error)
+            testLogger.warn('TEST', 'Не удалось очистить тестовые данные перед тестом:', error)
         }
     })
 
@@ -45,7 +57,7 @@ describe('🗄️ Supabase API Integration', () => {
                 .gte('created_at', fiveMinutesAgo)
                 .like('email', 'test-%@example.com')
         } catch (error) {
-            console.warn('Не удалось очистить тестовые данные:', error)
+            testLogger.warn('TEST', 'Не удалось очистить тестовые данные:', error)
         }
     })
 
@@ -61,11 +73,13 @@ describe('🗄️ Supabase API Integration', () => {
         }, 10000)
 
         test('🔄 Предотвращение дублирования email', async () => {
+            const duplicateEmail = `duplicate-${Date.now()}@example.com`
+
             // Добавляем подписчика первый раз
-            await addSubscriber(testEmail)
+            await addSubscriber(duplicateEmail)
 
             // Пытаемся добавить того же подписчика
-            const result = await addSubscriber(testEmail)
+            const result = await addSubscriber(duplicateEmail)
 
             expect(result.success).toBe(false)
             expect(result.message).toContain('уже подписан')
@@ -85,9 +99,12 @@ describe('🗄️ Supabase API Integration', () => {
         }, 15000)
 
         test('📋 Получение списка активных подписчиков', async () => {
+            const listEmail1 = `list-${Date.now()}-1@example.com`
+            const listEmail2 = `list-${Date.now()}-2@example.com`
+
             // Добавляем тестовых подписчиков
-            const result1 = await addSubscriber(testEmail)
-            const result2 = await addSubscriber(testEmail2)
+            const result1 = await addSubscriber(listEmail1)
+            const result2 = await addSubscriber(listEmail2)
 
             // Проверяем, что подписчики добавлены успешно
             expect(result1.success).toBe(true)
@@ -99,7 +116,7 @@ describe('🗄️ Supabase API Integration', () => {
 
             // Проверяем, что наши тестовые подписчики есть в списке
             const testSubscribers = subscribers.filter(s =>
-                s.email === testEmail || s.email === testEmail2
+                s.email === listEmail1 || s.email === listEmail2
             )
 
             // Проверяем, что есть хотя бы наши тестовые подписчики
@@ -115,12 +132,14 @@ describe('🗄️ Supabase API Integration', () => {
         }, 15000)
 
         test('🚫 Отписка от уведомлений', async () => {
+            const unsubscribeEmail = `unsubscribe-${Date.now()}@example.com`
+
             // Сначала подписываемся
-            const subscribeResult = await addSubscriber(testEmail)
+            const subscribeResult = await addSubscriber(unsubscribeEmail)
             expect(subscribeResult.success).toBe(true)
 
             // Затем отписываемся
-            const result = await unsubscribe(testEmail)
+            const result = await unsubscribe(unsubscribeEmail)
 
             expect(result.success).toBe(true)
             expect(result.message).toContain('отписались')
@@ -129,11 +148,11 @@ describe('🗄️ Supabase API Integration', () => {
             const { data, error } = await supabase
                 .from('subscribers')
                 .select('is_active')
-                .eq('email', testEmail)
+                .eq('email', unsubscribeEmail)
                 .single()
 
             if (error) {
-                console.warn('Ошибка при проверке статуса отписки:', error)
+                testLogger.warn('TEST', 'Ошибка при проверке статуса отписки:', error)
                 // Если запрос не удался, проверяем альтернативным способом
                 const { data: allData } = await supabase
                     .from('subscribers')
@@ -185,9 +204,10 @@ describe('🗄️ Supabase API Integration', () => {
 
     describe('⚡ Производительность API', () => {
         test('🚀 Время отклика добавления подписчика', async () => {
+            const performanceEmail = `performance-${Date.now()}@example.com`
             const startTime = Date.now()
 
-            await addSubscriber(testEmail)
+            await addSubscriber(performanceEmail)
 
             const endTime = Date.now()
             const responseTime = endTime - startTime
@@ -195,7 +215,7 @@ describe('🗄️ Supabase API Integration', () => {
             // API должен отвечать быстро (менее 3 секунд)
             expect(responseTime).toBeLessThan(3000)
 
-            console.log(`⏱️ Время отклика API: ${responseTime}ms`)
+            testLogger.info('TEST', `⏱️ Время отклика API: ${responseTime}ms`)
         }, 5000)
 
         test('📈 Массовое добавление подписчиков', async () => {
@@ -224,7 +244,7 @@ describe('🗄️ Supabase API Integration', () => {
                 .delete()
                 .in('email', testEmails)
 
-            console.log(`⏱️ Время массового добавления 5 подписчиков: ${totalTime}ms`)
+            testLogger.info('TEST', `⏱️ Время массового добавления 5 подписчиков: ${totalTime}ms`)
 
             // Массовые операции должны выполняться разумно быстро
             expect(totalTime).toBeLessThan(10000)

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Database, SubscriberInsert } from '@/types/supabase'
 import { createClient } from '@supabase/supabase-js'
 
@@ -20,22 +19,11 @@ export function getSupabaseClient() {
   return supabaseClient
 }
 
-// Для обратной совместимости
-// Удаляем автоматический экспорт supabase клиента
-// export const supabase = getSupabaseClient()
+// Экспортируем клиент для удобства
+export const supabase = getSupabaseClient()
 
-// Временные типы
-export interface Subscriber {
-  id: string
-  email: string
-  source: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
-
-// Временные заглушки для функций
-export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: Subscriber }> {
+// Функции для работы с подписчиками
+export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: any }> {
   try {
     const supabase = getSupabaseClient()
 
@@ -45,9 +33,9 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
       is_active: true
     }
 
-    const { data, error } = await supabase
-      .from('subscribers' as any)
-      .insert(subscriberData as any)
+    const { data, error } = await (supabase as any)
+      .from('subscribers')
+      .insert(subscriberData)
       .select()
       .single()
 
@@ -71,14 +59,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
     return {
       success: true,
       message: 'Спасибо за подписку! Мы уведомим вас о запуске.',
-      data: {
-        id: (data as any).id,
-        email: (data as any).email,
-        source: (data as any).source,
-        is_active: (data as any).is_active,
-        created_at: (data as any).created_at,
-        updated_at: (data as any).updated_at
-      }
+      data: data
     }
   } catch (error: any) {
     console.error('🚨 Критическая ошибка в addSubscriber:', error)
@@ -89,12 +70,12 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
   }
 }
 
-export async function getActiveSubscribers(): Promise<Subscriber[]> {
+export async function getActiveSubscribers(): Promise<any[]> {
   try {
     const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscribers' as any)
+      .from('subscribers')
       .select('*')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -115,9 +96,9 @@ export async function unsubscribe(email: string): Promise<{ success: boolean; me
   try {
     const supabase = getSupabaseClient()
 
-    const { data, error } = await supabase
-      .from('subscribers' as any)
-      .update({ is_active: false } as any)
+    const { data, error } = await (supabase as any)
+      .from('subscribers')
+      .update({ is_active: false })
       .eq('email', email)
       .select()
 

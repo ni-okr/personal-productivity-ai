@@ -14,6 +14,63 @@ import { AICoachSuggestion, AppState, ProductivityMetrics, Task, User } from '@/
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 
+// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
+const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+
+// 🧪 DEPENDENCY INJECTION для тестирования
+interface TaskAPI {
+  getTasks: (userId: string) => Promise<any>
+  createTask: (userId: string, taskData: CreateTaskData) => Promise<any>
+  updateTask: (id: string, updates: UpdateTaskData) => Promise<any>
+  deleteTask: (id: string) => Promise<any>
+  completeTask: (id: string, actualDuration?: number) => Promise<any>
+  syncTasks: (userId: string) => Promise<any>
+  getTasksStats: (userId: string) => Promise<any>
+  getProductivityMetrics: (userId: string) => Promise<any>
+  getAISuggestions: (userId: string) => Promise<any>
+}
+
+// 🧪 Mock API для тестирования
+let mockTaskAPI: TaskAPI | null = null
+
+export const setMockTaskAPI = (api: TaskAPI | null) => {
+  mockTaskAPI = api
+}
+
+// 🧪 Функция для получения API (реального или mock)
+const getTaskAPI = async (): Promise<TaskAPI> => {
+  if (mockTaskAPI) {
+    return mockTaskAPI
+  }
+
+  if (DISABLE_EMAIL) {
+    const mockModule = await import('@/lib/tasks-mock')
+    return {
+      getTasks: mockModule.mockGetTasks,
+      createTask: mockModule.mockCreateTask,
+      updateTask: mockModule.mockUpdateTask,
+      deleteTask: mockModule.mockDeleteTask,
+      completeTask: mockModule.mockCompleteTask,
+      syncTasks: mockModule.mockSyncTasks,
+      getTasksStats: mockModule.mockGetTasksStats,
+      getProductivityMetrics: mockModule.mockGetProductivityMetrics,
+      getAISuggestions: mockModule.mockGetAISuggestions
+    }
+  }
+
+  return {
+    getTasks,
+    createTask,
+    updateTask: updateTaskApi,
+    deleteTask: deleteTaskApi,
+    completeTask,
+    syncTasks,
+    getTasksStats,
+    getProductivityMetrics: async () => null,
+    getAISuggestions: async () => []
+  }
+}
+
 interface AppStore extends AppState {
   // Actions
   setUser: (user: User | null) => void
@@ -59,7 +116,16 @@ export const useAppStore = create<AppStore>()(
       error: null,
 
       // Actions
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        set({ user })
+        // В mock режиме автоматически загружаем задачи при установке пользователя
+        if (DISABLE_EMAIL && user) {
+          // Загружаем задачи асинхронно
+          setTimeout(() => {
+            get().loadTasks()
+          }, 0)
+        }
+      },
 
       setTasks: (tasks) => set({ tasks }),
 
@@ -112,18 +178,40 @@ export const useAppStore = create<AppStore>()(
       // Supabase tasks actions
       loadTasks: async () => {
         const { user } = get()
-        if (!user) return
+        if (!user) {
+          console.log('🚨 loadTasks: Пользователь не найден')
+          return
+        }
+
+        console.log('🚨 loadTasks: Начинаем загрузку задач для пользователя', user.id)
+        console.log('🚨 loadTasks: DISABLE_EMAIL =', DISABLE_EMAIL)
 
         try {
           set({ isLoading: true, error: null })
-          const result = await getTasks(user.id)
+
+          const api = await getTaskAPI()
+          const result = await api.getTasks(user.id)
+
+          // Загружаем метрики и рекомендации
+          const metrics = await api.getProductivityMetrics(user.id)
+          const suggestions = await api.getAISuggestions(user.id)
+
+          if (metrics) {
+            set({ metrics })
+          }
+          if (suggestions) {
+            set({ suggestions })
+          }
 
           if (result.success && result.tasks) {
+            console.log('🚨 loadTasks: Успешно загружены задачи', result.tasks.length)
             set({ tasks: result.tasks })
           } else {
+            console.log('🚨 loadTasks: Ошибка загрузки задач', result.error)
             set({ error: result.error || 'Ошибка загрузки задач' })
           }
         } catch (error: any) {
+          console.log('🚨 loadTasks: Исключение', error)
           set({ error: error.message || 'Ошибка загрузки задач' })
         } finally {
           set({ isLoading: false })
@@ -136,7 +224,9 @@ export const useAppStore = create<AppStore>()(
 
         try {
           set({ isLoading: true, error: null })
-          const result = await createTask(user.id, taskData)
+
+          const api = await getTaskAPI()
+          const result = await api.createTask(user.id, taskData)
 
           if (result.success && result.task) {
             set((state) => ({
@@ -155,7 +245,9 @@ export const useAppStore = create<AppStore>()(
       updateTaskAsync: async (id: string, updates: UpdateTaskData) => {
         try {
           set({ isLoading: true, error: null })
-          const result = await updateTaskApi(id, updates)
+
+          const api = await getTaskAPI()
+          const result = await api.updateTask(id, updates)
 
           if (result.success && result.task) {
             set((state) => ({
@@ -176,7 +268,9 @@ export const useAppStore = create<AppStore>()(
       deleteTaskAsync: async (id: string) => {
         try {
           set({ isLoading: true, error: null })
-          const result = await deleteTaskApi(id)
+
+          const api = await getTaskAPI()
+          const result = await api.deleteTask(id)
 
           if (result.success) {
             set((state) => ({
@@ -195,7 +289,9 @@ export const useAppStore = create<AppStore>()(
       completeTaskAsync: async (id: string, actualDuration?: number) => {
         try {
           set({ isLoading: true, error: null })
-          const result = await completeTask(id, actualDuration)
+
+          const api = await getTaskAPI()
+          const result = await api.completeTask(id, actualDuration)
 
           if (result.success && result.task) {
             set((state) => ({
@@ -219,7 +315,8 @@ export const useAppStore = create<AppStore>()(
 
         try {
           set({ isLoading: true, error: null })
-          const result = await syncTasks(user.id)
+          const api = await getTaskAPI()
+          const result = await api.syncTasks(user.id)
 
           if (result.success && result.tasks) {
             set({ tasks: result.tasks })
@@ -238,11 +335,15 @@ export const useAppStore = create<AppStore>()(
         if (!user) return
 
         try {
-          const stats = await getTasksStats(user.id)
+          set({ isLoading: true, error: null })
+          const api = await getTaskAPI()
+          const stats = await api.getTasksStats(user.id)
           // Можно добавить статистику в store или использовать для обновления метрик
           console.log('Tasks stats:', stats)
         } catch (error: any) {
           console.error('Ошибка загрузки статистики задач:', error)
+        } finally {
+          set({ isLoading: false })
         }
       },
 

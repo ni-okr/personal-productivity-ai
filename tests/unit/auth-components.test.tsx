@@ -1,10 +1,22 @@
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.027Z
+ * Оригинальный файл сохранен как: tests/unit/auth-components.test.tsx.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 import { AuthModal } from '@/components/auth/AuthModal'
 import { LoginForm } from '@/components/auth/LoginForm'
 import { RegisterForm } from '@/components/auth/RegisterForm'
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm'
 import { beforeEach, describe, expect, it } from '@jest/globals'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
+import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks, testUtils } from '../framework'
+
 
 // Mock auth functions
 jest.mock('@/lib/auth', () => ({
@@ -33,12 +45,17 @@ jest.mock('@/utils/validation', () => ({
 
 describe('Auth Components', () => {
     beforeEach(() => {
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.UNIT)
+        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Test Suite')
         jest.clearAllMocks()
     })
 
     describe('LoginForm', () => {
         it('should render login form', () => {
-            render(<LoginForm />)
+            testUtils.renderWithProviders(<LoginForm />)
 
             expect(screen.getByText('Вход в аккаунт')).toBeTruthy()
             expect(screen.getByLabelText('Email')).toBeTruthy()
@@ -71,7 +88,7 @@ describe('Auth Components', () => {
                 }
             })
 
-            render(<LoginForm />)
+            testUtils.renderWithProviders(<LoginForm />)
 
             fireEvent.change(screen.getByLabelText('Email'), {
                 target: { value: 'test@example.com' }
@@ -82,7 +99,7 @@ describe('Auth Components', () => {
 
             fireEvent.click(screen.getByRole('button', { name: 'Войти' }))
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(mockSignIn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' })
             })
         })
@@ -95,7 +112,7 @@ describe('Auth Components', () => {
                 error: 'Неверный email или пароль'
             })
 
-            render(<LoginForm />)
+            testUtils.renderWithProviders(<LoginForm />)
 
             fireEvent.change(screen.getByLabelText('Email'), {
                 target: { value: 'test@example.com' }
@@ -106,7 +123,7 @@ describe('Auth Components', () => {
 
             fireEvent.click(screen.getByRole('button', { name: 'Войти' }))
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Неверный email или пароль')).toBeTruthy()
             })
         })
@@ -114,7 +131,7 @@ describe('Auth Components', () => {
 
     describe('RegisterForm', () => {
         it('should render register form', () => {
-            render(<RegisterForm />)
+            testUtils.renderWithProviders(<RegisterForm />)
 
             expect(screen.getByText('Создать аккаунт')).toBeTruthy()
             expect(screen.getByLabelText('Имя')).toBeTruthy()
@@ -149,7 +166,7 @@ describe('Auth Components', () => {
                 }
             })
 
-            render(<RegisterForm />)
+            testUtils.renderWithProviders(<RegisterForm />)
 
             fireEvent.change(screen.getByLabelText('Имя'), {
                 target: { value: 'Test User' }
@@ -166,13 +183,13 @@ describe('Auth Components', () => {
 
             fireEvent.click(screen.getByRole('button', { name: 'Зарегистрироваться' }))
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(mockSignUp).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123', name: 'Test User' })
             })
         })
 
         it('should show error on password mismatch', async () => {
-            render(<RegisterForm />)
+            testUtils.renderWithProviders(<RegisterForm />)
 
             // Заполняем все обязательные поля
             fireEvent.change(screen.getByLabelText('Имя'), {
@@ -199,7 +216,7 @@ describe('Auth Components', () => {
 
     describe('ResetPasswordForm', () => {
         it('should render reset password form', () => {
-            render(<ResetPasswordForm />)
+            testUtils.renderWithProviders(<ResetPasswordForm />)
 
             expect(screen.getByText('Восстановление пароля')).toBeTruthy()
             expect(screen.getByLabelText('Email')).toBeTruthy()
@@ -214,7 +231,7 @@ describe('Auth Components', () => {
                 message: 'Ссылка для восстановления отправлена'
             })
 
-            render(<ResetPasswordForm />)
+            testUtils.renderWithProviders(<ResetPasswordForm />)
 
             fireEvent.change(screen.getByLabelText('Email'), {
                 target: { value: 'test@example.com' }
@@ -222,7 +239,7 @@ describe('Auth Components', () => {
 
             fireEvent.click(screen.getByRole('button', { name: 'Отправить ссылку' }))
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(mockResetPassword).toHaveBeenCalledWith('test@example.com')
             })
         })
@@ -230,14 +247,14 @@ describe('Auth Components', () => {
 
     describe('AuthModal', () => {
         it('should render auth modal', () => {
-            render(<AuthModal isOpen={true} onClose={jest.fn()} />)
+            testUtils.renderWithProviders(<AuthModal isOpen={true} onClose={jest.fn()} />)
 
             expect(screen.getByText('Вход в аккаунт')).toBeTruthy()
         })
 
         it('should close modal when close button is clicked', () => {
             const mockOnClose = jest.fn()
-            render(<AuthModal isOpen={true} onClose={mockOnClose} />)
+            testUtils.renderWithProviders(<AuthModal isOpen={true} onClose={mockOnClose} />)
 
             const closeButton = screen.getByRole('button', { name: /закрыть/i })
             fireEvent.click(closeButton)

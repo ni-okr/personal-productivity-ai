@@ -1,10 +1,23 @@
+import { testFramework, testLogger, testMocks, testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.030Z
+ * Оригинальный файл сохранен как: tests/integration/planner-integration.test.tsx.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 Integration тесты для планировщика с Supabase
 import PlannerPage from '@/app/planner/page'
 import { useAuth } from '@/hooks/useAuth'
 import * as tasksApi from '@/lib/tasks'
 import { useAppStore } from '@/stores/useAppStore'
 import { User } from '@/types'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
+import { MOCK_CONFIGS, TEST_CONFIGS } from '../framework'
 
 // Mock hooks
 jest.mock('@/hooks/useAuth')
@@ -70,6 +83,11 @@ describe('Planner Integration with Supabase', () => {
     }
 
     beforeEach(() => {
+        // Настройка единого фреймворка тестирования
+        testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+        testMocks.updateConfig(MOCK_CONFIGS.FULL)
+        testMocks.setupAllMocks()
+        testLogger.startTest('Integration Tests')
         jest.clearAllMocks()
 
         mockUseAuth.mockReturnValue({
@@ -84,15 +102,17 @@ describe('Planner Integration with Supabase', () => {
     })
 
     describe('Authentication', () => {
-        it('должен показать экран входа для неавторизованных пользователей', () => {
-            render(<PlannerPage />)
+        it('должен показать экран входа для неавторизованных пользователей', async () => {
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+            })
 
             expect(screen.getByText('ИИ-Планировщик')).toBeTruthy()
             expect(screen.getByText('Для доступа к планировщику необходимо войти в систему')).toBeTruthy()
             expect(screen.getByText('Войти в систему')).toBeTruthy()
         })
 
-        it('должен показать планировщик для авторизованных пользователей', () => {
+        it('должен показать планировщик для авторизованных пользователей', async () => {
             mockUseAuth.mockReturnValue({
                 user: mockUser,
                 isLoading: false,
@@ -101,7 +121,9 @@ describe('Planner Integration with Supabase', () => {
                 requireGuest: jest.fn()
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+            })
 
             expect(screen.getByText('ИИ-Планировщик')).toBeTruthy()
             expect(screen.getByText('Превращаем хаос в систему')).toBeTruthy()
@@ -111,6 +133,11 @@ describe('Planner Integration with Supabase', () => {
 
     describe('Task Management', () => {
         beforeEach(() => {
+            // Настройка единого фреймворка тестирования
+            testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+            testMocks.updateConfig(MOCK_CONFIGS.FULL)
+            testMocks.setupAllMocks()
+            testLogger.startTest('Integration Tests')
             mockUseAuth.mockReturnValue({
                 user: mockUser,
                 isLoading: false,
@@ -120,30 +147,37 @@ describe('Planner Integration with Supabase', () => {
             })
         })
 
-        it('должен загружать задачи при входе пользователя', () => {
-            render(<PlannerPage />)
+        it('должен загружать задачи при входе пользователя', async () => {
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+            })
 
             expect(mockStoreState.loadTasks).toHaveBeenCalled()
         })
 
-        it('должен показывать ошибки загрузки', () => {
+        it('должен показывать ошибки загрузки', async () => {
             mockUseAppStore.mockReturnValue({
                 ...mockStoreState,
                 error: 'Ошибка загрузки задач'
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+            })
 
             expect(screen.getByText('Ошибка загрузки задач')).toBeTruthy()
         })
 
-        it('должен показывать состояние загрузки', () => {
+        it('должен показывать состояние загрузки', async () => {
             mockUseAppStore.mockReturnValue({
                 ...mockStoreState,
                 isLoading: true
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             expect(screen.getByText('Добавить задачу')).toBeDisabled()
         })
@@ -151,6 +185,11 @@ describe('Planner Integration with Supabase', () => {
 
     describe('Add Task Modal', () => {
         beforeEach(() => {
+            // Настройка единого фреймворка тестирования
+            testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+            testMocks.updateConfig(MOCK_CONFIGS.FULL)
+            testMocks.setupAllMocks()
+            testLogger.startTest('Integration Tests')
             mockUseAuth.mockReturnValue({
                 user: mockUser,
                 isLoading: false,
@@ -160,8 +199,11 @@ describe('Planner Integration with Supabase', () => {
             })
         })
 
-        it('должен открывать модал добавления задачи', () => {
-            render(<PlannerPage />)
+        it('должен открывать модал добавления задачи', async () => {
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             fireEvent.click(screen.getByRole('button', { name: 'Добавить задачу' }))
 
@@ -169,8 +211,11 @@ describe('Planner Integration with Supabase', () => {
             expect(screen.getByPlaceholderText('Что нужно сделать?')).toBeTruthy()
         })
 
-        it('должен закрывать модал при нажатии отмены', () => {
-            render(<PlannerPage />)
+        it('должен закрывать модал при нажатии отмены', async () => {
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             fireEvent.click(screen.getByText('Добавить задачу'))
             fireEvent.click(screen.getByText('Отмена'))
@@ -181,7 +226,10 @@ describe('Planner Integration with Supabase', () => {
         it('должен создавать задачу через Supabase', async () => {
             mockStoreState.createTaskAsync.mockResolvedValue(undefined)
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             fireEvent.click(screen.getByText('Добавить задачу'))
 
@@ -195,7 +243,7 @@ describe('Planner Integration with Supabase', () => {
 
             fireEvent.click(screen.getByText('Добавить'))
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(mockStoreState.createTaskAsync).toHaveBeenCalledWith({
                     title: 'New Task',
                     description: 'Task Description',
@@ -208,12 +256,15 @@ describe('Planner Integration with Supabase', () => {
         })
 
         it('должен показывать ошибки валидации', async () => {
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             fireEvent.click(screen.getByText('Добавить задачу'))
             fireEvent.click(screen.getByText('Добавить'))
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(screen.getByText('Исправьте ошибки:')).toBeTruthy()
             })
         })
@@ -227,7 +278,10 @@ describe('Planner Integration with Supabase', () => {
                 requireGuest: jest.fn()
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             // Попытка добавить задачу без авторизации
             fireEvent.click(screen.getByText('Войти в систему'))
@@ -236,6 +290,11 @@ describe('Planner Integration with Supabase', () => {
 
     describe('Task Actions', () => {
         beforeEach(() => {
+            // Настройка единого фреймворка тестирования
+            testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+            testMocks.updateConfig(MOCK_CONFIGS.FULL)
+            testMocks.setupAllMocks()
+            testLogger.startTest('Integration Tests')
             mockUseAuth.mockReturnValue({
                 user: mockUser,
                 isLoading: false,
@@ -255,12 +314,15 @@ describe('Planner Integration with Supabase', () => {
         it('должен завершать задачу через Supabase', async () => {
             mockStoreState.completeTaskAsync.mockResolvedValue(undefined)
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             const taskCheckbox = screen.getAllByRole('button', { name: /toggle task test task/i })[0]
             fireEvent.click(taskCheckbox)
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(mockStoreState.completeTaskAsync).toHaveBeenCalledWith(mockTask.id, mockTask.estimatedMinutes)
             })
         })
@@ -268,12 +330,15 @@ describe('Planner Integration with Supabase', () => {
         it('должен удалять задачу через Supabase', async () => {
             mockStoreState.deleteTaskAsync.mockResolvedValue(undefined)
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             const deleteButton = screen.getAllByTitle('Удалить задачу')[0]
             fireEvent.click(deleteButton)
 
-            await waitFor(() => {
+            await testUtils.waitForState(() => {
                 expect(mockStoreState.deleteTaskAsync).toHaveBeenCalledWith(mockTask.id)
             })
         })
@@ -281,6 +346,11 @@ describe('Planner Integration with Supabase', () => {
 
     describe('Task Display', () => {
         beforeEach(() => {
+            // Настройка единого фреймворка тестирования
+            testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+            testMocks.updateConfig(MOCK_CONFIGS.FULL)
+            testMocks.setupAllMocks()
+            testLogger.startTest('Integration Tests')
             mockUseAuth.mockReturnValue({
                 user: mockUser,
                 isLoading: false,
@@ -290,31 +360,37 @@ describe('Planner Integration with Supabase', () => {
             })
         })
 
-        it('должен показывать срочные задачи', () => {
+        it('должен показывать срочные задачи', async () => {
             mockUseAppStore.mockReturnValue({
                 ...mockStoreState,
                 urgentTasks: jest.fn(() => [mockTask])
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             expect(screen.getByText('Срочно')).toBeTruthy()
             expect(screen.getByText('Test Task')).toBeTruthy()
         })
 
-        it('должен показывать задачи в работе', () => {
+        it('должен показывать задачи в работе', async () => {
             mockUseAppStore.mockReturnValue({
                 ...mockStoreState,
                 pendingTasks: jest.fn(() => [mockTask])
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             expect(screen.getByText('В работе')).toBeTruthy()
             expect(screen.getByText('Test Task')).toBeTruthy()
         })
 
-        it('должен показывать выполненные задачи', () => {
+        it('должен показывать выполненные задачи', async () => {
             const completedTask = { ...mockTask, status: 'completed' as const }
 
             mockUseAppStore.mockReturnValue({
@@ -322,14 +398,20 @@ describe('Planner Integration with Supabase', () => {
                 completedTasksToday: jest.fn(() => [completedTask])
             })
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             expect(screen.getByText('Выполнено сегодня')).toBeTruthy()
             expect(screen.getByText('Test Task')).toBeTruthy()
         })
 
-        it('должен показывать пустые состояния', () => {
-            render(<PlannerPage />)
+        it('должен показывать пустые состояния', async () => {
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             expect(screen.getByText('🎉 Нет срочных задач')).toBeTruthy()
             expect(screen.getByText('✨ Добавьте первую задачу')).toBeTruthy()
@@ -339,6 +421,11 @@ describe('Planner Integration with Supabase', () => {
 
     describe('Error Handling', () => {
         beforeEach(() => {
+            // Настройка единого фреймворка тестирования
+            testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
+            testMocks.updateConfig(MOCK_CONFIGS.FULL)
+            testMocks.setupAllMocks()
+            testLogger.startTest('Integration Tests')
             mockUseAuth.mockReturnValue({
                 user: mockUser,
                 isLoading: false,
@@ -351,7 +438,10 @@ describe('Planner Integration with Supabase', () => {
         it('должен обрабатывать ошибки API', async () => {
             mockStoreState.createTaskAsync.mockRejectedValue(new Error('API Error'))
 
-            render(<PlannerPage />)
+            await testUtils.act(async () => {
+                testUtils.renderWithProviders(<PlannerPage />)
+
+            })
 
             fireEvent.click(screen.getByText('Добавить задачу'))
 
@@ -361,8 +451,8 @@ describe('Planner Integration with Supabase', () => {
 
             fireEvent.click(screen.getByText('Добавить'))
 
-            await waitFor(() => {
-                expect(screen.getByText('Исправьте ошибки:')).toBeTruthy()
+            await testUtils.waitForState(() => {
+                expect(screen.getByText('Произошла ошибка при добавлении задачи')).toBeTruthy()
             })
         })
     })

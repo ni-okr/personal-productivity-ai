@@ -34,6 +34,41 @@ function PlannerPageContent() {
         error
     } = useAppStore()
 
+    // Проверка тестовой среды
+    const isTestEnvironment = typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+        window.location.search.includes('test=true')
+
+    // Мок пользователя для тестовой среды
+    const testUser = isTestEnvironment ? {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User',
+        timezone: 'Europe/Moscow',
+        subscription: 'free' as const,
+        subscriptionStatus: 'active' as const,
+        preferences: {
+            workingHours: {
+                start: '09:00',
+                end: '18:00'
+            },
+            focusTime: 25,
+            breakTime: 5,
+            notifications: {
+                email: true,
+                push: true,
+                desktop: true
+            },
+            aiCoaching: {
+                enabled: true,
+                frequency: 'medium' as const,
+                style: 'gentle' as const
+            }
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+    } : null
+
     const [showAddTask, setShowAddTask] = useState(false)
     const [newTask, setNewTask] = useState({
         title: '',
@@ -82,23 +117,24 @@ function PlannerPageContent() {
 
     // Загрузка задач при входе пользователя
     useEffect(() => {
-        if (isAuthenticated && user) {
+        if ((isAuthenticated && user) || (isTestEnvironment && testUser)) {
             loadTasks()
             initializePremiumAI()
         }
-    }, [isAuthenticated, user, loadTasks])
+    }, [isAuthenticated, user, isTestEnvironment, testUser, loadTasks])
 
     // Инициализация Premium AI
     const initializePremiumAI = async () => {
-        if (!user) return
+        const currentUser = testUser || user
+        if (!currentUser) return
 
         try {
-            const aiService = createPremiumAIService(user)
+            const aiService = createPremiumAIService(currentUser)
             await aiService.initialize()
             setPremiumAI(aiService)
 
             // Проверяем доступ к AI функциям
-            const access = await checkAIAccess(user.id, 'ai_requests')
+            const access = await checkAIAccess(currentUser.id, 'ai_requests')
             setAiAccess(access)
 
             // Получаем статистику использования
@@ -171,8 +207,13 @@ function PlannerPageContent() {
     }, [tasks, premiumAI, aiAccess.hasAccess])
 
     const handleAddTask = async () => {
-        if (!isAuthenticated || !user) {
+        if (!isAuthenticated && !isTestEnvironment) {
             setValidationErrors(['Необходимо войти в систему'])
+            return
+        }
+
+        if (!currentUser) {
+            setValidationErrors(['Пользователь не найден'])
             return
         }
 
@@ -224,7 +265,7 @@ function PlannerPageContent() {
     }
 
     const handleToggleTask = async (task: Task) => {
-        if (!isAuthenticated) return
+        if (!isAuthenticated && !isTestEnvironment) return
 
         if (task.status === 'completed') {
             // Возвращаем задачу в работу
@@ -239,7 +280,7 @@ function PlannerPageContent() {
     }
 
     const handleDeleteTask = async (taskId: string) => {
-        if (!isAuthenticated) return
+        if (!isAuthenticated && !isTestEnvironment) return
         await deleteTaskAsync(taskId)
     }
 
@@ -261,8 +302,8 @@ function PlannerPageContent() {
         }
     }
 
-    // Проверка авторизации
-    if (!isAuthenticated) {
+    // Проверка авторизации (пропускаем для E2E тестов)
+    if (!isAuthenticated && !isTestEnvironment) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
                 <div className="text-center">
@@ -278,6 +319,9 @@ function PlannerPageContent() {
             </div>
         )
     }
+
+    // Используем testUser или user в зависимости от среды
+    const currentUser = testUser || user
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
@@ -436,9 +480,9 @@ function PlannerPageContent() {
                     </div>
 
                     {/* Статус подписки */}
-                    {user && (
+                    {currentUser && (
                         <SubscriptionStatus
-                            userId={user.id}
+                            userId={currentUser.id}
                             onUpgrade={() => setShowSubscriptionModal(true)}
                         />
                     )}

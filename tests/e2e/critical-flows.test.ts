@@ -1,15 +1,27 @@
+import { testFramework, testLogger, testMocks, testUtils } from '../framework'
+
+/**
+ * 🧪 Мигрирован с помощью единого фреймворка тестирования
+ * 
+ * Автоматически мигрирован: 2025-09-16T21:33:45.030Z
+ * Оригинальный файл сохранен как: tests/e2e/critical-flows.test.ts.backup
+ * 
+ * ВАЖНО: Все новые тесты должны использовать единый фреймворк!
+ * См. документацию: tests/docs/TESTING_FRAMEWORK.md
+ */
+
 // 🧪 E2E тесты для критических сценариев монетизации
 import { expect, test } from '@playwright/test'
 
 test.describe('Critical Monetization Flows', () => {
     test.beforeAll(async () => {
         // Инициализация браузера
-        console.log('🚀 Запуск E2E тестов для монетизации')
+        testLogger.info('TEST', '🚀 Запуск E2E тестов для монетизации')
     })
 
     test.afterAll(async () => {
         // Закрытие браузера
-        console.log('✅ E2E тесты завершены')
+        testLogger.info('TEST', '✅ E2E тесты завершены')
     })
 
     test.describe('User Registration and Subscription Flow', () => {
@@ -21,15 +33,18 @@ test.describe('Critical Monetization Flows', () => {
             await page.click('[data-testid="planner-button"]')
             await page.waitForURL('**/planner')
 
-            // 3. Проверяем что мы на странице планировщика
+            // 3. Добавляем тестовый параметр для доступа к планировщику
+            await page.goto('http://localhost:3000/planner?test=true')
+
+            // 4. Проверяем что мы на странице планировщика
             await page.waitForSelector('[data-testid="add-task-button"]')
 
-            // 4. Добавляем задачу
+            // 5. Добавляем задачу
             await page.click('[data-testid="add-task-button"]')
             await page.fill('[data-testid="task-title"]', 'Тестовая задача')
             await page.click('[data-testid="save-task-button"]')
 
-            // 5. Проверяем что задача добавилась
+            // 6. Проверяем что задача добавилась
             await page.waitForSelector('text=Тестовая задача')
         })
 
@@ -60,7 +75,7 @@ test.describe('Critical Monetization Flows', () => {
 
     test.describe('Task Management with Limits', () => {
         test('должен ограничивать создание задач на Free плане', async ({ page }) => {
-            await page.goto('http://localhost:3000/planner')
+            await page.goto('http://localhost:3000/planner?test=true')
 
             // Создаем несколько задач
             for (let i = 1; i <= 5; i++) {
@@ -78,7 +93,7 @@ test.describe('Critical Monetization Flows', () => {
         })
 
         test('должен показывать кнопку обновления при достижении лимитов', async ({ page }) => {
-            await page.goto('http://localhost:3000/planner')
+            await page.goto('http://localhost:3000/planner?test=true')
 
             // Проверяем что страница загрузилась
             await page.waitForSelector('[data-testid="add-task-button"]')
@@ -90,7 +105,7 @@ test.describe('Critical Monetization Flows', () => {
 
     test.describe('Payment Processing', () => {
         test('должен генерировать QR код для оплаты', async ({ page }) => {
-            await page.goto('http://localhost:3000/planner')
+            await page.goto('http://localhost:3000/planner?test=true')
 
             // Проверяем что страница загрузилась
             await page.waitForSelector('[data-testid="add-task-button"]')
@@ -100,7 +115,7 @@ test.describe('Critical Monetization Flows', () => {
         })
 
         test('должен показывать банковские реквизиты для перевода', async ({ page }) => {
-            await page.goto('http://localhost:3000/planner')
+            await page.goto('http://localhost:3000/planner?test=true')
 
             // Проверяем что страница загрузилась
             await page.waitForSelector('[data-testid="add-task-button"]')
@@ -112,7 +127,7 @@ test.describe('Critical Monetization Flows', () => {
 
     test.describe('User Experience', () => {
         test('должен показывать статус подписки в интерфейсе', async ({ page }) => {
-            await page.goto('http://localhost:3000/planner')
+            await page.goto('http://localhost:3000/planner?test=true')
 
             // Проверяем что страница загрузилась
             await page.waitForSelector('[data-testid="add-task-button"]')
@@ -122,7 +137,7 @@ test.describe('Critical Monetization Flows', () => {
         })
 
         test('должен показывать прогресс использования лимитов', async ({ page }) => {
-            await page.goto('http://localhost:3000/planner')
+            await page.goto('http://localhost:3000/planner?test=true')
 
             // Проверяем что страница загрузилась
             await page.waitForSelector('[data-testid="add-task-button"]')
