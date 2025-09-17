@@ -134,7 +134,7 @@ class TinkoffAPI {
      */
     async initPayment(request: TinkoffInitRequest): Promise<TinkoffInitResponse> {
         try {
-            const url = `${this.baseUrl}/Init`
+            const url = `${this.baseURL}Init`
 
             // Добавляем подпись
             const token = this.generateToken(request)
@@ -191,7 +191,7 @@ class TinkoffAPI {
      */
     async getState(request: TinkoffGetStateRequest): Promise<TinkoffGetStateResponse> {
         try {
-            const url = `${this.baseUrl}/GetState`
+            const url = `${this.baseURL}GetState`
 
             // Добавляем подпись
             const token = this.generateToken(request)
