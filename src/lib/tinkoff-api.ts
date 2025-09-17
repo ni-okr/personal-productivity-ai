@@ -9,6 +9,8 @@ export interface TinkoffInitRequest {
     Recurrent?: 'Y' | 'N'
     PayType?: 'O' | 'T'
     Language?: 'ru' | 'en'
+    Email?: string
+    Phone?: string
     NotificationURL?: string
     SuccessURL?: string
     FailURL?: string
@@ -261,12 +263,12 @@ class TinkoffAPI {
             CustomerKey: 'test_customer',
             PayType: 'T', // Тестовый режим
             Language: 'ru',
+            Email: 'test@taskai.space',
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
             FailURL: `https://taskai.space/planner?payment=failed`,
             Receipt: {
                 EmailCompany: 'support@taskai.space',
-                Email: 'test@taskai.space',
                 Taxation: 'usn_income',
                 Items: [{
                     Name: description,
