@@ -27,6 +27,7 @@ export default function HomePage() {
     type: 'success' | 'error' | null
     message: string
   }>({ type: null, message: '' })
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   // Используем хук авторизации
   const { user, isAuthModalOpen, openAuthModal, closeAuthModal, signOut, isAuthenticated } = useAuth()
@@ -251,6 +252,23 @@ export default function HomePage() {
     } finally {
       setIsSubscribing(false)
     }
+  }
+
+  // Обработчик выбора плана подписки
+  const handlePlanSelect = (planId: string) => {
+    console.log('🎯 Выбран план:', planId)
+    
+    // Если пользователь не авторизован, показываем модальное окно входа
+    if (!isAuthenticated) {
+      openAuthModal('login')
+      return
+    }
+
+    // Устанавливаем выбранный план
+    setSelectedPlan(planId)
+    
+    // Перенаправляем на страницу планировщика с параметром плана
+    window.location.href = `/planner?plan=${planId}`
   }
 
   return (
@@ -495,7 +513,12 @@ export default function HomePage() {
                   <li>Базовое планирование</li>
                   <li>Email поддержка</li>
                 </ul>
-                <Button variant="outline" className="w-full" data-testid="select-free-plan">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  data-testid="select-free-plan"
+                  onClick={() => handlePlanSelect('free')}
+                >
                   Выбрать Free
                 </Button>
               </div>
@@ -509,7 +532,11 @@ export default function HomePage() {
                   <li>ИИ планировщик</li>
                   <li>Приоритетная поддержка</li>
                 </ul>
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700" data-testid="select-premium-plan">
+                <Button 
+                  className="w-full bg-indigo-600 hover:bg-indigo-700" 
+                  data-testid="select-premium-plan"
+                  onClick={() => handlePlanSelect('premium')}
+                >
                   Выбрать Premium
                 </Button>
               </div>
@@ -523,7 +550,12 @@ export default function HomePage() {
                   <li>Все ИИ модели</li>
                   <li>Персональный менеджер</li>
                 </ul>
-                <Button variant="outline" className="w-full" data-testid="select-pro-plan">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  data-testid="select-pro-plan"
+                  onClick={() => handlePlanSelect('pro')}
+                >
                   Выбрать Pro
                 </Button>
               </div>
