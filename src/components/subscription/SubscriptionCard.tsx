@@ -4,6 +4,8 @@
 import { Button } from '@/components/ui/Button'
 import { SubscriptionPlan } from '@/types'
 import { CheckIcon, StarIcon } from 'lucide-react'
+import { TestPaymentModal } from '@/components/payment/TestPaymentModal'
+import { useState } from 'react'
 
 interface SubscriptionCardProps {
     plan: SubscriptionPlan
@@ -18,6 +20,7 @@ export function SubscriptionCard({
     onSelect,
     isLoading = false
 }: SubscriptionCardProps) {
+    const [showTestPayment, setShowTestPayment] = useState(false)
     const isCurrentPlan = currentTier === plan.tier
     const isPopular = plan.tier === 'premium'
     const isEnterprise = plan.tier === 'enterprise'
@@ -128,19 +131,42 @@ export function SubscriptionCard({
                 </div>
             </div>
 
-            {/* Кнопка */}
-            <Button
-                onClick={() => onSelect(plan.id)}
-                disabled={isCurrentPlan || isLoading}
-                variant={isCurrentPlan ? 'secondary' : 'primary'}
-                size="lg"
-                className="w-full"
-                isLoading={isLoading}
-            >
-                {isCurrentPlan ? 'Текущий план' :
-                    isEnterprise ? 'Связаться с нами' :
-                        'Выбрать план'}
-            </Button>
+            {/* Кнопки */}
+            <div className="space-y-2">
+                <Button
+                    onClick={() => onSelect(plan.id)}
+                    disabled={isCurrentPlan || isLoading}
+                    variant={isCurrentPlan ? 'secondary' : 'primary'}
+                    size="lg"
+                    className="w-full"
+                    isLoading={isLoading}
+                >
+                    {isCurrentPlan ? 'Текущий план' :
+                        isEnterprise ? 'Связаться с нами' :
+                            'Выбрать план'}
+                </Button>
+                
+                {/* Кнопка тестирования для платных планов */}
+                {plan.price > 0 && !isCurrentPlan && (
+                    <Button
+                        onClick={() => setShowTestPayment(true)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                    >
+                        🧪 Тестовый платеж
+                    </Button>
+                )}
+            </div>
+
+            {/* Модальное окно тестового платежа */}
+            <TestPaymentModal
+                isOpen={showTestPayment}
+                onClose={() => setShowTestPayment(false)}
+                planId={plan.id}
+                planName={plan.name}
+                amount={plan.price / 100}
+            />
         </div>
     )
 }
