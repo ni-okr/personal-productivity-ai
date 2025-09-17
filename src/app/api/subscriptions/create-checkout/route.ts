@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
     try {
-        const { planId, successUrl, cancelUrl } = await request.json()
+        const { planId, successUrl, cancelUrl, paymentMethod = 'bank_transfer' } = await request.json()
 
         // Проверяем режим разработки (mock режим)
         if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' || !process.env.TINKOFF_TERMINAL_KEY) {
@@ -33,8 +33,6 @@ export async function POST(request: NextRequest) {
                 { status: 401 }
             )
         }
-
-        const { planId, paymentMethod = 'bank_transfer' } = await request.json()
 
         if (!planId) {
             return NextResponse.json(

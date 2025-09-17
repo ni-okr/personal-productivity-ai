@@ -32,9 +32,8 @@ export function useAuth() {
                 }
             } catch (error) {
                 console.error('Ошибка инициализации авторизации:', error)
-                if (mounted) {
-                    clearUserData()
-                }
+                // НЕ разлогиниваем пользователя при ошибках инициализации
+                // clearUserData() - это слишком агрессивно
             } finally {
                 if (mounted) {
                     setIsLoading(false)

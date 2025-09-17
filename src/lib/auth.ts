@@ -725,24 +725,11 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         )
 
-        const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: `${window.location.origin}/auth/callback`
-            }
-        })
-
-        if (error) {
-            console.error('Ошибка Google OAuth:', error)
-            return {
-                success: false,
-                error: getAuthErrorMessage(error.message)
-            }
-        }
-
+        // 🚨 ВРЕМЕННО ОТКЛЮЧАЕМ GOOGLE OAUTH - НЕ НАСТРОЕН В SUPABASE
+        console.log('⚠️ Google OAuth временно отключен - не настроен в Supabase')
         return {
-            success: true,
-            message: 'Перенаправление на Google...'
+            success: false,
+            error: 'Google OAuth временно недоступен. Используйте вход по email/паролю.'
         }
     } catch (error) {
         console.error('Ошибка входа через Google:', error)

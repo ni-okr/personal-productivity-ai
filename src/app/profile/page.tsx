@@ -93,7 +93,7 @@ export default function ProfilePage() {
                         <div className="lg:col-span-2">
                             <div className="bg-white rounded-xl shadow-sm border p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Личная информация</h2>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -141,8 +141,8 @@ export default function ProfilePage() {
                                             <Button onClick={handleSaveProfile}>
                                                 Сохранить
                                             </Button>
-                                            <Button 
-                                                variant="outline" 
+                                            <Button
+                                                variant="outline"
                                                 onClick={() => {
                                                     setIsEditing(false)
                                                     setEditedName(user?.name || '')
@@ -164,7 +164,7 @@ export default function ProfilePage() {
                         <div>
                             <div className="bg-white rounded-xl shadow-sm border p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Подписка</h2>
-                                
+
                                 {isLoading ? (
                                     <p className="text-gray-500">Загрузка...</p>
                                 ) : (
@@ -174,12 +174,11 @@ export default function ProfilePage() {
                                                 Текущий план
                                             </label>
                                             <div className="flex items-center gap-2">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                    plan?.tier === 'free' ? 'bg-gray-100 text-gray-800' :
-                                                    plan?.tier === 'premium' ? 'bg-indigo-100 text-indigo-800' :
-                                                    plan?.tier === 'pro' ? 'bg-purple-100 text-purple-800' :
-                                                    'bg-green-100 text-green-800'
-                                                }`}>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${plan?.tier === 'free' ? 'bg-gray-100 text-gray-800' :
+                                                        plan?.tier === 'premium' ? 'bg-indigo-100 text-indigo-800' :
+                                                            plan?.tier === 'pro' ? 'bg-purple-100 text-purple-800' :
+                                                                'bg-green-100 text-green-800'
+                                                    }`}>
                                                     {plan?.name || 'Free'}
                                                 </span>
                                             </div>
@@ -200,7 +199,7 @@ export default function ProfilePage() {
                                                     Следующий платеж
                                                 </label>
                                                 <p className="text-gray-900">
-                                                    {subscription?.currentPeriodEnd 
+                                                    {subscription?.currentPeriodEnd
                                                         ? new Date(subscription.currentPeriodEnd).toLocaleDateString('ru-RU')
                                                         : 'Неизвестно'
                                                     }

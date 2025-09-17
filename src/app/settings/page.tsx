@@ -97,7 +97,7 @@ export default function SettingsPage() {
                         {/* Уведомления */}
                         <div className="bg-white rounded-xl shadow-sm border p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-6">Уведомления</h2>
-                            
+
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                         {/* Приватность */}
                         <div className="bg-white rounded-xl shadow-sm border p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-6">Приватность</h2>
-                            
+
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -191,16 +191,16 @@ export default function SettingsPage() {
                         {/* Действия */}
                         <div className="bg-white rounded-xl shadow-sm border p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-6">Действия</h2>
-                            
+
                             <div className="space-y-4">
                                 <Button onClick={handleSaveSettings} className="w-full">
                                     Сохранить настройки
                                 </Button>
-                                
+
                                 <div className="border-t pt-4">
                                     <h3 className="text-sm font-medium text-gray-900 mb-2">Опасная зона</h3>
-                                    <Button 
-                                        variant="outline" 
+                                    <Button
+                                        variant="outline"
                                         className="w-full text-red-600 border-red-300 hover:bg-red-50"
                                         onClick={() => {
                                             if (confirm('Вы уверены, что хотите удалить аккаунт? Это действие нельзя отменить.')) {

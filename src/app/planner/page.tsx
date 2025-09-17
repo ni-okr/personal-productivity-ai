@@ -314,7 +314,7 @@ function PlannerPageContent() {
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">ИИ-Планировщик</h1>
                     <p className="text-gray-600 mb-6">Для доступа к планировщику необходимо войти в систему</p>
-                    <Button onClick={() => requireAuth()}>
+                    <Button onClick={() => window.location.href = '/'}>
                         Войти в систему
                     </Button>
                 </div>
@@ -409,24 +409,24 @@ function PlannerPageContent() {
                 <div className="md:hidden bg-white border-b shadow-sm">
                     <div className="container mx-auto px-4 py-4">
                         <div className="flex flex-col gap-2">
-                            <Link 
-                                href="/" 
+                            <Link
+                                href="/"
                                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                                 onClick={() => setShowMobileMenu(false)}
                             >
                                 <HomeIcon className="w-4 h-4" />
                                 Главная
                             </Link>
-                            <Link 
-                                href="/profile" 
+                            <Link
+                                href="/profile"
                                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                                 onClick={() => setShowMobileMenu(false)}
                             >
                                 <UserIcon className="w-4 h-4" />
                                 Профиль
                             </Link>
-                            <Link 
-                                href="/settings" 
+                            <Link
+                                href="/settings"
                                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                                 onClick={() => setShowMobileMenu(false)}
                             >
