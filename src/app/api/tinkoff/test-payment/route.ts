@@ -22,7 +22,9 @@ export async function POST(request: NextRequest) {
             amount,
             description,
             planId,
-            orderId
+            orderId,
+            hasTerminalKey: !!process.env.TINKOFF_TERMINAL_KEY,
+            hasSecretKey: !!process.env.TINKOFF_SECRET_KEY
         })
 
         // Проверяем есть ли ключи Тинькофф
@@ -31,7 +33,7 @@ export async function POST(request: NextRequest) {
         if (!hasTinkoffKeys) {
             // Mock режим - возвращаем тестовые данные
             console.log('🧪 Mock режим - ключи Тинькофф не настроены')
-            
+
             return NextResponse.json({
                 success: true,
                 data: {
@@ -51,24 +53,40 @@ export async function POST(request: NextRequest) {
                         step3: 'Срок действия: 12/30, CVV: 111',
                         step4: 'Ожидайте статус "Оплачено"'
                     },
-                    mockMode: true
+                    mockMode: true,
+                    setupRequired: true,
+                    setupMessage: 'Для реальных платежей настройте TINKOFF_TERMINAL_KEY и TINKOFF_SECRET_KEY в Vercel'
                 }
             })
         }
 
         // Реальный режим - используем Тинькофф API
+        console.log('💳 Реальный режим - используем Тинькофф API')
         const paymentResponse = await createTestTinkoffPayment(amount, description, orderId)
 
         if (!paymentResponse.Success) {
+            console.error('Ошибка Тинькофф API:', {
+                ErrorCode: paymentResponse.ErrorCode,
+                Message: paymentResponse.Message,
+                Details: paymentResponse.Details
+            })
+            
             return NextResponse.json(
                 {
                     success: false,
                     error: paymentResponse.Message || 'Ошибка создания платежа',
-                    errorCode: paymentResponse.ErrorCode
+                    errorCode: paymentResponse.ErrorCode,
+                    details: paymentResponse.Details
                 },
                 { status: 400 }
             )
         }
+
+        console.log('✅ Платеж успешно создан через Тинькофф API:', {
+            PaymentId: paymentResponse.PaymentId,
+            OrderId: paymentResponse.OrderId,
+            Amount: paymentResponse.Amount
+        })
 
         return NextResponse.json({
             success: true,
@@ -84,7 +102,9 @@ export async function POST(request: NextRequest) {
                     step2: `Используйте тестовую карту: ${TEST_CARD_DATA.number}`,
                     step3: `Срок действия: ${TEST_CARD_DATA.expiry}, CVV: ${TEST_CARD_DATA.cvv}`,
                     step4: 'Ожидайте статус "Оплачено"'
-                }
+                },
+                mockMode: false,
+                setupRequired: false
             }
         })
 
