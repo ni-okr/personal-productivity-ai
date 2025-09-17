@@ -141,6 +141,19 @@ class TinkoffAPI {
                 body: JSON.stringify(payload)
             })
 
+            // Проверяем тип ответа
+            const contentType = response.headers.get('content-type')
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text()
+                console.error('Тинькофф API вернул не JSON:', text)
+                return {
+                    Success: false,
+                    ErrorCode: 'INVALID_RESPONSE',
+                    Message: `Ожидался JSON, получен: ${contentType}`,
+                    Details: text.substring(0, 200) + '...'
+                }
+            }
+
             const data = await response.json()
 
             console.log('💳 Ответ Тинькофф Init:', data)
@@ -182,6 +195,19 @@ class TinkoffAPI {
                 },
                 body: JSON.stringify(payload)
             })
+
+            // Проверяем тип ответа
+            const contentType = response.headers.get('content-type')
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text()
+                console.error('Тинькофф API вернул не JSON:', text)
+                return {
+                    Success: false,
+                    ErrorCode: 'INVALID_RESPONSE',
+                    Message: `Ожидался JSON, получен: ${contentType}`,
+                    Details: text.substring(0, 200) + '...'
+                }
+            }
 
             const data = await response.json()
 
