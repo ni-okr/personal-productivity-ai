@@ -8,7 +8,7 @@ export interface MockUser {
     name: string
     avatar?: string
     timezone: string
-    subscription: 'free' | 'premium' | 'pro'
+    subscription: 'free' | 'premium' | 'pro' | 'enterprise'
     subscriptionStatus: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
     preferences: {
         workingHours: { start: string; end: string }
