@@ -114,6 +114,8 @@ class TinkoffAPI {
         // 1. Создаем массив пар ключ-значение (только корневые параметры)
         const pairs = Object.keys(data)
             .filter(key => key !== 'Token') // Исключаем сам токен
+            .filter(key => data[key] !== undefined) // Исключаем undefined значения
+            .filter(key => data[key] !== null) // Исключаем null значения
             .map(key => ({
                 key,
                 value: String(data[key])
@@ -267,20 +269,12 @@ class TinkoffAPI {
             Email: 'test@taskai.space',
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
-            FailURL: `https://taskai.space/planner?payment=failed`,
-            // Временно убираем Receipt для избежания ошибки 329
-            // Receipt: {
-            //     EmailCompany: 'support@taskai.space',
-            //     Taxation: 'usn_income',
-            //     Items: [{
-            //         Name: description,
-            //         Price: amount * 100,
-            //         Quantity: 1,
-            //         Amount: amount * 100,
-            //         Tax: 'vat20'
-            //     }]
-            // }
+            FailURL: `https://taskai.space/planner?payment=failed`
+            // Receipt полностью исключен для избежания ошибки 329
         }
+
+        // Убеждаемся, что Receipt не передается
+        delete (request as any).Receipt
 
         return this.initPayment(request)
     }
