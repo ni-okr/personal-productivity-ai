@@ -92,28 +92,25 @@ describe('Mock Mode Integration Tests', () => {
 
     describe('Authentication Flow', () => {
         it('должен успешно зарегистрировать пользователя и обновить store', async () => {
-            const { result: authResult } = testUtils.renderHook(() => useAuth())
+            const { result: authResult } = testUtils.renderHookWithProviders(() => useAuth())
 
             // Проверяем, что пользователь уже установлен в useAuth через mockOnAuthStateChange
-            await testUtils.waitForState(() => {
-                expect(authResult.current.user).toBeDefined()
-                expect(authResult.current.user?.email).toBe(mockUserEmail)
-                expect(authResult.current.user?.name).toBe(mockUserName)
+            await testUtils.waitForStateCondition(() => authResult.current.user, (user) => {
+                return user !== undefined && user?.email === mockUserEmail && user?.name === mockUserName
             })
         })
 
         it('должен успешно войти пользователя и обновить store', async () => {
-            const { result: authResult } = testUtils.renderHook(() => useAuth())
+            const { result: authResult } = testUtils.renderHookWithProviders(() => useAuth())
 
             // Проверяем, что пользователь уже установлен в useAuth через mockOnAuthStateChange
-            await testUtils.waitForState(() => {
-                expect(authResult.current.user).toBeDefined()
-                expect(authResult.current.user?.email).toBe(mockUserEmail)
+            await testUtils.waitForStateCondition(() => authResult.current.user, (user) => {
+                return user !== undefined && user?.email === mockUserEmail
             })
         })
 
         it('должен успешно выйти из системы и очистить store', async () => {
-            const { result: authResult } = testUtils.renderHook(() => useAuth())
+            const { result: authResult } = testUtils.renderHookWithProviders(() => useAuth())
 
             // Проверяем, что пользователь авторизован
             await testUtils.waitForState(() => {
@@ -155,7 +152,7 @@ describe('Mock Mode Integration Tests', () => {
             }
             mockServer.addMockTask(mockTask)
 
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             // Проверяем, что пользователь установлен
             expect(storeResult.current.user).toBeDefined()
@@ -181,7 +178,7 @@ describe('Mock Mode Integration Tests', () => {
         })
 
         it('должен создавать новую задачу и обновлять store', async () => {
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             // Создаем новую задачу
             await testUtils.testUtils.act(async () => {
@@ -207,7 +204,7 @@ describe('Mock Mode Integration Tests', () => {
 
         it('должен обновлять задачу и синхронизировать с store', async () => {
             // Создаем задачу
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             await testUtils.testUtils.act(async () => {
                 await storeResult.current.createTaskAsync({
@@ -246,7 +243,7 @@ describe('Mock Mode Integration Tests', () => {
 
         it('должен завершать задачу и обновлять статистику', async () => {
             // Создаем задачу
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             await testUtils.testUtils.act(async () => {
                 await storeResult.current.createTaskAsync({
@@ -282,7 +279,7 @@ describe('Mock Mode Integration Tests', () => {
 
         it('должен удалять задачу и обновлять store', async () => {
             // Создаем задачу
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             await testUtils.testUtils.act(async () => {
                 await storeResult.current.createTaskAsync({
@@ -315,7 +312,7 @@ describe('Mock Mode Integration Tests', () => {
         })
 
         it('должен загружать метрики продуктивности в mock режиме', async () => {
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             // Ждем, пока пользователь установится в store (из beforeEach)
             await testUtils.waitForState(() => {
@@ -334,7 +331,7 @@ describe('Mock Mode Integration Tests', () => {
         })
 
         it('должен загружать рекомендации ИИ в mock режиме', async () => {
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             // Ждем, пока пользователь установится в store (из beforeEach)
             await testUtils.waitForState(() => {
@@ -379,7 +376,7 @@ describe('Mock Mode Integration Tests', () => {
             }
             mockServer.addMockSubscription(mockSubscription)
 
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             // Загружаем подписку
             await testUtils.testUtils.act(async () => {
@@ -398,7 +395,7 @@ describe('Mock Mode Integration Tests', () => {
             // Создаем пользователя
             await mockServer.mockSignUpWithState(mockUserEmail, mockUserPassword, mockUserName)
 
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             // Создаем подписку через mock функцию
             await testUtils.testUtils.act(async () => {
@@ -427,7 +424,7 @@ describe('Mock Mode Integration Tests', () => {
 
         it('должен обновлять подписку', async () => {
             // Создаем подписку
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             const subscriptionId = 'sub-456'
             await testUtils.testUtils.act(async () => {
@@ -473,7 +470,7 @@ describe('Mock Mode Integration Tests', () => {
 
         it('должен отменять подписку', async () => {
             // Создаем подписку
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             const subscriptionId = 'sub-789'
             await testUtils.testUtils.act(async () => {
@@ -521,7 +518,7 @@ describe('Mock Mode Integration Tests', () => {
         })
 
         it('должен загружать планы подписок', async () => {
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             // Загружаем планы через mock функцию
             let plans: any
@@ -549,7 +546,7 @@ describe('Mock Mode Integration Tests', () => {
                 mockServer.setCurrentMockUser(null)
             })
 
-            const { result: authResult } = testUtils.renderHook(() => useAuth())
+            const { result: authResult } = testUtils.renderHookWithProviders(() => useAuth())
 
             // Пытаемся войти с неверными учетными данными через mock функцию
             await testUtils.testUtils.act(async () => {
@@ -568,7 +565,7 @@ describe('Mock Mode Integration Tests', () => {
         })
 
         it('должен обрабатывать ошибки при работе с задачами', async () => {
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             // Пытаемся обновить несуществующую задачу
             await testUtils.testUtils.act(async () => {
@@ -583,7 +580,7 @@ describe('Mock Mode Integration Tests', () => {
         })
 
         it('должен обрабатывать ошибки при работе с подписками', async () => {
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             // Пытаемся создать checkout сессию с несуществующим планом
             await testUtils.testUtils.act(async () => {
@@ -598,9 +595,9 @@ describe('Mock Mode Integration Tests', () => {
         it('должен синхронизировать состояние между разными хуками', async () => {
             // Пользователь уже установлен в beforeEach
 
-            const { result: authResult } = testUtils.renderHook(() => useAuth())
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
-            const { result: subscriptionResult } = testUtils.renderHook(() => useSubscription())
+            const { result: authResult } = testUtils.renderHookWithProviders(() => useAuth())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
+            const { result: subscriptionResult } = testUtils.renderHookWithProviders(() => useSubscription())
 
             // Загружаем подписку
             await testUtils.testUtils.act(async () => {
@@ -665,7 +662,7 @@ describe('Mock Mode Integration Tests', () => {
                 updatedAt: new Date()
             })
 
-            const { result: storeResult } = testUtils.renderHook(() => useAppStore())
+            const { result: storeResult } = testUtils.renderHookWithProviders(() => useAppStore())
 
             // Устанавливаем первого пользователя
             await testUtils.testUtils.act(async () => {

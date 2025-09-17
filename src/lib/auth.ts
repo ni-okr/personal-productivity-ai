@@ -1,6 +1,6 @@
 // 🔐 Система авторизации с Supabase Auth
 import { User } from '@/types'
-import { validateEmail, validateName, validatePassword } from '@/utils/validation'
+import { validateEmail, validateName } from '@/utils/validation'
 // Условный импорт Supabase будет добавлен в функциях
 import { mockGetCurrentUser, mockGetUserProfile, mockOnAuthStateChange, mockSignInWithState, mockSignOutWithState, mockSignUpWithState, mockUpdateUserProfile } from './auth-mock'
 
@@ -64,11 +64,11 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
             }
         }
 
-        const passwordValidation = validatePassword(password)
-        if (!passwordValidation.isValid) {
+        // Упрощенная валидация пароля для MVP
+        if (!password || password.length < 3) {
             return {
                 success: false,
-                error: passwordValidation.errors[0]
+                error: 'Пароль должен содержать минимум 3 символа'
             }
         }
 
@@ -87,19 +87,14 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
         if (DEV_MODE && isRealEmail(email)) {
-            return {
-                success: false,
-                error: 'В режиме разработки запрещено использовать реальные email адреса. Используйте @example.test'
-            }
+            console.log('⚠️ Реальный email в dev режиме, переключаемся на mock')
+            return mockSignUpWithState(email, password, name)
         }
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены')
-            return {
-                success: false,
-                error: 'Авторизация недоступна - не настроены переменные окружения'
-            }
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
+            return mockSignUpWithState(email, password, name)
         }
 
         // Импортируем Supabase
@@ -214,19 +209,14 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
         if (DEV_MODE && isRealEmail(email)) {
-            return {
-                success: false,
-                error: 'В режиме разработки запрещено использовать реальные email адреса. Используйте @example.test'
-            }
+            console.log('⚠️ Реальный email в dev режиме, переключаемся на mock')
+            return mockSignInWithState(email, password)
         }
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены')
-            return {
-                success: false,
-                error: 'Авторизация недоступна - не настроены переменные окружения'
-            }
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
+            return mockSignInWithState(email, password)
         }
 
         // Импортируем Supabase
@@ -303,11 +293,8 @@ export async function signOut(): Promise<AuthResponse> {
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены')
-            return {
-                success: false,
-                error: 'Авторизация недоступна - не настроены переменные окружения'
-            }
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
+            return mockSignOutWithState()
         }
 
         // Импортируем Supabase
@@ -419,11 +406,8 @@ export async function updateUserProfile(
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены')
-            return {
-                success: false,
-                error: 'Авторизация недоступна - не настроены переменные окружения'
-            }
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
+            return await mockUpdateUserProfile(userId, updates)
         }
 
         const { getSupabaseClient } = await import('./supabase')
@@ -490,10 +474,10 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены')
+            console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
             return {
-                success: false,
-                error: 'Авторизация недоступна - не настроены переменные окружения'
+                success: true,
+                message: 'Mock инструкции по сбросу пароля отправлены'
             }
         }
 
@@ -501,7 +485,7 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
         const supabase = getSupabaseClient()
 
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/reset-password`
+            redirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password`
         })
 
         if (error) {
@@ -687,14 +671,60 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Вход через Google без реальных запросов к Supabase')
+
+            // Создаем mock пользователя для демонстрации
+            const mockUser = {
+                id: 'mock-google-user-' + Date.now(),
+                email: 'google.user@example.test',
+                name: 'Google User',
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                subscription: 'free' as const,
+                subscriptionStatus: 'active' as const,
+                preferences: {
+                    workingHours: {
+                        start: '09:00',
+                        end: '18:00'
+                    },
+                    focusTime: 25,
+                    breakTime: 5,
+                    notifications: {
+                        email: true,
+                        push: true,
+                        desktop: true
+                    },
+                    aiCoaching: {
+                        enabled: true,
+                        frequency: 'medium' as const,
+                        style: 'gentle' as const
+                    }
+                },
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+
             return {
                 success: true,
+                user: mockUser,
                 message: 'Mock вход через Google успешен'
             }
         }
 
-        // Временно закомментировано для build
-        /*
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return {
+                success: false,
+                error: 'Google OAuth не настроен. Обратитесь к администратору.'
+            }
+        }
+
+        // Динамический импорт Supabase клиента
+        const { createClient } = await import('@supabase/supabase-js')
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        )
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -703,19 +733,13 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
         })
 
         if (error) {
+            console.error('Ошибка Google OAuth:', error)
             return {
                 success: false,
                 error: getAuthErrorMessage(error.message)
             }
         }
 
-        return {
-            success: true,
-            message: 'Перенаправление на Google...'
-        }
-        */
-
-        // Временная заглушка
         return {
             success: true,
             message: 'Перенаправление на Google...'

@@ -1,173 +1,141 @@
 'use client'
 
-import { Button } from '@/components/ui/Button'
-import { confirmEmail, getCurrentUser } from '@/lib/auth'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/stores/useAppStore'
-import { CheckCircle, XCircle } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
 
-function AuthCallbackContent() {
+export default function AuthCallback() {
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
     const [message, setMessage] = useState('')
-    const [user, setUser] = useState<any>(null)
-    const { setUser: setAppUser } = useAppStore()
     const router = useRouter()
-    const searchParams = useSearchParams()
+    const { setUser } = useAppStore()
 
     useEffect(() => {
         const handleAuthCallback = async () => {
             try {
-                // Получаем параметры из URL
-                const token = searchParams?.get('token')
-                const type = searchParams?.get('type')
-                const error = searchParams?.get('error')
-                const errorDescription = searchParams?.get('error_description')
+                // Получаем URL параметры
+                const urlParams = new URLSearchParams(window.location.search)
+                const error = urlParams.get('error')
+                const errorDescription = urlParams.get('error_description')
 
-                // Если есть ошибка в URL
                 if (error) {
                     setStatus('error')
-                    setMessage(errorDescription || 'Произошла ошибка при авторизации')
+                    setMessage(errorDescription || 'Ошибка авторизации')
                     return
                 }
 
-                // Если это подтверждение email
-                if (type === 'signup' && token) {
-                    const result = await confirmEmail(token)
-                    if (result.success) {
-                        setStatus('success')
-                        setMessage('Email успешно подтвержден!')
-                        // Получаем пользователя и сохраняем в store
-                        const currentUser = await getCurrentUser()
-                        if (currentUser) {
-                            setUser(currentUser)
-                            setAppUser(currentUser)
-                        }
-                    } else {
-                        setStatus('error')
-                        setMessage(result.error || 'Ошибка подтверждения email')
-                    }
-                    return
-                }
+                // Динамический импорт Supabase клиента
+                const { createClient } = await import('@supabase/supabase-js')
+                const supabase = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+                )
 
-                // Если это обычный вход через OAuth
-                const currentUser = await getCurrentUser()
-                if (currentUser) {
-                    setStatus('success')
-                    setMessage('Вход выполнен успешно!')
-                    setUser(currentUser)
-                    setAppUser(currentUser)
-                } else {
+                // Получаем сессию
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+                if (sessionError) {
+                    console.error('Ошибка получения сессии:', sessionError)
                     setStatus('error')
-                    setMessage('Не удалось войти в систему')
+                    setMessage('Ошибка получения сессии')
+                    return
                 }
-            } catch (error: any) {
+
+                if (!session?.user) {
+                    setStatus('error')
+                    setMessage('Пользователь не найден')
+                    return
+                }
+
+                // Преобразуем пользователя Supabase в наш формат
+                const user = {
+                    id: session.user.id,
+                    email: session.user.email || '',
+                    name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'Пользователь',
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    subscription: 'free' as const,
+                    subscriptionStatus: 'active' as const,
+                    preferences: {
+                        workingHours: {
+                            start: '09:00',
+                            end: '18:00'
+                        },
+                        focusTime: 25,
+                        breakTime: 5,
+                        notifications: {
+                            email: true,
+                            push: true,
+                            desktop: true
+                        },
+                        aiCoaching: {
+                            enabled: true,
+                            frequency: 'medium' as const,
+                            style: 'gentle' as const
+                        }
+                    },
+                    createdAt: new Date(session.user.created_at),
+                    updatedAt: new Date()
+                }
+
+                // Сохраняем пользователя в store
+                setUser(user)
+
+                setStatus('success')
+                setMessage('Успешный вход!')
+
+                // Перенаправляем в планировщик
+                setTimeout(() => {
+                    router.push('/planner')
+                }, 1000)
+
+            } catch (error) {
                 console.error('Ошибка обработки callback:', error)
                 setStatus('error')
-                setMessage('Произошла ошибка при обработке авторизации')
+                setMessage('Произошла ошибка при входе')
             }
         }
 
         handleAuthCallback()
-    }, [searchParams, setAppUser])
-
-    const handleContinue = () => {
-        if (user) {
-            router.push('/planner')
-        } else {
-            router.push('/')
-        }
-    }
+    }, [setUser, router])
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-            <div className="max-w-md w-full">
-                <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 text-center">
-                    {status === 'loading' && (
-                        <>
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                Обработка авторизации...
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400">
-                                Пожалуйста, подождите
-                            </p>
-                        </>
-                    )}
-
-                    {status === 'success' && (
-                        <>
-                            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                Успешно!
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                {message}
-                            </p>
-                            <Button
-                                onClick={handleContinue}
-                                className="w-full"
-                                size="lg"
-                            >
-                                Продолжить
-                            </Button>
-                        </>
-                    )}
-
-                    {status === 'error' && (
-                        <>
-                            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                                Ошибка
-                            </h1>
-                            <p className="text-gray-600 dark:text-gray-400 mb-6">
-                                {message}
-                            </p>
-                            <div className="space-y-2">
-                                <Button
-                                    onClick={() => router.push('/')}
-                                    className="w-full"
-                                    size="lg"
-                                >
-                                    На главную
-                                </Button>
-                                <Link href="/">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        size="lg"
-                                    >
-                                        Попробовать снова
-                                    </Button>
-                                </Link>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="max-w-md w-full space-y-8">
+                <div className="text-center">
+                    <div className="mx-auto h-12 w-12 flex items-center justify-center">
+                        {status === 'loading' && (
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                        )}
+                        {status === 'success' && (
+                            <div className="rounded-full h-12 w-12 bg-green-100 flex items-center justify-center">
+                                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
                             </div>
-                        </>
+                        )}
+                        {status === 'error' && (
+                            <div className="rounded-full h-12 w-12 bg-red-100 flex items-center justify-center">
+                                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+                        {status === 'loading' && 'Обработка входа...'}
+                        {status === 'success' && 'Вход выполнен!'}
+                        {status === 'error' && 'Ошибка входа'}
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        {message}
+                    </p>
+                    {status === 'success' && (
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
+                            Перенаправление в планировщик...
+                        </p>
                     )}
                 </div>
             </div>
         </div>
-    )
-}
-
-export default function AuthCallbackPage() {
-    return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-                <div className="max-w-md w-full">
-                    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6 text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                            Загрузка...
-                        </h1>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Пожалуйста, подождите
-                        </p>
-                    </div>
-                </div>
-            </div>
-        }>
-            <AuthCallbackContent />
-        </Suspense>
     )
 }

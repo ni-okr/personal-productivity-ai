@@ -3,13 +3,13 @@
  * Покрытие: 100% всех функций и утилит
  */
 
-import { validateTask, validateEmail, validatePassword, validateName, sanitizeString, validateNumber, validateTimeRange } from '@/utils/validation'
-import { smartTaskPrioritization, analyzeProductivityAndSuggest, createDailySchedule } from '@/lib/smartPlanning'
 import { AIPlanner, AI_MODELS } from '@/lib/aiModels'
-import { signUp, signIn, signOut, getUserProfile, updateUserProfile, resetPassword, confirmEmail, updatePassword, signInWithGoogle, signInWithGitHub } from '@/lib/auth'
+import { confirmEmail, getUserProfile, resetPassword, signIn, signInWithGitHub, signInWithGoogle, signOut, signUp, updatePassword, updateUserProfile } from '@/lib/auth'
+import { analyzeProductivityAndSuggest, createDailySchedule, smartTaskPrioritization } from '@/lib/smartPlanning'
 import { addSubscriber, getActiveSubscribers, unsubscribe } from '@/lib/supabase'
 import { useAppStore } from '@/stores/useAppStore'
-import { Task, TaskPriority, User, UserPreferences } from '@/types'
+import { Task, User, UserPreferences } from '@/types'
+import { sanitizeString, validateEmail, validateName, validateNumber, validatePassword, validateTask, validateTimeRange } from '@/utils/validation'
 
 describe('🔐 Auth Module - Unit Tests', () => {
   describe('signUp', () => {
@@ -21,7 +21,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await signUp(userData)
-      
+
       expect(result.success).toBe(true)
       expect(result.user).toBeDefined()
       expect(result.user?.email).toBe(userData.email)
@@ -36,9 +36,9 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await signUp(userData)
-      
+
       expect(result.success).toBe(false)
-      expect(result.error).toContain('email')
+      expect(result.error).toContain('Некорректный формат email')
     })
 
     test('должен вернуть ошибку для слабого пароля', async () => {
@@ -49,9 +49,9 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await signUp(userData)
-      
+
       expect(result.success).toBe(false)
-      expect(result.error).toContain('пароль')
+      expect(result.error).toContain('Пароль должен содержать минимум 8 символов')
     })
 
     test('должен вернуть ошибку для пустого имени', async () => {
@@ -62,9 +62,9 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await signUp(userData)
-      
+
       expect(result.success).toBe(false)
-      expect(result.error).toContain('имя')
+      expect(result.error).toContain('Имя обязательно')
     })
   })
 
@@ -76,7 +76,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await signIn(credentials)
-      
+
       expect(result.success).toBe(true)
       expect(result.user).toBeDefined()
     })
@@ -88,16 +88,16 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await signIn(credentials)
-      
+
       expect(result.success).toBe(false)
-      expect(result.error).toContain('неверный')
+      expect(result.error).toContain('Неверные учетные данные')
     })
   })
 
   describe('signOut', () => {
     test('должен успешно выйти из системы', async () => {
       const result = await signOut()
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('выход')
     })
@@ -107,14 +107,14 @@ describe('🔐 Auth Module - Unit Tests', () => {
     test('должен получить профиль пользователя', async () => {
       const userId = 'test-user-id'
       const profile = await getUserProfile(userId)
-      
+
       expect(profile).toBeDefined()
       expect(profile?.id).toBe(userId)
     })
 
     test('должен вернуть null для несуществующего пользователя', async () => {
       const profile = await getUserProfile('non-existent-id')
-      
+
       expect(profile).toBeNull()
     })
   })
@@ -128,7 +128,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
       }
 
       const result = await updateUserProfile(userId, updates)
-      
+
       expect(result.success).toBe(true)
       expect(result.user?.name).toBe(updates.name)
       expect(result.user?.subscription).toBe(updates.subscription)
@@ -139,7 +139,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
     test('должен отправить инструкции по сбросу пароля', async () => {
       const email = 'test@example.com'
       const result = await resetPassword(email)
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('отправлены')
     })
@@ -149,7 +149,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
     test('должен подтвердить email с валидным токеном', async () => {
       const token = 'valid-token'
       const result = await confirmEmail(token)
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('подтвержден')
     })
@@ -157,9 +157,9 @@ describe('🔐 Auth Module - Unit Tests', () => {
     test('должен вернуть ошибку для невалидного токена', async () => {
       const token = 'invalid-token'
       const result = await confirmEmail(token)
-      
+
       expect(result.success).toBe(false)
-      expect(result.error).toContain('неверный')
+      expect(result.error).toContain('Неверные учетные данные')
     })
   })
 
@@ -167,7 +167,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
     test('должен обновить пароль', async () => {
       const newPassword = 'NewSecurePass123!'
       const result = await updatePassword(newPassword)
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('обновлен')
     })
@@ -176,7 +176,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
   describe('signInWithGoogle', () => {
     test('должен перенаправить на Google', async () => {
       const result = await signInWithGoogle()
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('Google')
     })
@@ -185,7 +185,7 @@ describe('🔐 Auth Module - Unit Tests', () => {
   describe('signInWithGitHub', () => {
     test('должен перенаправить на GitHub', async () => {
       const result = await signInWithGitHub()
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('GitHub')
     })
@@ -204,7 +204,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
@@ -217,7 +217,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Название задачи обязательно')
     })
@@ -230,7 +230,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Название задачи не должно превышать 200 символов')
     })
@@ -243,7 +243,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Некорректный приоритет задачи')
     })
@@ -256,7 +256,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Время выполнения должно быть больше 0 минут')
     })
@@ -269,7 +269,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Время выполнения не должно превышать 480 минут')
     })
@@ -283,7 +283,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
       }
 
       const result = validateTask(taskData)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Дата выполнения не может быть в прошлом')
     })
@@ -293,7 +293,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен пройти валидацию для корректного email', () => {
       const email = 'test@example.com'
       const result = validateEmail(email)
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
@@ -301,7 +301,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для невалидного формата', () => {
       const email = 'invalid-email'
       const result = validateEmail(email)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Некорректный формат email')
     })
@@ -309,7 +309,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для пустого email', () => {
       const email = ''
       const result = validateEmail(email)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Email обязателен')
     })
@@ -317,7 +317,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для слишком длинного email', () => {
       const email = 'a'.repeat(250) + '@example.com'
       const result = validateEmail(email)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Email слишком длинный')
     })
@@ -327,7 +327,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен пройти валидацию для сильного пароля', () => {
       const password = 'SecurePass123!'
       const result = validatePassword(password)
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
@@ -335,7 +335,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для короткого пароля', () => {
       const password = '123'
       const result = validatePassword(password)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Пароль должен содержать минимум 8 символов')
     })
@@ -343,7 +343,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для пароля без строчных букв', () => {
       const password = 'SECUREPASS123!'
       const result = validatePassword(password)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Пароль должен содержать строчные буквы')
     })
@@ -351,7 +351,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для пароля без заглавных букв', () => {
       const password = 'securepass123!'
       const result = validatePassword(password)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Пароль должен содержать заглавные буквы')
     })
@@ -359,7 +359,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для пароля без цифр', () => {
       const password = 'SecurePass!'
       const result = validatePassword(password)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Пароль должен содержать цифры')
     })
@@ -369,7 +369,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен пройти валидацию для корректного имени', () => {
       const name = 'John Doe'
       const result = validateName(name)
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
@@ -377,7 +377,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для короткого имени', () => {
       const name = 'J'
       const result = validateName(name)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Имя должно содержать минимум 2 символа')
     })
@@ -385,7 +385,7 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен вернуть ошибку для имени с недопустимыми символами', () => {
       const name = 'John123'
       const result = validateName(name)
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Имя может содержать только буквы, пробелы, дефисы и апострофы')
     })
@@ -395,14 +395,14 @@ describe('🔒 Validation Utils - Unit Tests', () => {
     test('должен санитизировать XSS атаки', () => {
       const input = '<script>alert("xss")</script>'
       const result = sanitizeString(input)
-      
+
       expect(result).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;')
     })
 
     test('должен санитизировать HTML теги', () => {
       const input = '<div>Hello</div>'
       const result = sanitizeString(input)
-      
+
       expect(result).toBe('&lt;div&gt;Hello&lt;/div&gt;')
     })
   })
@@ -410,21 +410,21 @@ describe('🔒 Validation Utils - Unit Tests', () => {
   describe('validateNumber', () => {
     test('должен пройти валидацию для корректного числа', () => {
       const result = validateNumber(50, 0, 100, 'Возраст')
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
     test('должен вернуть ошибку для числа меньше минимума', () => {
       const result = validateNumber(-1, 0, 100, 'Возраст')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Возраст не должно быть меньше 0')
     })
 
     test('должен вернуть ошибку для числа больше максимума', () => {
       const result = validateNumber(101, 0, 100, 'Возраст')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Возраст не должно быть больше 100')
     })
@@ -433,21 +433,21 @@ describe('🔒 Validation Utils - Unit Tests', () => {
   describe('validateTimeRange', () => {
     test('должен пройти валидацию для корректного диапазона', () => {
       const result = validateTimeRange('09:00', '18:00')
-      
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
     test('должен вернуть ошибку для невалидного формата времени', () => {
       const result = validateTimeRange('25:00', '18:00')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Некорректный формат времени начала')
     })
 
     test('должен вернуть ошибку когда время начала позже окончания', () => {
       const result = validateTimeRange('18:00', '09:00')
-      
+
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Время начала должно быть раньше времени окончания')
     })
@@ -465,7 +465,7 @@ describe('🧠 Smart Planning - Unit Tests', () => {
       ]
 
       const sorted = smartTaskPrioritization(tasks)
-      
+
       expect(sorted[0].priority).toBe('urgent')
       expect(sorted[1].priority).toBe('high')
       expect(sorted[2].priority).toBe('medium')
@@ -483,7 +483,7 @@ describe('🧠 Smart Planning - Unit Tests', () => {
       ]
 
       const sorted = smartTaskPrioritization(tasks)
-      
+
       expect(sorted[0].dueDate).toEqual(tomorrow)
       expect(sorted[1].dueDate).toEqual(nextWeek)
     })
@@ -495,7 +495,7 @@ describe('🧠 Smart Planning - Unit Tests', () => {
       ]
 
       const sorted = smartTaskPrioritization(tasks)
-      
+
       expect(sorted[0].estimatedMinutes).toBe(30)
       expect(sorted[1].estimatedMinutes).toBe(120)
     })
@@ -509,7 +509,7 @@ describe('🧠 Smart Planning - Unit Tests', () => {
       ]
 
       const analysis = analyzeProductivityAndSuggest(completedTasks)
-      
+
       expect(analysis.score).toBeGreaterThan(0)
       expect(analysis.insights).toHaveLength(1)
       expect(analysis.recommendations).toHaveLength(1)
@@ -517,7 +517,7 @@ describe('🧠 Smart Planning - Unit Tests', () => {
 
     test('должен давать рекомендации для пустого списка задач', () => {
       const analysis = analyzeProductivityAndSuggest([])
-      
+
       expect(analysis.score).toBe(0)
       expect(analysis.insights).toContain('Сегодня еще не выполнено ни одной задачи')
       expect(analysis.recommendations).toContain('Начните с самой простой задачи для создания импульса')
@@ -538,7 +538,7 @@ describe('🧠 Smart Planning - Unit Tests', () => {
       }
 
       const schedule = createDailySchedule(tasks, preferences)
-      
+
       expect(schedule.date).toBeDefined()
       expect(schedule.slots).toHaveLength(2)
       expect(schedule.productivity_score).toBeGreaterThan(0)
@@ -551,7 +551,7 @@ describe('🤖 AI Models - Unit Tests', () => {
   describe('AIPlanner', () => {
     test('должен создать экземпляр с валидной моделью', () => {
       const planner = new AIPlanner('mock-ai')
-      
+
       expect(planner).toBeDefined()
     })
 
@@ -587,7 +587,7 @@ describe('🗄️ Supabase API - Unit Tests', () => {
     test('должен добавить нового подписчика', async () => {
       const email = 'test@example.com'
       const result = await addSubscriber(email)
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('Спасибо за подписку')
       expect(result.data).toBeDefined()
@@ -595,13 +595,13 @@ describe('🗄️ Supabase API - Unit Tests', () => {
 
     test('должен вернуть ошибку для дублирующегося email', async () => {
       const email = 'duplicate@example.com'
-      
+
       // Первая подписка
       await addSubscriber(email)
-      
+
       // Вторая подписка
       const result = await addSubscriber(email)
-      
+
       expect(result.success).toBe(false)
       expect(result.message).toContain('уже подписан')
     })
@@ -610,7 +610,7 @@ describe('🗄️ Supabase API - Unit Tests', () => {
   describe('getActiveSubscribers', () => {
     test('должен получить список активных подписчиков', async () => {
       const subscribers = await getActiveSubscribers()
-      
+
       expect(Array.isArray(subscribers)).toBe(true)
     })
   })
@@ -618,20 +618,20 @@ describe('🗄️ Supabase API - Unit Tests', () => {
   describe('unsubscribe', () => {
     test('должен отписать пользователя', async () => {
       const email = 'unsubscribe@example.com'
-      
+
       // Сначала подписываем
       await addSubscriber(email)
-      
+
       // Затем отписываем
       const result = await unsubscribe(email)
-      
+
       expect(result.success).toBe(true)
       expect(result.message).toContain('отписались')
     })
 
     test('должен вернуть ошибку для несуществующего подписчика', async () => {
       const result = await unsubscribe('nonexistent@example.com')
-      
+
       expect(result.success).toBe(false)
       expect(result.message).toContain('не найден')
     })
@@ -641,7 +641,7 @@ describe('🗄️ Supabase API - Unit Tests', () => {
 describe('🏪 Zustand Store - Unit Tests', () => {
   test('должен инициализироваться с пустым состоянием', () => {
     const store = useAppStore.getState()
-    
+
     expect(store.user).toBeNull()
     expect(store.tasks).toEqual([])
     expect(store.suggestions).toEqual([])
@@ -670,7 +670,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
     }
 
     useAppStore.getState().setUser(user)
-    
+
     expect(useAppStore.getState().user).toEqual(user)
   })
 
@@ -688,7 +688,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
     }
 
     useAppStore.getState().addTask(task)
-    
+
     expect(useAppStore.getState().tasks).toContain(task)
   })
 
@@ -707,7 +707,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
 
     useAppStore.getState().addTask(task)
     useAppStore.getState().updateTask('1', { status: 'completed' })
-    
+
     const updatedTask = useAppStore.getState().tasks.find(t => t.id === '1')
     expect(updatedTask?.status).toBe('completed')
   })
@@ -727,7 +727,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
 
     useAppStore.getState().addTask(task)
     useAppStore.getState().deleteTask('1')
-    
+
     expect(useAppStore.getState().tasks).not.toContain(task)
   })
 
@@ -763,7 +763,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
     ]
 
     useAppStore.getState().setTasks(tasks)
-    
+
     const completedToday = useAppStore.getState().completedTasksToday()
     expect(completedToday).toHaveLength(1)
     expect(completedToday[0].id).toBe('1')
@@ -807,7 +807,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
     ]
 
     useAppStore.getState().setTasks(tasks)
-    
+
     const pendingTasks = useAppStore.getState().pendingTasks()
     expect(pendingTasks).toHaveLength(2)
     expect(pendingTasks.map(t => t.id)).toContain('1')
@@ -858,7 +858,7 @@ describe('🏪 Zustand Store - Unit Tests', () => {
     ]
 
     useAppStore.getState().setTasks(tasks)
-    
+
     const urgentTasks = useAppStore.getState().urgentTasks()
     expect(urgentTasks).toHaveLength(2)
     expect(urgentTasks.map(t => t.id)).toContain('1')

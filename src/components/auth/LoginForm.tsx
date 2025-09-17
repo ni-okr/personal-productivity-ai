@@ -63,8 +63,15 @@ export function LoginForm({ onSuccess, onSwitchToRegister, onSwitchToReset }: Lo
             const result = await signInWithGoogle()
 
             if (result.success) {
-                // OAuth процесс инициирован, пользователь будет перенаправлен
-                // Результат будет обработан в /auth/callback
+                // В mock режиме пользователь сразу доступен
+                if (result.user) {
+                    setUser(result.user)
+                    onSuccess?.()
+                } else {
+                    // В реальном режиме OAuth процесс инициирован, пользователь будет перенаправлен
+                    // Результат будет обработан в /auth/callback
+                    console.log('OAuth процесс инициирован, перенаправление...')
+                }
             } else {
                 setError(result.error || 'Ошибка входа через Google')
             }
