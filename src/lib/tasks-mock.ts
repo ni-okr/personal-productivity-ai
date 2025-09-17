@@ -1,6 +1,7 @@
 // 🧪 Mock функции для тестирования задач без Supabase
 
-import { AICoachSuggestion, CreateTaskData, ProductivityMetrics, Task, TasksResponse, TaskStatus, UpdateTaskData } from '@/types'
+import { AICoachSuggestion, ProductivityMetrics, Task, TaskStatus, TaskForm } from '@/types'
+import { TasksResponse, UpdateTaskData } from './tasks'
 
 // Mock данные для задач
 const mockTasks: Task[] = [
@@ -97,7 +98,7 @@ export async function mockGetTasks(userId: string): Promise<TasksResponse> {
   }
 }
 
-export async function mockCreateTask(userId: string, taskData: CreateTaskData): Promise<TasksResponse> {
+export async function mockCreateTask(userId: string, taskData: TaskForm): Promise<TasksResponse> {
   console.log('🧪 MOCK РЕЖИМ: Создание задачи без реальных запросов к Supabase')
 
   const newTask: Task = {

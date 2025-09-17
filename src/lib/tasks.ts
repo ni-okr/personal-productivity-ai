@@ -29,7 +29,7 @@ export interface CreateTaskData {
   priority: TaskPriority
   estimatedMinutes?: number
   dueDate?: Date
-  tags?: string[]
+  tags: string[]
 }
 
 export interface UpdateTaskData {

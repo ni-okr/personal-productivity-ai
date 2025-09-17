@@ -259,11 +259,11 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
             .eq('id', data.user.id)
 
         // Получаем полный профиль пользователя
-        const userProfile = await getUserProfile(data.user.id)
+        const userProfileResponse = await getUserProfile(data.user.id)
 
         return {
             success: true,
-            user: userProfile ?? {
+            user: userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : {
                 id: data.user.id,
                 email: data.user.email!,
                 name: data.user.user_metadata?.name || 'Пользователь',
@@ -389,10 +389,10 @@ export async function getUserProfile(userId: string): Promise<AuthResponse> {
                     breakTime: 5,
                     notifications: { email: true, push: true, desktop: true },
                     aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-                }
-            },
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at || data.created_at)
+                },
+                createdAt: new Date(data.created_at),
+                updatedAt: new Date(data.updated_at || data.created_at)
+            }
         }
     } catch (error) {
         console.error('Ошибка получения профиля:', error)
@@ -549,7 +549,8 @@ export async function getCurrentUser(): Promise<User | null> {
             return null
         }
 
-        return await getUserProfile(user.id)
+        const userProfileResponse = await getUserProfile(user.id)
+        return userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : null
     } catch (error) {
         console.error('Ошибка получения текущего пользователя:', error)
         return null
