@@ -270,12 +270,20 @@ class TinkoffAPI {
             Phone: '+79001234567', // Добавляем телефон для избежания ошибки 329
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
-            FailURL: `https://taskai.space/planner?payment=failed`
-            // Receipt полностью исключен для избежания ошибки 329
+            FailURL: `https://taskai.space/planner?payment=failed`,
+            // Минимальный Receipt без Email внутри (Email уже в корне)
+            Receipt: {
+                EmailCompany: 'support@taskai.space',
+                Taxation: 'usn_income',
+                Items: [{
+                    Name: description,
+                    Price: amount * 100,
+                    Quantity: 1,
+                    Amount: amount * 100,
+                    Tax: 'vat20'
+                }]
+            }
         }
-
-        // Убеждаемся, что Receipt не передается
-        delete (request as any).Receipt
 
         return this.initPayment(request)
     }
