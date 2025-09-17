@@ -1,0 +1,188 @@
+name: 🚀 Auto Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.3.0)'
+        required: true
+        default: 'v1.3.0'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # 🔍 Validate release
+  validate-release:
+    name: 🔍 Validate Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Get version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 🔍 Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: v1.2.3"
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+
+  # 🧪 Run tests
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    needs: validate-release
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run unit tests
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+          NEXT_PUBLIC_DEV_MODE: 'true'
+          NEXT_PUBLIC_DISABLE_EMAIL: 'true'
+          TEST_EMAIL_DOMAIN: '@example.test'
+
+      - name: 🏗️ Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+  # 🔒 Security audit
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    needs: validate-release
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔒 Run security audit
+        run: npm audit --audit-level high
+
+  # 🚀 Create release
+  create-release:
+    name: 🚀 Create Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, test, security-audit]
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Get version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 📝 Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            echo "## 🎉 Release $VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            echo "### 📋 Changes since $PREVIOUS_TAG" >> release_notes.md
+            echo "" >> release_notes.md
+            git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD >> release_notes.md
+            echo "" >> release_notes.md
+            echo "### 🧪 Testing" >> release_notes.md
+            echo "- [x] Unit tests passed" >> release_notes.md
+            echo "- [x] Build successful" >> release_notes.md
+            echo "- [x] Security audit passed" >> release_notes.md
+            echo "" >> release_notes.md
+            echo "### 🚀 Ready for production!" >> release_notes.md
+          else
+            echo "## 🎉 Release $VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            echo "### 🧪 Testing" >> release_notes.md
+            echo "- [x] Unit tests passed" >> release_notes.md
+            echo "- [x] Build successful" >> release_notes.md
+            echo "- [x] Security audit passed" >> release_notes.md
+            echo "" >> release_notes.md
+            echo "### 🚀 Ready for production!" >> release_notes.md
+          fi
+
+      - name: 🚀 Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Release ${{ steps.version.outputs.tag }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+
+  # 📊 Generate report
+  generate-report:
+    name: 📊 Generate Report
+    runs-on: ubuntu-latest
+    needs: [validate-release, test, security-audit, create-release]
+    if: always()
+    steps:
+      - name: 📊 Generate release report
+        run: |
+          echo "## 🚀 Auto Release Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Validation" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ needs.validate-release.result == 'success' && '✅ Valid' || '❌ Invalid' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🧪 Testing" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ needs.test.result == 'success' && '✅ Passed' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔒 Security" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ needs.security-audit.result == 'success' && '✅ Secure' || '❌ Issues' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Release" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ needs.create-release.result == 'success' && '✅ Created' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📅 Timestamp" >> $GITHUB_STEP_SUMMARY
+          echo "Generated: $(date)" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,85 @@
+# GitHub Pages configuration for Personal Productivity AI documentation
+
+title: Personal Productivity AI
+description: Умный планировщик задач с ИИ-помощником для максимальной продуктивности
+author: Personal Productivity AI Team
+email: support@personal-productivity-ai.com
+url: https://ni-okr.github.io/personal-productivity-ai
+
+# GitHub Pages settings
+baseurl: /personal-productivity-ai
+repository: ni-okr/personal-productivity-ai
+github_username: ni-okr
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Site settings
+lang: ru
+timezone: Europe/Moscow
+
+# Navigation
+navigation:
+  - title: Главная
+    url: /
+  - title: Документация
+    url: /docs/
+  - title: API
+    url: /api/
+  - title: Безопасность
+    url: /security/
+  - title: GitHub
+    url: https://github.com/ni-okr/personal-productivity-ai
+
+# Social links
+social:
+  - name: GitHub
+    url: https://github.com/ni-okr/personal-productivity-ai
+  - name: Twitter
+    url: https://twitter.com/personal_productivity_ai
+  - name: Discord
+    url: https://discord.gg/personal-productivity-ai
+
+# SEO
+seo:
+  type: Organization
+  name: Personal Productivity AI
+  description: Умный планировщик задач с ИИ-помощником для максимальной продуктивности
+  url: https://ni-okr.github.io/personal-productivity-ai
+  image: /assets/logo.png
+  twitter:
+    card: summary_large_image
+    creator: @personal_productivity_ai
+
+# Analytics
+google_analytics: G-XXXXXXXXXX
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - README.md
+  - LICENSE
+  - SECURITY.md
+  - CONTRIBUTING.md
+  - CHANGELOG.md
+  - .github/
+  - .gitignore
+  - .cursor/
+  - tests/
+  - src/
+  - public/
+  - next.config.js
+  - tailwind.config.js
+  - tsconfig.json
+  - jest.config.js
+  - package.json
+  - package-lock.json
