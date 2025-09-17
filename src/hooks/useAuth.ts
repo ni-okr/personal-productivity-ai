@@ -81,11 +81,31 @@ export function useAuth() {
         }
     }
 
+    const signOut = async () => {
+        try {
+            if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true') {
+                // В mock режиме просто очищаем данные
+                clearUserData()
+                router.push('/')
+                return
+            }
+
+            // В реальном режиме используем Supabase
+            const { signOut: supabaseSignOut } = await import('@/lib/auth')
+            await supabaseSignOut()
+            clearUserData()
+            router.push('/')
+        } catch (error) {
+            console.error('Ошибка выхода:', error)
+        }
+    }
+
     return {
         user: process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' ? user : user,
         isLoading: process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' ? false : isLoading,
         isAuthenticated: !!user,
         requireAuth,
-        requireGuest
+        requireGuest,
+        signOut
     }
 }
