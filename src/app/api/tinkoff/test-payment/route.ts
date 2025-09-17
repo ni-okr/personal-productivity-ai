@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
         // Проверяем наличие ключей Тинькофф
         const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
 
-    // Временно включаем mock режим для отладки - FORCE MOCK
-    if (!hasTinkoffKeys || true) {
+        // Временно включаем mock режим для отладки - FORCE MOCK
+        if (!hasTinkoffKeys || true) {
             // Mock режим - возвращаем тестовые данные
             console.log('🧪 Mock режим - ключи Тинькофф не настроены')
 
