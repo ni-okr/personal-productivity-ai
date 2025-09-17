@@ -87,8 +87,8 @@ class TinkoffAPI {
         this.terminalKey = process.env.TINKOFF_TERMINAL_KEY || ''
         this.secretKey = process.env.TINKOFF_SECRET_KEY || ''
 
-        // Используем тестовую среду
-        this.baseURL = 'https://rest-api-test.tinkoff.ru/v2/'
+        // Используем продакшн среду
+        this.baseURL = 'https://securepay.tinkoff.ru/v2/'
 
         if (!this.terminalKey || !this.secretKey) {
             console.warn('Tinkoff API keys not configured')
@@ -261,11 +261,11 @@ class TinkoffAPI {
             CustomerKey: 'test_customer',
             PayType: 'T', // Тестовый режим
             Language: 'ru',
-            NotificationURL: `${process.env.NEXT_PUBLIC_APP_URL}/api/tinkoff/webhook`,
-            SuccessURL: `${process.env.NEXT_PUBLIC_APP_URL}/planner?payment=success`,
-            FailURL: `${process.env.NEXT_PUBLIC_APP_URL}/planner?payment=failed`,
+            NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
+            SuccessURL: `https://taskai.space/planner?payment=success`,
+            FailURL: `https://taskai.space/planner?payment=failed`,
             Receipt: {
-                EmailCompany: 'support@personal-productivity-ai.vercel.app',
+                EmailCompany: 'support@taskai.space',
                 Taxation: 'usn_income',
                 Items: [{
                     Name: description,
