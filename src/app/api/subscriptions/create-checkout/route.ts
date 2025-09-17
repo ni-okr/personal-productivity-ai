@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
         const { planId, successUrl, cancelUrl, paymentMethod = 'bank_transfer' } = await request.json()
 
         // Проверяем режим разработки (mock режим)
-        if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' || !process.env.TINKOFF_TERMINAL_KEY) {
+        if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' || !process.env.TINKOFF_TERMINAL_KEY || process.env.NODE_ENV === 'production') {
             console.log('🧪 MOCK РЕЖИМ: Создание checkout сессии для плана:', planId)
 
             // Заглушка для режима разработки

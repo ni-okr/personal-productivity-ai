@@ -72,7 +72,9 @@ export async function POST(request: NextRequest) {
 
         // Реальный режим - используем Тинькофф API
         console.log('💳 Реальный режим - используем Тинькофф API')
-        const paymentResponse = await createTestTinkoffPayment(amount, description, orderId, terminalKey, secretKey)
+        // Конвертируем amount в рубли (если передано в копейках)
+        const amountInRubles = amount > 1000 ? amount / 100 : amount
+        const paymentResponse = await createTestTinkoffPayment(amountInRubles, description, orderId, terminalKey, secretKey)
 
         if (!paymentResponse.Success) {
             console.error('Ошибка Тинькофф API:', {
