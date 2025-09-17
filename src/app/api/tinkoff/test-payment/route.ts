@@ -25,7 +25,38 @@ export async function POST(request: NextRequest) {
             orderId
         })
 
-        // Создаем тестовый платеж
+        // Проверяем есть ли ключи Тинькофф
+        const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
+
+        if (!hasTinkoffKeys) {
+            // Mock режим - возвращаем тестовые данные
+            console.log('🧪 Mock режим - ключи Тинькофф не настроены')
+            
+            return NextResponse.json({
+                success: true,
+                data: {
+                    paymentId: `mock_${orderId}`,
+                    paymentUrl: `https://personal-productivity-ai.vercel.app/planner?payment=success&orderId=${orderId}`,
+                    orderId: orderId,
+                    amount: amount,
+                    description: description,
+                    testCardData: {
+                        number: '4300 0000 0000 0777',
+                        expiry: '12/30',
+                        cvv: '111'
+                    },
+                    instructions: {
+                        step1: 'Перейдите по ссылке для оплаты',
+                        step2: 'Используйте тестовую карту: 4300 0000 0000 0777',
+                        step3: 'Срок действия: 12/30, CVV: 111',
+                        step4: 'Ожидайте статус "Оплачено"'
+                    },
+                    mockMode: true
+                }
+            })
+        }
+
+        // Реальный режим - используем Тинькофф API
         const paymentResponse = await createTestTinkoffPayment(amount, description, orderId)
 
         if (!paymentResponse.Success) {

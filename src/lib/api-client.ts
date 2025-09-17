@@ -15,7 +15,7 @@ export async function getAuthToken(): Promise<string | null> {
 
         const supabase = getSupabaseClient()
         const { data: { session } } = await supabase.auth.getSession()
-        
+
         return session?.access_token || null
     } catch (error) {
         console.error('Ошибка получения токена:', error)
@@ -27,11 +27,11 @@ export async function getAuthToken(): Promise<string | null> {
  * Выполнение API запроса с автоматической авторизацией
  */
 export async function apiRequest(
-    url: string, 
+    url: string,
     options: RequestInit = {}
 ): Promise<Response> {
     const token = await getAuthToken()
-    
+
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         ...(options.headers as Record<string, string> || {}),
