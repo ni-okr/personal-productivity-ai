@@ -28,16 +28,16 @@ export async function GET(request: NextRequest) {
             })
         }
 
-        // Импортируем getCurrentUser и getSubscription только если есть переменные окружения
-        const { getCurrentUser } = await import('@/lib/auth')
+        // Импортируем getCurrentUserFromRequest и getSubscription только если есть переменные окружения
+        const { getCurrentUserFromRequest } = await import('@/lib/auth')
         const { getSubscription } = await import('@/lib/subscriptions')
 
-        // Проверяем авторизацию
+        // Проверяем авторизацию из заголовков запроса
         let user = null
         try {
-            user = await getCurrentUser()
+            user = await getCurrentUserFromRequest(request)
         } catch (error) {
-            console.log('⚠️ Ошибка получения пользователя:', error)
+            console.log('⚠️ Ошибка получения пользователя из запроса:', error)
         }
 
         if (!user) {

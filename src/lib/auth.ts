@@ -509,7 +509,7 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
 }
 
 /**
- * 👤 Получение текущего пользователя
+ * 👤 Получение текущего пользователя (для браузера)
  */
 export async function getCurrentUser(): Promise<User | null> {
     try {
@@ -537,6 +537,54 @@ export async function getCurrentUser(): Promise<User | null> {
         return userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : null
     } catch (error) {
         console.error('Ошибка получения текущего пользователя:', error)
+        return null
+    }
+}
+
+/**
+ * 👤 Получение текущего пользователя из API запроса (для сервера)
+ */
+export async function getCurrentUserFromRequest(request: Request): Promise<User | null> {
+    try {
+        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+        if (DISABLE_EMAIL) {
+            return mockGetCurrentUser()
+        }
+
+        // Проверяем наличие переменных окружения Supabase
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+            console.log('⚠️ Переменные окружения Supabase не настроены')
+            return null
+        }
+
+        // Получаем JWT токен из заголовка Authorization
+        const authHeader = request.headers.get('authorization')
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            console.log('⚠️ Нет заголовка Authorization')
+            return null
+        }
+
+        const token = authHeader.replace('Bearer ', '')
+        
+        // Создаем Supabase клиент для сервера
+        const { createClient } = await import('@supabase/supabase-js')
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        )
+
+        // Проверяем JWT токен
+        const { data: { user }, error } = await supabase.auth.getUser(token)
+
+        if (error || !user) {
+            console.log('⚠️ Ошибка проверки JWT токена:', error)
+            return null
+        }
+
+        const userProfileResponse = await getUserProfile(user.id)
+        return userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : null
+    } catch (error) {
+        console.error('Ошибка получения пользователя из запроса:', error)
         return null
     }
 }

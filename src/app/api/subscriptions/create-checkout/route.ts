@@ -22,11 +22,11 @@ export async function POST(request: NextRequest) {
             })
         }
 
-        // Импортируем getCurrentUser только если есть переменные окружения
-        const { getCurrentUser } = await import('@/lib/auth')
+        // Импортируем getCurrentUserFromRequest только если есть переменные окружения
+        const { getCurrentUserFromRequest } = await import('@/lib/auth')
 
-        // Проверяем авторизацию
-        const user = await getCurrentUser()
+        // Проверяем авторизацию из заголовков запроса
+        const user = await getCurrentUserFromRequest(request)
         if (!user) {
             return NextResponse.json(
                 { success: false, error: 'Необходима авторизация' },
