@@ -27,38 +27,38 @@ export async function POST(request: NextRequest) {
             hasSecretKey: !!process.env.TINKOFF_SECRET_KEY
         })
 
-    // Проверяем наличие ключей Тинькофф
-    const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
+        // Проверяем наличие ключей Тинькофф
+        const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
 
-    if (!hasTinkoffKeys) {
-        // Mock режим - возвращаем тестовые данные
-        console.log('🧪 Mock режим - ключи Тинькофф не настроены')
+        if (!hasTinkoffKeys) {
+            // Mock режим - возвращаем тестовые данные
+            console.log('🧪 Mock режим - ключи Тинькофф не настроены')
 
-        return NextResponse.json({
-            success: true,
-            data: {
-                paymentId: `mock_${orderId}`,
-                paymentUrl: `https://securepay.tinkoff.ru/new/mock_${orderId}`,
-                orderId: orderId,
-                amount: amount,
-                description: description,
-                testCardData: {
-                    number: '4300 0000 0000 0777',
-                    expiry: '12/30',
-                    cvv: '111'
-                },
-                instructions: {
-                    step1: 'Перейдите по ссылке для оплаты',
-                    step2: 'Используйте тестовую карту: 4300 0000 0000 0777',
-                    step3: 'Срок действия: 12/30, CVV: 111',
-                    step4: 'Ожидайте статус "Оплачено"'
-                },
-                mockMode: true,
-                setupRequired: false,
-                setupMessage: 'Mock режим - тестовые платежи работают без реальных API ключей'
-            }
-        })
-    }
+            return NextResponse.json({
+                success: true,
+                data: {
+                    paymentId: `mock_${orderId}`,
+                    paymentUrl: `https://securepay.tinkoff.ru/new/mock_${orderId}`,
+                    orderId: orderId,
+                    amount: amount,
+                    description: description,
+                    testCardData: {
+                        number: '4300 0000 0000 0777',
+                        expiry: '12/30',
+                        cvv: '111'
+                    },
+                    instructions: {
+                        step1: 'Перейдите по ссылке для оплаты',
+                        step2: 'Используйте тестовую карту: 4300 0000 0000 0777',
+                        step3: 'Срок действия: 12/30, CVV: 111',
+                        step4: 'Ожидайте статус "Оплачено"'
+                    },
+                    mockMode: true,
+                    setupRequired: false,
+                    setupMessage: 'Mock режим - тестовые платежи работают без реальных API ключей'
+                }
+            })
+        }
 
         // Используем ключи из environment variables
         const terminalKey = process.env.TINKOFF_TERMINAL_KEY || 'TestTerminalKey'
