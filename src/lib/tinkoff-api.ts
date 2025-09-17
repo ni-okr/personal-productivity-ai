@@ -266,6 +266,7 @@ class TinkoffAPI {
             FailURL: `https://taskai.space/planner?payment=failed`,
             Receipt: {
                 EmailCompany: 'support@taskai.space',
+                Email: 'test@taskai.space',
                 Taxation: 'usn_income',
                 Items: [{
                     Name: description,
