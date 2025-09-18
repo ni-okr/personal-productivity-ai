@@ -79,22 +79,15 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
             }
         }
 
-        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-        if (DISABLE_EMAIL) {
-            const { mockSignUpWithState } = await import('../../tests/mocks/auth-mock')
-            return mockSignUpWithState(email, password, name)
-        }
-
-        // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
-        if (DEV_MODE && isRealEmail(email)) {
-            console.log('⚠️ Реальный email в dev режиме, переключаемся на mock')
-            return mockSignUpWithState(email, password, name)
-        }
+        // DEV_MODE mocking removed for release: always use real signUp
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
-            return mockSignUpWithState(email, password, name)
+            return {
+                success: false,
+                error: 'Переменные окружения Supabase не настроены'
+            }
         }
 
         // Импортируем Supabase
@@ -296,7 +289,10 @@ export async function signOut(): Promise<AuthResponse> {
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
-            return mockSignOutWithState()
+            return {
+                success: false,
+                error: 'Переменные окружения Supabase не настроены'
+            }
         }
 
         // Импортируем Supabase
