@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 // 🧪 Debug endpoint для тестирования Тинькофф API
 import { NextRequest, NextResponse } from 'next/server'
 

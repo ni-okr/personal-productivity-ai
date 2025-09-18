@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 // 💳 Реальная интеграция с Тинькофф API для тестирования
 
 export interface TinkoffInitRequest {
