@@ -37,7 +37,7 @@ jobs:
 
       - name: Upload Test Results
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-results
           path: tests/integration/**/coverage/**/*
