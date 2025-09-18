@@ -3,7 +3,7 @@ import { Subscription, SubscriptionPlan, SubscriptionStatus, SubscriptionTier } 
 import type { SubscriptionInsert } from '@/types/supabase'
 import {
     mockGetSubscription
-} from './subscription-mock'
+} from '../../tests/mocks/subscription-mock'
 import { getSupabaseClient } from './supabase'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
