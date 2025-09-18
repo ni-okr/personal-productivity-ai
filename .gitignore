@@ -83,7 +83,5 @@ test-results/
 temp/
 
 # База данных
-database/
 
 # Скрипты
-scripts/
