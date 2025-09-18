@@ -524,3 +524,19 @@ curl -X POST "https://personal-productivity-ai.vercel.app/api/tasks" \
 ---
 
 **Последнее обновление**: 17 января 2025
+
+## 🩺 Health Check
+
+### Проверить статус сервиса
+
+```http
+GET /api/health
+```
+
+**Ответ:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-01-17T12:34:56.789Z"
+}
+```
