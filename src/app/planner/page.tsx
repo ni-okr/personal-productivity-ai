@@ -5,6 +5,7 @@ import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useSubscription } from '@/hooks/useSubscription'
 import { AI_MODELS } from '@/lib/aiModels'
 import { checkAIAccess, createPremiumAIService } from '@/lib/premiumAI'
@@ -17,7 +18,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 function PlannerPageContent() {
-    const { user, isAuthenticated, requireAuth } = useAuth()
+    const { user, isAuthenticated, signOut } = useAuth()
     const {
         tasks,
         addTask,
@@ -314,7 +315,7 @@ function PlannerPageContent() {
                     </div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">ИИ-Планировщик</h1>
                     <p className="text-gray-600 mb-6">Для доступа к планировщику необходимо войти в систему</p>
-                    <Button onClick={() => window.location.href = '/'}>
+                    <Button onClick={() => window.location.href = '/auth/login'}>
                         Войти в систему
                     </Button>
                 </div>
@@ -388,10 +389,8 @@ function PlannerPageContent() {
 
                             {/* Кнопка выхода */}
                             <Button
-                                onClick={() => {
-                                    if (typeof window !== 'undefined') {
-                                        window.location.href = '/'
-                                    }
+                                onClick={async () => {
+                                    await signOut()
                                 }}
                                 variant="outline"
                                 className="gap-2"
@@ -434,11 +433,9 @@ function PlannerPageContent() {
                                 Настройки
                             </Link>
                             <button
-                                onClick={() => {
+                                onClick={async () => {
                                     setShowMobileMenu(false)
-                                    if (typeof window !== 'undefined') {
-                                        window.location.href = '/'
-                                    }
+                                    await signOut()
                                 }}
                                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors text-left"
                             >
@@ -900,11 +897,13 @@ function TaskCard({ task, onToggle, onDelete, completed }: TaskCardProps) {
     )
 }
 
-// Компонент с ErrorBoundary
+// Компонент с ErrorBoundary и защитой
 export default function PlannerPage() {
     return (
         <ErrorBoundary>
-            <PlannerPageContent />
+            <ProtectedRoute>
+                <PlannerPageContent />
+            </ProtectedRoute>
         </ErrorBoundary>
     )
 }
