@@ -2,7 +2,7 @@
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
-import { resetPassword } from '@/lib/auth'
+import { useAuth } from '@/hooks/useAuth'
 import { validateEmail } from '@/utils/validation'
 import { useState } from 'react'
 
@@ -13,37 +13,26 @@ interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetPasswordFormProps) {
     const [email, setEmail] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+    const { resetPassword, isLoading, error, clearError } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError('')
+        clearError()
         setSuccess('')
-        setIsLoading(true)
 
-        try {
-            // Валидация email
-            const emailValidation = validateEmail(email)
-            if (!emailValidation.isValid) {
-                setError(emailValidation.errors[0])
-                return
-            }
+        // Валидация email
+        const emailValidation = validateEmail(email)
+        if (!emailValidation.isValid) {
+            return
+        }
 
-            // Отправка запроса на восстановление пароля
-            const result = await resetPassword(email)
+        // Отправка запроса на восстановление пароля
+        const result = await resetPassword(email)
 
-            if (result.success) {
-                setSuccess('Проверьте почту для восстановления пароля')
-                onSuccess?.()
-            } else {
-                setError(result.error || 'Ошибка восстановления пароля')
-            }
-        } catch (err: any) {
-            setError(err.message || 'Произошла ошибка при восстановлении пароля')
-        } finally {
-            setIsLoading(false)
+        if (result.success) {
+            setSuccess('Проверьте почту для восстановления пароля')
+            onSuccess?.()
         }
     }
 

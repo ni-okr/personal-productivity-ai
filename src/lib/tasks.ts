@@ -1,15 +1,8 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
 import { validateTask } from '@/utils/validation'
-// Условный импорт Supabase будет добавлен в функциях
-import {
-  mockCompleteTask,
-  mockCreateTask,
-  mockDeleteTask,
-  mockGetTasks,
-  mockGetTasksStats,
-  mockSyncTasks,
-  mockUpdateTask
-} from './tasks-mock'
+import { mockGetTasks, mockCreateTask, mockUpdateTask, mockDeleteTask } from '../../tests/mocks/tasks-mock'
+// Load mock implementations from tests when DEV_MODE is true
+// import mock functions dynamically from tests/mocks/tasks-mock
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'

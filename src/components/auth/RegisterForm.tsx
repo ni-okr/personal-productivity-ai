@@ -2,8 +2,7 @@
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
-import { signInWithGoogle, signUp } from '@/lib/auth'
-import { useAppStore } from '@/stores/useAppStore'
+import { useAuth } from '@/hooks/useAuth'
 import { validateEmail } from '@/utils/validation'
 import { useState } from 'react'
 
@@ -17,80 +16,49 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [success, setSuccess] = useState('')
-    const { setUser } = useAppStore()
+    const { signUp, signInWithGoogle, isLoading, error, clearError } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError('')
+        clearError()
         setSuccess('')
-        setIsLoading(true)
 
-        try {
-            // Валидация email
-            const emailValidation = validateEmail(email)
-            if (!emailValidation.isValid) {
-                setError(emailValidation.errors[0])
-                setIsLoading(false)
-                return
-            }
+        // Валидация email
+        const emailValidation = validateEmail(email)
+        if (!emailValidation.isValid) {
+            return
+        }
 
-            // Валидация пароля
-            if (!password || password.length < 6) {
-                setError('Пароль должен содержать минимум 6 символов')
-                setIsLoading(false)
-                return
-            }
+        // Валидация пароля
+        if (!password || password.length < 6) {
+            return
+        }
 
-            // Проверка совпадения паролей
-            if (password !== confirmPassword) {
-                setError('Пароли не совпадают')
-                setIsLoading(false)
-                return
-            }
+        // Проверка совпадения паролей
+        if (password !== confirmPassword) {
+            return
+        }
 
-            // Регистрация через Supabase
-            const result = await signUp({ email, password, name })
+        // Регистрация через useAuth хук
+        const result = await signUp(email, password, name)
 
-            if (result.success) {
-                if (result.user) {
-                    // Пользователь сразу авторизован
-                    setUser(result.user)
-                    onSuccess?.()
-                } else {
-                    // Требуется подтверждение email
-                    setSuccess('Проверьте почту для подтверждения регистрации')
-                }
-            } else {
-                setError(result.error || 'Ошибка регистрации')
-            }
-        } catch (err: any) {
-            setError(err.message || 'Произошла ошибка при регистрации')
-        } finally {
-            setIsLoading(false)
+        if (result.success) {
+            onSuccess?.()
+        } else {
+            setSuccess('Проверьте почту для подтверждения регистрации')
         }
     }
 
     const handleGoogleSignUp = async () => {
-        setError('')
+        clearError()
         setSuccess('')
-        setIsLoading(true)
+        const result = await signInWithGoogle()
 
-        try {
-            const result = await signInWithGoogle()
-
-            if (result.success) {
-                // OAuth процесс инициирован, пользователь будет перенаправлен
-                // Результат будет обработан в /auth/callback
-            } else {
-                setError(result.error || 'Ошибка регистрации через Google')
-            }
-        } catch (err: any) {
-            setError(err.message || 'Произошла ошибку при регистрации через Google')
-        } finally {
-            setIsLoading(false)
+        if (result.success) {
+            onSuccess?.()
         }
     }
 

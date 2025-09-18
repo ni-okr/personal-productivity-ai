@@ -44,7 +44,7 @@ const getTaskAPI = async (): Promise<TaskAPI> => {
   }
 
   if (DISABLE_EMAIL) {
-    const mockModule = await import('@/lib/tasks-mock')
+    const mockModule = await import('../../tests/mocks/tasks-mock')
     return {
       getTasks: mockModule.mockGetTasks,
       createTask: mockModule.mockCreateTask,
