@@ -1,6 +1,8 @@
 // 🔐 Система авторизации с Supabase Auth
 import { User } from '@/types'
 import { validateEmail, validateName } from '@/utils/validation'
+import { supabase } from './supabase'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 // Условный импорт Supabase будет добавлен в функциях
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
@@ -641,11 +643,7 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
  */
 export async function updatePassword(newPassword: string): Promise<AuthResponse> {
     try {
-        if (DISABLE_EMAIL) {
-            const { mockUpdatePassword } = await import('../../tests/mocks/auth-mock')
-            return mockUpdatePassword(newPassword)
-        }
-        // Real update via Supabase
+        // Always use real Supabase update
         const { error } = await supabase.auth.updateUser({ password: newPassword })
         if (error) {
             return { success: false, error: getAuthErrorMessage(error.message) }
