@@ -17,7 +17,8 @@ import { BrainIcon, CalendarIcon, CheckCircleIcon, ClockIcon, CrownIcon, HomeIco
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-function PlannerPageContent() {
+export const dynamic = 'force-dynamic';
+export function PlannerPageContent() {
     const { user, isAuthenticated, signOut } = useAuth()
     const {
         tasks,
@@ -897,7 +898,7 @@ function TaskCard({ task, onToggle, onDelete, completed }: TaskCardProps) {
     )
 }
 
-// Компонент с ErrorBoundary и защитой
+// Default page component
 export default function PlannerPage() {
     return (
         <ErrorBoundary>

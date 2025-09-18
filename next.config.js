@@ -40,9 +40,9 @@ const nextConfig = {
   },
 }
 
+// Load environment variables from OS Pass
 const { spawnSync } = require('child_process');
 const { parse } = require('dotenv');
-
 function loadPassEnv() {
   const result = spawnSync('pass', ['show', 'personal-productivity-ai/env']);
   if (result.status === 0 && result.stdout) {
@@ -50,7 +50,8 @@ function loadPassEnv() {
     Object.assign(process.env, parsed);
   }
 }
-
 loadPassEnv();
 
-module.exports = nextConfig
+module.exports = {
+  experimental: {},
+}

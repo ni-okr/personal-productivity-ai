@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic';
 
 import { Button } from '@/components/ui/Button'
 import { useRouter, useSearchParams } from 'next/navigation'

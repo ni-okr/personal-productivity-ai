@@ -9,7 +9,7 @@
  * - TypeScript типизация
  */
 
-// Условный импорт Supabase будет добавлен в функциях
+import { supabase } from '@/lib/supabase'
 
 // Типы для Feature Toggles
 export type ToggleType = 'hot' | 'cold'
@@ -120,9 +120,8 @@ class FeatureToggleManager {
         return false
       }
 
-      // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('@/lib/supabase')
-      const supabase = getSupabaseClient()
+      // Проверка, что Supabase клиент инициализирован
+      if (!supabase) throw new Error('Supabase client не инициализирован')
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('enabled, type')
@@ -159,9 +158,8 @@ class FeatureToggleManager {
         return {}
       }
 
-      // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('@/lib/supabase')
-      const supabase = getSupabaseClient()
+      // Проверка, что Supabase клиент инициализирован
+      if (!supabase) throw new Error('Supabase client не инициализирован')
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('name, enabled, type')
@@ -243,9 +241,8 @@ class FeatureToggleManager {
         return false
       }
 
-      // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('@/lib/supabase')
-      const supabase = getSupabaseClient()
+      // Проверка, что Supabase клиент инициализирован
+      if (!supabase) throw new Error('Supabase client не инициализирован')
       const { data, error } = await supabase
         .from('feature_toggles')
         .select('type')

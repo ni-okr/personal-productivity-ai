@@ -4,6 +4,8 @@
   "description": "Персональный ИИ-ассистент для продуктивности",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/create-env.js",
+    "predev": "node scripts/create-env.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

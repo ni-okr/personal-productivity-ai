@@ -18,7 +18,7 @@ import {
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-export default function HomePage() {
+export default function Home() {
   const [isInstallable, setIsInstallable] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
   const [email, setEmail] = useState('')

@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { UpdatePasswordForm } from '@/components/auth/UpdatePasswordForm'

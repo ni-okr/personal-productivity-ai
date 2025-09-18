@@ -4,7 +4,7 @@ import type { SubscriptionInsert } from '@/types/supabase'
 import {
     mockGetSubscription
 } from '../../tests/mocks/subscription-mock'
-import { getSupabaseClient } from './supabase'
+import { supabase } from './supabase'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
@@ -162,7 +162,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
         }
 
         // Используем Supabase клиент
-        const supabase = getSupabaseClient()
+        // supabase client is imported above
 
         const { data, error } = await supabase
             .from('user_subscriptions')
@@ -274,7 +274,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
         }
 
         // Используем Supabase клиент
-        const supabase = getSupabaseClient()
+        // supabase client is imported above
 
         const subscriptionData: SubscriptionInsert = {
             user_id: data.userId,
