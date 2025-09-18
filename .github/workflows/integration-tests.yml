@@ -27,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: 🔐 Generate .env.local from pass or GitHub Secrets
-        run: npm run prebuild
+        run: node scripts/create-env.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
