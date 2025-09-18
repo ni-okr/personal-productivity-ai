@@ -31,7 +31,7 @@ export function useSubscription(): UseSubscriptionReturn {
 
             // 🚨 MOCK РЕЖИМ: Используем mock функции вместо реальных запросов
             if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true') {
-                const { mockGetSubscription } = await import('@/lib/subscription-mock')
+                const { mockGetSubscription } = await import('../../tests/mocks/subscription-mock')
 
                 if (user?.id) {
                     console.log('useSubscription: Loading subscription for user:', user.id)
