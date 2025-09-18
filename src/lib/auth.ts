@@ -1,6 +1,9 @@
 // 🔐 Система авторизации с Supabase Auth
 import { User } from '@/types'
 import { validateEmail, validateName, validatePassword } from '@/utils/validation'
+import type { Database, SubscriberInsert } from '@/types/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { supabase } from './supabase'
 // Условный импорт Supabase будет добавлен в функциях
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
@@ -81,7 +84,7 @@ export async function signUp({ email, password, name }: SignUpData): Promise<{ s
 
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            const { mockSignUpWithState } = await import('./tests/mocks/auth-mock')
+            const { mockSignUpWithState } = await import('../../tests/mocks/auth-mock')
             return mockSignUpWithState(email, password, name)
         }
 
@@ -209,7 +212,7 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
 
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            const { mockSignInWithState } = await import('./tests/mocks/auth-mock')
+            const { mockSignInWithState } = await import('../../tests/mocks/auth-mock')
             return mockSignInWithState(email, password)
         }
 
@@ -299,7 +302,7 @@ export async function signOut(): Promise<AuthResponse> {
     try {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            const { mockSignOutWithState } = await import('./tests/mocks/auth-mock')
+            const { mockSignOutWithState } = await import('../../tests/mocks/auth-mock')
             return mockSignOutWithState()
         }
 
@@ -346,7 +349,7 @@ export async function getUserProfile(userId: string): Promise<AuthResponse> {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Получение профиля без реальных запросов к Supabase')
-            const { mockGetUserProfile } = await import('./tests/mocks/auth-mock')
+            const { mockGetUserProfile } = await import('../../tests/mocks/auth-mock')
             return await mockGetUserProfile(userId)
         }
 
@@ -417,7 +420,7 @@ export async function updateUserProfile(
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Обновление профиля без реальных запросов к Supabase')
-            const { mockUpdateUserProfile } = await import('./tests/mocks/auth-mock')
+            const { mockUpdateUserProfile } = await import('../../tests/mocks/auth-mock')
             return await mockUpdateUserProfile(userId, updates)
         }
 
@@ -486,7 +489,7 @@ export async function resetPassword(email: string): Promise<AuthResponse> {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Сброс пароля без реальных запросов к Supabase')
-            const { mockResetPassword } = await import('./tests/mocks/auth-mock')
+            const { mockResetPassword } = await import('../../tests/mocks/auth-mock')
             return mockResetPassword(email)
         }
 
@@ -533,7 +536,7 @@ export async function getCurrentUser(): Promise<User | null> {
     try {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            const { mockGetCurrentUser } = await import('./tests/mocks/auth-mock')
+            const { mockGetCurrentUser } = await import('../../tests/mocks/auth-mock')
             return mockGetCurrentUser()
         }
 
@@ -568,7 +571,7 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Подтверждение email без реальных запросов к Supabase')
-            const { mockConfirmEmail } = await import('./tests/mocks/auth-mock')
+            const { mockConfirmEmail } = await import('../../tests/mocks/auth-mock')
             return mockConfirmEmail(token)
         }
 
@@ -613,43 +616,19 @@ export async function confirmEmail(token: string): Promise<AuthResponse> {
  */
 export async function updatePassword(newPassword: string): Promise<AuthResponse> {
     try {
-        // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            console.log('🧪 MOCK РЕЖИМ: Обновление пароля без реальных запросов к Supabase')
-            const { mockUpdatePassword } = await import('./tests/mocks/auth-mock')
+            const { mockUpdatePassword } = await import('../../tests/mocks/auth-mock')
             return mockUpdatePassword(newPassword)
         }
-
-        // Временно закомментировано для build
-        /*
-        const { error } = await supabase.auth.updateUser({
-            password: newPassword
-        })
-
+        // Real update via Supabase
+        const { error } = await supabase.auth.updateUser({ password: newPassword })
         if (error) {
-            return {
-                success: false,
-                error: getAuthErrorMessage(error.message)
-            }
+            return { success: false, error: getAuthErrorMessage(error.message) }
         }
-
-        return {
-            success: true,
-            message: 'Пароль успешно обновлен'
-        }
-        */
-
-        // Временная заглушка
-        return {
-            success: true,
-            message: 'Пароль успешно обновлен'
-        }
+        return { success: true, message: 'Пароль успешно обновлен' }
     } catch (error) {
         console.error('Ошибка обновления пароля:', error)
-        return {
-            success: false,
-            error: 'Произошла ошибка при обновлении пароля'
-        }
+        return { success: false, error: 'Произошла ошибка при обновлении пароля' }
     }
 }
 
@@ -657,26 +636,20 @@ export async function updatePassword(newPassword: string): Promise<AuthResponse>
  * 📱 Подписка на изменения авторизации
  */
 export function onAuthStateChange(callback: (user: User | null) => void) {
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-        const { mockOnAuthStateChange } = await import('./tests/mocks/auth-mock')
-        return mockOnAuthStateChange(callback)
+  if (DISABLE_EMAIL) {
+    // Mock mode: use test mocks
+    return import('../../tests/mocks/auth-mock').then(({ mockOnAuthStateChange }) => mockOnAuthStateChange(callback))
+  }
+  // Real mode: subscribe to Supabase auth changes
+  return supabase.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      import('./auth').then(({ getUserProfile }) => {
+        getUserProfile(session.user.id).then(profile => callback(profile))
+      })
+    } else {
+      callback(null)
     }
-
-    // Временно закомментировано для build
-    /*
-    return supabase.auth.onAuthStateChange(async (event, session) => {
-        if (session?.user) {
-            const userProfile = await getUserProfile(session.user.id)
-            callback(userProfile)
-        } else {
-            callback(null)
-        }
-    })
-    */
-
-    // Временная заглушка
-    return { data: { subscription: null } }
+  })
 }
 
 /**
@@ -687,7 +660,7 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Вход через Google без реальных запросов к Supabase')
-            const { mockSignInWithGoogle } = await import('./tests/mocks/auth-mock')
+            const { mockSignInWithGoogle } = await import('../../tests/mocks/auth-mock')
             return mockSignInWithGoogle()
         }
 
@@ -735,7 +708,7 @@ export async function signInWithGitHub(): Promise<AuthResponse> {
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Вход через GitHub без реальных запросов к Supabase')
-            const { mockSignInWithGitHub } = await import('./tests/mocks/auth-mock')
+            const { mockSignInWithGitHub } = await import('../../tests/mocks/auth-mock')
             return mockSignInWithGitHub()
         }
 

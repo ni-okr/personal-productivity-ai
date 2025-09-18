@@ -26,10 +26,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Load secrets from OS Pass
+      - name: Load secrets from OS Pass or GitHub Secrets
         run: |
-          echo "Loading secrets from pass"
-          pass show personal-productivity-ai/env > .env
+          echo "Пробуем загрузить секреты из pass"
+          if pass show personal-productivity-ai/env > .env; then
+            echo "Секреты загружены из pass"
+          else
+            echo "pass не доступен, используем GitHub Secrets"
+            echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+            echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          fi
         shell: bash
 
       - name: Run Integration Tests

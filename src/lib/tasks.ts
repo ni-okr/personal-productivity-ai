@@ -1,5 +1,6 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
 import { validateTask } from '@/utils/validation'
+import { mockGetTasks, mockCreateTask, mockUpdateTask, mockDeleteTask } from '../../tests/mocks/tasks-mock'
 // Load mock implementations from tests when DEV_MODE is true
 // import mock functions dynamically from tests/mocks/tasks-mock
 

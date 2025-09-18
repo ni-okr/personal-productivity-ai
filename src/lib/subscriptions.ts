@@ -247,7 +247,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Создание подписки без реальных запросов к Supabase')
-            const { mockCreateSubscription } = await import('./subscription-mock')
+            const { mockCreateSubscription } = await import('../../tests/mocks/subscription-mock')
             return mockCreateSubscription(data.userId, data.tier)
         }
 
@@ -339,7 +339,7 @@ export async function updateSubscription(
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Обновление подписки без реальных запросов к Supabase')
-            const { mockUpdateSubscription } = await import('./subscription-mock')
+            const { mockUpdateSubscription } = await import('../../tests/mocks/subscription-mock')
             return mockUpdateSubscription(subscriptionId, updates)
         }
 
@@ -426,7 +426,7 @@ export async function cancelSubscription(subscriptionId: string): Promise<Subscr
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
             console.log('🧪 MOCK РЕЖИМ: Отмена подписки без реальных запросов к Supabase')
-            const { mockCancelSubscription } = await import('./subscription-mock')
+            const { mockCancelSubscription } = await import('../../tests/mocks/subscription-mock')
             return mockCancelSubscription(subscriptionId)
         }
 
