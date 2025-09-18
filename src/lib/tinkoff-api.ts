@@ -85,13 +85,21 @@ class TinkoffAPI {
     private terminalKey: string
     private secretKey: string
     private baseURL: string
+    private isTestMode: boolean
 
-    constructor() {
+    constructor(isTestMode: boolean = false) {
         this.terminalKey = process.env.TINKOFF_TERMINAL_KEY || ''
         this.secretKey = process.env.TINKOFF_SECRET_KEY || ''
+        this.isTestMode = isTestMode
 
-        // Используем продакшн среду
-        this.baseURL = 'https://securepay.tinkoff.ru/v2/'
+        // Выбираем среду в зависимости от режима
+        if (isTestMode) {
+            // Для тестовых платежей используем тестовую среду
+            this.baseURL = 'https://rest-api-test.tinkoff.ru/v2/'
+        } else {
+            // Для живых платежей используем продакшн среду
+            this.baseURL = 'https://securepay.tinkoff.ru/v2/'
+        }
 
         if (!this.terminalKey || !this.secretKey) {
             console.warn('Tinkoff API keys not configured')
@@ -258,23 +266,30 @@ class TinkoffAPI {
      * 🧪 Создание тестового платежа
      */
     async createTestPayment(amount: number, description: string, orderId: string): Promise<TinkoffInitResponse> {
-        console.log('💳 Создание тестового платежа:', { amount, description, orderId })
+        console.log('💳 Создание тестового платежа:', {
+            amount,
+            description,
+            orderId,
+            isTestMode: this.isTestMode,
+            baseURL: this.baseURL
+        })
+
         const request: TinkoffInitRequest = {
             TerminalKey: this.terminalKey,
             Amount: amount * 100, // Конвертируем в копейки
             OrderId: orderId,
             Description: description,
             CustomerKey: 'test_customer',
-            PayType: 'T', // Тестовый режим
+            PayType: this.isTestMode ? 'O' : 'T', // O - обычный платеж для тестовой среды, T - тестовый для продакшн
             Language: 'ru',
             Email: 'test@taskai.space',
-            Phone: '+79001234567', // Добавляем телефон для избежания ошибки 329
+            Phone: '+79001234567',
             NotificationURL: `https://taskai.space/api/tinkoff/webhook`,
             SuccessURL: `https://taskai.space/planner?payment=success`,
             FailURL: `https://taskai.space/planner?payment=failed`,
             // Receipt с Email внутри
             Receipt: {
-                Email: 'test@taskai.space', // Добавляем Email в Receipt
+                Email: 'test@taskai.space',
                 EmailCompany: 'support@taskai.space',
                 Taxation: 'usn_income',
                 Items: [{
@@ -291,8 +306,9 @@ class TinkoffAPI {
     }
 }
 
-// Создаем экземпляр API
-const tinkoffAPI = new TinkoffAPI()
+// Создаем экземпляры API
+const tinkoffAPI = new TinkoffAPI(false) // Продакшн
+const tinkoffTestAPI = new TinkoffAPI(true) // Тест
 
 // Экспортируем функции
 export async function initTinkoffPayment(request: TinkoffInitRequest): Promise<TinkoffInitResponse> {
@@ -305,17 +321,28 @@ export async function getTinkoffPaymentState(request: TinkoffGetStateRequest): P
 
 export async function createTestTinkoffPayment(amount: number, description: string, orderId: string, terminalKey?: string, secretKey?: string): Promise<TinkoffInitResponse> {
     if (terminalKey && secretKey) {
-        // Создаем новый экземпляр с переданными ключами
-        const customTinkoffAPI = new TinkoffAPI()
+        // Создаем новый экземпляр с переданными ключами в тестовом режиме
+        const customTinkoffAPI = new TinkoffAPI(true) // Тестовый режим
+        customTinkoffAPI.setKeys(terminalKey, secretKey)
+        return customTinkoffAPI.createTestPayment(amount, description, orderId)
+    }
+    return tinkoffTestAPI.createTestPayment(amount, description, orderId)
+}
+
+export async function createLiveTinkoffPayment(amount: number, description: string, orderId: string, terminalKey?: string, secretKey?: string): Promise<TinkoffInitResponse> {
+    if (terminalKey && secretKey) {
+        // Создаем новый экземпляр с переданными ключами в продакшн режиме
+        const customTinkoffAPI = new TinkoffAPI(false) // Продакшн режим
         customTinkoffAPI.setKeys(terminalKey, secretKey)
         return customTinkoffAPI.createTestPayment(amount, description, orderId)
     }
     return tinkoffAPI.createTestPayment(amount, description, orderId)
 }
 
-// Тестовые данные карты
+// Тестовые данные карты для тестовой среды Тинькофф
 export const TEST_CARD_DATA = {
-    number: '4300 0000 0000 0777',
+    number: '4111111111111111', // Стандартная тестовая карта Visa
     expiry: '12/30',
-    cvv: '111'
+    cvv: '111',
+    holder: 'TEST USER'
 }

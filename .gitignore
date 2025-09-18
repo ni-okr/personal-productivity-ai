@@ -87,3 +87,4 @@ database/
 
 # Скрипты
 scripts/
+.vercel

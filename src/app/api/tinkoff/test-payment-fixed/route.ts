@@ -1,5 +1,4 @@
-// 🧪 API endpoint для тестирования платежей Тинькофф
-
+// 🧪 Исправленный API endpoint для тестирования платежей Тинькофф
 import { createTestTinkoffPayment, TEST_CARD_DATA } from '@/lib/tinkoff-api'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -43,11 +42,10 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Временно используем основные ключи (рабочие)
+        // Используем основные ключи
         const terminalKey = process.env.TINKOFF_TERMINAL_KEY!
         const secretKey = process.env.TINKOFF_SECRET_KEY!
 
-        // Всегда пытаемся использовать реальный API Тинькофф
         console.log('💳 Используем API Тинькофф с ключами:', {
             terminalKey: terminalKey,
             secretKey: secretKey ? 'SET' : 'NOT_SET'

@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
             SuccessURL: 'https://taskai.space/planner?payment=success',
             FailURL: 'https://taskai.space/planner?payment=failed',
             Receipt: {
+                Email: 'test@taskai.space',
                 EmailCompany: 'support@taskai.space',
                 Taxation: 'usn_income',
                 Items: [{

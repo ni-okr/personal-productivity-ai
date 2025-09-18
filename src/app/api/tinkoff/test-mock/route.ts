@@ -3,12 +3,12 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
     try {
         const { amount, description, planId } = await request.json()
-        
+
         // Генерируем уникальный ID заказа
         const orderId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        
+
         console.log('🧪 Mock тестовый платеж:', { amount, description, planId, orderId })
-        
+
         return NextResponse.json({
             success: true,
             data: {
