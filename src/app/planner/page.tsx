@@ -1,11 +1,11 @@
 'use client'
 
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { SubscriptionModal } from '@/components/subscription/SubscriptionModal'
 import { SubscriptionStatus } from '@/components/subscription/SubscriptionStatus'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useSubscription } from '@/hooks/useSubscription'
 import { AI_MODELS } from '@/lib/aiModels'
 import { checkAIAccess, createPremiumAIService } from '@/lib/premiumAI'

@@ -24,7 +24,7 @@ export default function ConfirmEmailPage() {
 
             try {
                 const result = await confirmEmail(token)
-                
+
                 if (result.success) {
                     setIsSuccess(true)
                 } else {

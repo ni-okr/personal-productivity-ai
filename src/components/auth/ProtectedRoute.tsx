@@ -3,7 +3,7 @@
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import { useEffect, ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 
 interface ProtectedRouteProps {
     children: ReactNode
@@ -12,11 +12,11 @@ interface ProtectedRouteProps {
     requireAuth?: boolean
 }
 
-export function ProtectedRoute({ 
-    children, 
-    fallback, 
+export function ProtectedRoute({
+    children,
+    fallback,
     redirectTo = '/auth/login',
-    requireAuth = true 
+    requireAuth = true
 }: ProtectedRouteProps) {
     const { user, isLoading, isAuthenticated } = useAuth()
     const router = useRouter()

@@ -319,6 +319,51 @@ export class TestMocks {
   getMock(name: string): any {
     return this.mocks.get(name)
   }
+
+  // Методы для работы с моками авторизации
+  mockAuthSuccess(): void {
+    const { signUp, signIn, signOut, resetPassword, updatePassword, confirmEmail } = require('@/lib/auth')
+    
+    signUp.mockResolvedValue({ success: true, message: 'Регистрация успешна' })
+    signIn.mockResolvedValue({ success: true, message: 'Вход выполнен' })
+    signOut.mockResolvedValue({ success: true, message: 'Выход выполнен' })
+    resetPassword.mockResolvedValue({ success: true, message: 'Письмо отправлено' })
+    updatePassword.mockResolvedValue({ success: true, message: 'Пароль обновлен' })
+    confirmEmail.mockResolvedValue({ success: true, message: 'Email подтвержден' })
+  }
+
+  mockAuthError(errorMessage: string): void {
+    const { signUp, signIn, signOut, resetPassword, updatePassword, confirmEmail } = require('@/lib/auth')
+    
+    signUp.mockResolvedValue({ success: false, error: errorMessage })
+    signIn.mockResolvedValue({ success: false, error: errorMessage })
+    signOut.mockResolvedValue({ success: false, error: errorMessage })
+    resetPassword.mockResolvedValue({ success: false, error: errorMessage })
+    updatePassword.mockResolvedValue({ success: false, error: errorMessage })
+    confirmEmail.mockResolvedValue({ success: false, error: errorMessage })
+  }
+
+  mockAuthUser(user: any): void {
+    const { getCurrentUser } = require('@/lib/auth')
+    getCurrentUser.mockResolvedValue(user)
+  }
+
+  mockAuthLoading(): void {
+    const { getCurrentUser } = require('@/lib/auth')
+    getCurrentUser.mockImplementation(() => new Promise(() => {})) // Never resolves
+  }
+
+  mockNetworkError(): void {
+    const { signUp, signIn, signOut, resetPassword, updatePassword, confirmEmail } = require('@/lib/auth')
+    
+    const networkError = new Error('Ошибка сети')
+    signUp.mockRejectedValue(networkError)
+    signIn.mockRejectedValue(networkError)
+    signOut.mockRejectedValue(networkError)
+    resetPassword.mockRejectedValue(networkError)
+    updatePassword.mockRejectedValue(networkError)
+    confirmEmail.mockRejectedValue(networkError)
+  }
 }
 
 // ============================================================================
@@ -553,6 +598,50 @@ export class TestUtils {
         return children
       }
     })
+  }
+
+  // Генерация тестовых данных
+  generateUser(overrides: any = {}): any {
+    const baseUser = {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    return { ...baseUser, ...overrides }
+  }
+
+  generateTask(overrides: any = {}): any {
+    const baseTask = {
+      id: 'test-task-id',
+      title: 'Test Task',
+      description: 'Test task description',
+      priority: 'medium',
+      status: 'pending',
+      due_date: null,
+      source: 'manual',
+      tags: ['test'],
+      userId: 'test-user-id',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    return { ...baseTask, ...overrides }
+  }
+
+  generateSubscription(overrides: any = {}): any {
+    const baseSubscription = {
+      id: 'test-subscription-id',
+      userId: 'test-user-id',
+      plan: 'free',
+      status: 'active',
+      currentPeriodStart: new Date().toISOString(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    return { ...baseSubscription, ...overrides }
   }
 
   // Очистка после тестов

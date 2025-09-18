@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn, signUp, signOut, resetPassword, getCurrentUser, onAuthStateChange } from '@/lib/auth'
+import { getCurrentUser, onAuthStateChange, resetPassword, signIn, signOut, signUp } from '@/lib/auth'
 import { useAppStore } from '@/stores/useAppStore'
 import { User } from '@/types'
 import { useRouter } from 'next/navigation'
@@ -19,11 +19,11 @@ export interface AuthActions {
     signUp: (email: string, password: string, name: string) => Promise<{ success: boolean; error?: string }>
     signOut: () => Promise<{ success: boolean; error?: string }>
     resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>
-    
+
     // OAuth
     signInWithGoogle: () => Promise<{ success: boolean; error?: string }>
     signInWithGitHub: () => Promise<{ success: boolean; error?: string }>
-    
+
     // Утилиты
     clearError: () => void
     refreshUser: () => Promise<void>
@@ -72,7 +72,7 @@ export function useAuth(): AuthState & AuthActions {
             setError(null)
 
             const result = await signIn({ email, password })
-            
+
             if (result.success && result.user) {
                 setUser(result.user)
                 return { success: true }
@@ -96,7 +96,7 @@ export function useAuth(): AuthState & AuthActions {
             setError(null)
 
             const result = await signUp({ email, password, name })
-            
+
             if (result.success) {
                 if (result.user) {
                     setUser(result.user)
@@ -122,7 +122,7 @@ export function useAuth(): AuthState & AuthActions {
             setError(null)
 
             const result = await signOut()
-            
+
             if (result.success) {
                 clearUserData()
                 router.push('/')
@@ -147,7 +147,7 @@ export function useAuth(): AuthState & AuthActions {
             setError(null)
 
             const result = await resetPassword(email)
-            
+
             if (result.success) {
                 return { success: true }
             } else {
@@ -171,7 +171,7 @@ export function useAuth(): AuthState & AuthActions {
 
             const { signInWithGoogle } = await import('@/lib/auth')
             const result = await signInWithGoogle()
-            
+
             if (result.success) {
                 if (result.user) {
                     setUser(result.user)
@@ -197,7 +197,7 @@ export function useAuth(): AuthState & AuthActions {
 
             const { signInWithGitHub } = await import('@/lib/auth')
             const result = await signInWithGitHub()
-            
+
             if (result.success) {
                 return { success: true }
             } else {

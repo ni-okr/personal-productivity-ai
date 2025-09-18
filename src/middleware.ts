@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 // Защищенные маршруты, требующие авторизации
 const protectedRoutes = [
@@ -32,26 +32,26 @@ const publicRoutes = [
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
-    
+
     // Получаем токен из cookies
     const token = request.cookies.get('sb-access-token')?.value
     const refreshToken = request.cookies.get('sb-refresh-token')?.value
-    
+
     // Проверяем, авторизован ли пользователь
     const isAuthenticated = !!(token || refreshToken)
-    
+
     // Проверяем, является ли маршрут защищенным
-    const isProtectedRoute = protectedRoutes.some(route => 
+    const isProtectedRoute = protectedRoutes.some(route =>
         pathname.startsWith(route)
     )
-    
+
     // Проверяем, является ли маршрут только для неавторизованных
-    const isAuthRoute = authRoutes.some(route => 
+    const isAuthRoute = authRoutes.some(route =>
         pathname.startsWith(route)
     )
-    
+
     // Проверяем, является ли маршрут публичным
-    const isPublicRoute = publicRoutes.some(route => 
+    const isPublicRoute = publicRoutes.some(route =>
         pathname === route || pathname.startsWith(route + '/')
     )
 

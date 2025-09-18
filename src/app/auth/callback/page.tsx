@@ -1,8 +1,8 @@
 'use client'
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { useAppStore } from '@/stores/useAppStore'
 import { getCurrentUser } from '@/lib/auth'
+import { useAppStore } from '@/stores/useAppStore'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 

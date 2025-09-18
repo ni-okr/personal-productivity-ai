@@ -11,33 +11,40 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/../../tests/setup.ts'],
   moduleNameMapper: {
     // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
-    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/(.*)$': '<rootDir>/../../src/$1',
+    // Моки для модулей
+    '^next/navigation$': '<rootDir>/../../tests/__mocks__/next/navigation.ts',
+    '^next/router$': '<rootDir>/../../tests/__mocks__/next/router.ts',
+    '^@/lib/supabase$': '<rootDir>/../../tests/__mocks__/@/lib/supabase.ts',
+    '^@/lib/auth$': '<rootDir>/../../tests/__mocks__/@/lib/auth.ts',
+    // Фреймворк тестирования
+    '^@/tests/framework$': '<rootDir>/../../tests/framework/index.ts',
   },
   testEnvironment: 'jest-environment-jsdom',
   testMatch: [
-    '<rootDir>/tests/unit/**/*.(test|spec).(js|jsx|ts|tsx)',
-    '<rootDir>/tests/integration/**/*.(test|spec).(js|jsx|ts|tsx)'
+    '<rootDir>/../../tests/unit/**/*.(test|spec).(js|jsx|ts|tsx)',
+    '<rootDir>/../../tests/integration/**/*.(test|spec).(js|jsx|ts|tsx)'
   ],
   testPathIgnorePatterns: [
-    '<rootDir>/tests/e2e/',
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/'
+    '<rootDir>/../../tests/e2e/',
+    '<rootDir>/../../.next/',
+    '<rootDir>/../../node_modules/'
   ],
   // Увеличиваем таймаут для API тестов
   testTimeout: 15000,
   // Переменные окружения для тестов
-  setupFiles: ['<rootDir>/tests/setup-env.js'],
+  setupFiles: ['<rootDir>/../../tests/setup-env.js'],
   // TypeScript конфигурация для тестов (используем next/jest)
   // preset и transform настраиваются автоматически через next/jest
   // Настройки покрытия кода
   collectCoverageFrom: [
-    'src/**/*.{js,jsx,ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.stories.{js,jsx,ts,tsx}',
-    '!src/**/index.{js,jsx,ts,tsx}'
+    '../../src/**/*.{js,jsx,ts,tsx}',
+    '!../../src/**/*.d.ts',
+    '!../../src/**/*.stories.{js,jsx,ts,tsx}',
+    '!../../src/**/index.{js,jsx,ts,tsx}'
   ],
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: 'coverage',
