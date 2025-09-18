@@ -92,14 +92,9 @@ class TinkoffAPI {
         this.secretKey = process.env.TINKOFF_SECRET_KEY || ''
         this.isTestMode = isTestMode
 
-        // Выбираем среду в зависимости от режима
-        if (isTestMode) {
-            // Для тестовых платежей используем тестовую среду
-            this.baseURL = 'https://rest-api-test.tinkoff.ru/v2/'
-        } else {
-            // Для живых платежей используем продакшн среду
-            this.baseURL = 'https://securepay.tinkoff.ru/v2/'
-        }
+        // Временно используем продакшн среду для всех платежей
+        // (тестовая среда требует добавления IP в White List)
+        this.baseURL = 'https://securepay.tinkoff.ru/v2/'
 
         if (!this.terminalKey || !this.secretKey) {
             console.warn('Tinkoff API keys not configured')
