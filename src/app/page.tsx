@@ -27,9 +27,22 @@ export default function HomePage() {
     type: 'success' | 'error' | null
     message: string
   }>({ type: null, message: '' })
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   // Используем хук авторизации
   const { user, isAuthModalOpen, openAuthModal, closeAuthModal, signOut, isAuthenticated } = useAuth()
+
+  // Обработка авторизации с выбранным планом
+  useEffect(() => {
+    if (isAuthenticated && selectedPlan && !isAuthModalOpen) {
+      console.log('✅ Пользователь авторизован, переходим к оплате плана:', selectedPlan)
+      // Небольшая задержка для обновления состояния
+      setTimeout(() => {
+        handleSubscriptionFlow(selectedPlan)
+        setSelectedPlan(null) // Сбрасываем выбранный план
+      }, 100)
+    }
+  }, [isAuthenticated, selectedPlan, isAuthModalOpen])
 
   // Валидация email в реальном времени
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -250,6 +263,55 @@ export default function HomePage() {
       })
     } finally {
       setIsSubscribing(false)
+    }
+  }
+
+  // Обработчик выбора плана подписки
+  const handlePlanSelect = (planId: string) => {
+    console.log('🎯 Выбран план:', planId)
+    
+    // Если пользователь не авторизован, показываем модальное окно входа
+    if (!isAuthenticated) {
+      // Сохраняем выбранный план для после авторизации
+      setSelectedPlan(planId)
+      openAuthModal('login')
+      return
+    }
+
+    // Если пользователь авторизован, переходим к оплате
+    handleSubscriptionFlow(planId)
+  }
+
+  // Обработчик потока подписки
+  const handleSubscriptionFlow = async (planId: string) => {
+    console.log('💳 Начинаем процесс подписки для плана:', planId)
+    
+    try {
+      // Создаем checkout сессию
+      const response = await fetch('/api/subscriptions/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId,
+          successUrl: `${window.location.origin}/planner?payment=success&plan=${planId}`,
+          cancelUrl: `${window.location.origin}/?canceled=true`
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Перенаправляем на страницу оплаты
+        window.location.href = result.data.url || `/planner?plan=${planId}`
+      } else {
+        console.error('Ошибка создания checkout сессии:', result.error)
+        // Fallback - переходим на планировщик
+        window.location.href = `/planner?plan=${planId}`
+      }
+    } catch (error) {
+      console.error('Ошибка при создании подписки:', error)
+      // Fallback - переходим на планировщик
+      window.location.href = `/planner?plan=${planId}`
     }
   }
 
@@ -495,7 +557,12 @@ export default function HomePage() {
                   <li>Базовое планирование</li>
                   <li>Email поддержка</li>
                 </ul>
-                <Button variant="outline" className="w-full" data-testid="select-free-plan">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  data-testid="select-free-plan"
+                  onClick={() => handlePlanSelect('free')}
+                >
                   Выбрать Free
                 </Button>
               </div>
@@ -509,7 +576,11 @@ export default function HomePage() {
                   <li>ИИ планировщик</li>
                   <li>Приоритетная поддержка</li>
                 </ul>
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700" data-testid="select-premium-plan">
+                <Button 
+                  className="w-full bg-indigo-600 hover:bg-indigo-700" 
+                  data-testid="select-premium-plan"
+                  onClick={() => handlePlanSelect('premium')}
+                >
                   Выбрать Premium
                 </Button>
               </div>
@@ -523,7 +594,12 @@ export default function HomePage() {
                   <li>Все ИИ модели</li>
                   <li>Персональный менеджер</li>
                 </ul>
-                <Button variant="outline" className="w-full" data-testid="select-pro-plan">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  data-testid="select-pro-plan"
+                  onClick={() => handlePlanSelect('pro')}
+                >
                   Выбрать Pro
                 </Button>
               </div>

@@ -4,6 +4,9 @@
 import { Button } from '@/components/ui/Button'
 import { SubscriptionPlan } from '@/types'
 import { CheckIcon, StarIcon } from 'lucide-react'
+import { useState } from 'react'
+import { LivePaymentModal } from '@/components/payment/LivePaymentModal'
+import { TestPaymentModal } from '@/components/payment/TestPaymentModal'
 
 interface SubscriptionCardProps {
     plan: SubscriptionPlan
@@ -21,6 +24,10 @@ export function SubscriptionCard({
     const isCurrentPlan = currentTier === plan.tier
     const isPopular = plan.tier === 'premium'
     const isEnterprise = plan.tier === 'enterprise'
+    
+    // Состояние для модальных окон оплаты
+    const [showLivePayment, setShowLivePayment] = useState(false)
+    const [showTestPayment, setShowTestPayment] = useState(false)
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('ru-RU', {
@@ -128,19 +135,71 @@ export function SubscriptionCard({
                 </div>
             </div>
 
-            {/* Кнопка */}
-            <Button
-                onClick={() => onSelect(plan.id)}
-                disabled={isCurrentPlan || isLoading}
-                variant={isCurrentPlan ? 'secondary' : 'primary'}
-                size="lg"
-                className="w-full"
-                isLoading={isLoading}
-            >
-                {isCurrentPlan ? 'Текущий план' :
-                    isEnterprise ? 'Связаться с нами' :
-                        'Выбрать план'}
-            </Button>
+            {/* Кнопки */}
+            <div className="space-y-2">
+                <Button
+                    onClick={() => onSelect(plan.id)}
+                    disabled={isCurrentPlan || isLoading}
+                    variant={isCurrentPlan ? 'secondary' : 'primary'}
+                    size="lg"
+                    className="w-full"
+                    isLoading={isLoading}
+                >
+                    {isCurrentPlan ? 'Текущий план' :
+                        isEnterprise ? 'Связаться с нами' :
+                            'Выбрать план'}
+                </Button>
+
+                {/* Кнопки оплаты для платных планов */}
+                {plan.price > 0 && !isCurrentPlan && (
+                    <div className="space-y-2">
+                        <Button
+                            onClick={() => setShowLivePayment(true)}
+                            variant="primary"
+                            size="sm"
+                            className="w-full"
+                        >
+                            💳 Живая оплата
+                        </Button>
+                        <Button
+                            onClick={() => setShowTestPayment(true)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                        >
+                            🧪 Тестовая оплата
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            {/* Модальные окна оплаты */}
+            <LivePaymentModal
+                isOpen={showLivePayment}
+                onClose={() => setShowLivePayment(false)}
+                onSuccess={() => {
+                    setShowLivePayment(false)
+                    // Здесь можно добавить логику успешной оплаты
+                    console.log('Живая оплата успешна')
+                }}
+                amount={plan.price}
+                description={`Подписка ${plan.name}`}
+                planId={plan.id}
+            />
+
+            <TestPaymentModal
+                isOpen={showTestPayment}
+                onClose={() => setShowTestPayment(false)}
+                onSuccess={() => {
+                    setShowTestPayment(false)
+                    // Здесь можно добавить логику успешной оплаты
+                    console.log('Тестовая оплата успешна')
+                }}
+                amount={plan.price}
+                description={`Подписка ${plan.name}`}
+                planId={plan.id}
+            />
+
         </div>
     )
 }

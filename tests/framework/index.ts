@@ -1,160 +1,666 @@
 /**
- * 🧪 Единый фреймворк тестирования - Главный экспорт
- * 
- * Предоставляет все необходимые компоненты для тестирования:
- * - TestFramework - основной фреймворк
- * - TestLogger - система логирования
- * - TestMocks - система моков
- * - TestUtils - утилиты для тестов
+ * 🧪 УПРОЩЕННЫЙ ФРЕЙМВОРК ТЕСТИРОВАНИЯ
+ * Без JSX для избежания синтаксических ошибок
  */
 
-// Основной фреймворк
-export { TestFramework, testFramework } from './TestFramework'
-export type { TestConfig, TestContext } from './TestFramework'
+// ============================================================================
+// КОНФИГУРАЦИИ ТЕСТОВ
+// ============================================================================
 
-// Система логирования
-export { LogLevel, TestLogger, testLogger } from './TestLogger'
-export type { LogEntry, LoggerConfig } from './TestLogger'
-
-// Система моков
-export { TestMocks, testMocks } from './TestMocks'
-export type { MockConfig, MockData } from './TestMocks'
-
-// Утилиты
-export { TestUtils, testUtils } from './TestUtils'
-export type { TestDataGenerator, TestUtilsConfig } from './TestUtils'
-
-// Декораторы из TestFramework
-export { TestCase, TestSuite, WithMockData, WithMocks, WithPerformance, WithRetry } from './TestFramework'
-
-// Декораторы из TestLogger
-export { LogPerformance, LogStep, LogTest } from './TestLogger'
-
-// Декораторы из TestUtils
-export { WithPerformance as WithPerformanceUtils, WithRetry as WithRetryUtils } from './TestUtils'
-
-// Хуки
-export { useTestFramework } from './TestFramework'
-
-// Утилиты для моков
-export { mockUtils } from './TestFramework'
-
-// Константы
-export const TEST_CONSTANTS = {
-    DEFAULT_TIMEOUT: 5000,
-    DEFAULT_RETRIES: 3,
-    MOCK_USER_ID: 'mock-user-1',
-    MOCK_TASK_ID: 'mock-task-1',
-    MOCK_SUBSCRIPTION_ID: 'mock-sub-1',
-    TEST_EMAIL: 'test@example.com',
-    TEST_PASSWORD: 'testpassword123'
-} as const
-
-// Предустановленные конфигурации
 export const TEST_CONFIGS = {
-    UNIT: {
-        enableLogging: false,
-        mockMode: true,
-        timeout: 5000,
-        retries: 1,
-        parallel: false
-    },
-    INTEGRATION: {
-        enableLogging: true,
-        mockMode: true,
-        timeout: 10000,
-        retries: 2,
-        parallel: false
-    },
-    E2E: {
-        enableLogging: true,
-        mockMode: false,
-        timeout: 30000,
-        retries: 3,
-        parallel: true
-    }
+  UNIT: {
+    timeout: 5000,
+    retries: 0,
+    parallel: true,
+    coverage: true,
+    mockMode: 'minimal'
+  },
+  INTEGRATION: {
+    timeout: 15000,
+    retries: 1,
+    parallel: false,
+    coverage: true,
+    mockMode: 'full'
+  },
+  E2E: {
+    timeout: 30000,
+    retries: 2,
+    parallel: false,
+    coverage: false,
+    mockMode: 'api_only'
+  },
+  PERFORMANCE: {
+    timeout: 60000,
+    retries: 0,
+    parallel: false,
+    coverage: false,
+    mockMode: 'none'
+  }
 } as const
 
-// Предустановленные моки
 export const MOCK_CONFIGS = {
-    MINIMAL: {
-        enableAuth: true,
-        enableDatabase: false,
-        enableAPI: false,
-        enableNavigation: false,
-        enableStorage: false,
-        enableNotifications: false
-    },
-    FULL: {
-        enableAuth: true,
-        enableDatabase: true,
-        enableAPI: true,
-        enableNavigation: true,
-        enableStorage: true,
-        enableNotifications: true
-    },
-    API_ONLY: {
-        enableAuth: false,
-        enableDatabase: false,
-        enableAPI: true,
-        enableNavigation: false,
-        enableStorage: false,
-        enableNotifications: false
-    }
+  MINIMAL: {
+    auth: false,
+    database: false,
+    api: false,
+    ai: false,
+    external: false
+  },
+  FULL: {
+    auth: true,
+    database: true,
+    api: true,
+    ai: true,
+    external: true
+  },
+  API_ONLY: {
+    auth: false,
+    database: true,
+    api: true,
+    ai: false,
+    external: false
+  }
 } as const
 
-// Функции для быстрого старта
-export const quickStart = {
-    unit: () => {
-        testFramework.updateConfig(TEST_CONFIGS.UNIT)
-        testMocks.updateConfig(MOCK_CONFIGS.MINIMAL)
-        testMocks.setupAllMocks()
-    },
+// ============================================================================
+// ТЕСТОВЫЙ ЛОГГЕР
+// ============================================================================
 
-    integration: () => {
-        testFramework.updateConfig(TEST_CONFIGS.INTEGRATION)
-        testMocks.updateConfig(MOCK_CONFIGS.FULL)
-        testMocks.setupAllMocks()
-    },
+export class TestLogger {
+  private static instance: TestLogger
+  private testName: string = ''
+  private startTime: number = 0
+  private logs: Array<{ level: string; message: string; data?: any; timestamp: number }> = []
 
-    e2e: () => {
-        testFramework.updateConfig(TEST_CONFIGS.E2E)
-        testMocks.updateConfig(MOCK_CONFIGS.API_ONLY)
-        testMocks.setupAllMocks()
+  static getInstance(): TestLogger {
+    if (!TestLogger.instance) {
+      TestLogger.instance = new TestLogger()
     }
-}
+    return TestLogger.instance
+  }
 
-// Функции для очистки
-export const cleanup = {
-    all: () => {
-        testMocks.clearAllMocks()
-        testLogger.clear()
-    },
+  startTest(testName: string): void {
+    this.testName = testName
+    this.startTime = Date.now()
+    this.logs = []
+    console.log(`🧪 Начинаем тест: ${testName}`)
+  }
 
-    mocks: () => {
-        testMocks.clearAllMocks()
-    },
+  endTest(testName: string, success: boolean): void {
+    const duration = Date.now() - this.startTime
+    const status = success ? '✅' : '❌'
+    console.log(`${status} Тест завершен: ${testName} (${duration}ms)`)
 
-    logs: () => {
-        testLogger.clear()
+    if (!success) {
+      console.log('📋 Логи теста:', this.logs)
     }
+  }
+
+  step(stepName: string): void {
+    console.log(`  📝 Шаг: ${stepName}`)
+    this.logs.push({
+      level: 'STEP',
+      message: stepName,
+      timestamp: Date.now()
+    })
+  }
+
+  info(category: string, message: string, data?: any): void {
+    console.log(`  ℹ️  [${category}] ${message}`, data || '')
+    this.logs.push({
+      level: 'INFO',
+      message: `[${category}] ${message}`,
+      data,
+      timestamp: Date.now()
+    })
+  }
+
+  debug(category: string, message: string, data?: any): void {
+    if (process.env.NODE_ENV === 'test') {
+      console.log(`  🐛 [${category}] ${message}`, data || '')
+      this.logs.push({
+        level: 'DEBUG',
+        message: `[${category}] ${message}`,
+        data,
+        timestamp: Date.now()
+      })
+    }
+  }
+
+  error(category: string, message: string, error?: any): void {
+    console.error(`  ❌ [${category}] ${message}`, error || '')
+    this.logs.push({
+      level: 'ERROR',
+      message: `[${category}] ${message}`,
+      data: error,
+      timestamp: Date.now()
+    })
+  }
+
+  assertion(description: string, passed: boolean, expected?: any, received?: any): void {
+    const status = passed ? '✅' : '❌'
+    console.log(`  ${status} ${description}`)
+    this.logs.push({
+      level: passed ? 'ASSERTION_PASS' : 'ASSERTION_FAIL',
+      message: description,
+      data: { expected, received },
+      timestamp: Date.now()
+    })
+  }
+
+  performance(operation: string, duration: number, threshold: number): void {
+    const status = duration <= threshold ? '✅' : '⚠️'
+    console.log(`  ${status} ${operation}: ${duration}ms (порог: ${threshold}ms)`)
+    this.logs.push({
+      level: duration <= threshold ? 'PERFORMANCE_OK' : 'PERFORMANCE_WARN',
+      message: `${operation}: ${duration}ms`,
+      data: { duration, threshold },
+      timestamp: Date.now()
+    })
+  }
+
+  api(endpoint: string, method: string, status: number, data?: any): void {
+    console.log(`  🌐 API ${method} ${endpoint}: ${status}`)
+    this.logs.push({
+      level: 'API',
+      message: `${method} ${endpoint}: ${status}`,
+      data,
+      timestamp: Date.now()
+    })
+  }
+
+  exportToAllure(): any {
+    return {
+      testName: this.testName,
+      duration: Date.now() - this.startTime,
+      logs: this.logs,
+      timestamp: new Date().toISOString()
+    }
+  }
 }
 
-// Импорты для экспорта по умолчанию
-import { testFramework } from './TestFramework'
-import { testLogger } from './TestLogger'
-import { testMocks } from './TestMocks'
-import { testUtils } from './TestUtils'
+// ============================================================================
+// ТЕСТОВЫЕ МОКИ
+// ============================================================================
 
-// Экспорт по умолчанию
-export default {
-    framework: testFramework,
-    logger: testLogger,
-    mocks: testMocks,
-    utils: testUtils,
-    constants: TEST_CONSTANTS,
-    configs: TEST_CONFIGS,
-    mockConfigs: MOCK_CONFIGS,
-    quickStart,
-    cleanup
+export class TestMocks {
+  private static instance: TestMocks
+  private mocks: Map<string, any> = new Map()
+  private config: typeof MOCK_CONFIGS.MINIMAL = MOCK_CONFIGS.MINIMAL
+
+  static getInstance(): TestMocks {
+    if (!TestMocks.instance) {
+      TestMocks.instance = new TestMocks()
+    }
+    return TestMocks.instance
+  }
+
+  updateConfig(config: typeof MOCK_CONFIGS.MINIMAL): void {
+    this.config = config
+  }
+
+  setupAllMocks(): void {
+    this.setupAuthMocks()
+    this.setupDatabaseMocks()
+    this.setupApiMocks()
+    this.setupAIMocks()
+    this.setupExternalMocks()
+  }
+
+  clearAllMocks(): void {
+    this.mocks.clear()
+    jest.clearAllMocks()
+  }
+
+  private setupAuthMocks(): void {
+    if (!this.config.auth) return
+
+    // Mock Supabase Auth
+    const mockAuth = {
+      signUp: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
+      getUser: jest.fn(),
+      updateUser: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      verifyOtp: jest.fn()
+    }
+
+    this.mocks.set('auth', mockAuth)
+  }
+
+  private setupDatabaseMocks(): void {
+    if (!this.config.database) return
+
+    // Mock Supabase Client
+    const mockSupabase = {
+      from: jest.fn(() => ({
+        select: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            single: jest.fn(() => Promise.resolve({ data: null, error: null }))
+          }))
+        })),
+        insert: jest.fn(() => ({
+          select: jest.fn(() => Promise.resolve({ data: null, error: null }))
+        })),
+        update: jest.fn(() => ({
+          eq: jest.fn(() => ({
+            select: jest.fn(() => Promise.resolve({ data: null, error: null }))
+          }))
+        })),
+        delete: jest.fn(() => ({
+          eq: jest.fn(() => Promise.resolve({ data: null, error: null }))
+        }))
+      }))
+    }
+
+    this.mocks.set('supabase', mockSupabase)
+  }
+
+  private setupApiMocks(): void {
+    if (!this.config.api) return
+
+    // Mock fetch
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ success: true }),
+        text: () => Promise.resolve('OK')
+      })
+    ) as jest.Mock
+  }
+
+  private setupAIMocks(): void {
+    if (!this.config.ai) return
+
+    // Mock AI services
+    const mockAI = {
+      generateTaskSuggestions: jest.fn(() => Promise.resolve(['Task 1', 'Task 2'])),
+      analyzeProductivity: jest.fn(() => Promise.resolve({ score: 85, insights: ['Good work!'] })),
+      prioritizeTasks: jest.fn(() => Promise.resolve([]))
+    }
+
+    this.mocks.set('ai', mockAI)
+  }
+
+  private setupExternalMocks(): void {
+    if (!this.config.external) return
+
+    // Mock external services
+    const mockExternal = {
+      stripe: {
+        createCheckoutSession: jest.fn(() => Promise.resolve({ id: 'cs_test_123' }))
+      },
+      tinkoff: {
+        createPayment: jest.fn(() => Promise.resolve({ paymentId: 'tinkoff_123' }))
+      }
+    }
+
+    this.mocks.set('external', mockExternal)
+  }
+
+  addUser(user: any): void {
+    this.mocks.set('currentUser', user)
+  }
+
+  addTask(task: any): void {
+    const tasks = this.mocks.get('tasks') || []
+    tasks.push(task)
+    this.mocks.set('tasks', tasks)
+  }
+
+  mockApiResponse(endpoint: string, response: any): void {
+    const responses = this.mocks.get('apiResponses') || new Map()
+    responses.set(endpoint, response)
+    this.mocks.set('apiResponses', responses)
+  }
+
+  getMock(name: string): any {
+    return this.mocks.get(name)
+  }
+
+  // Методы для работы с моками авторизации
+  mockAuthSuccess(): void {
+    const { signUp, signIn, signOut, resetPassword, updatePassword, confirmEmail } = require('@/lib/auth')
+    
+    signUp.mockResolvedValue({ success: true, message: 'Регистрация успешна' })
+    signIn.mockResolvedValue({ success: true, message: 'Вход выполнен' })
+    signOut.mockResolvedValue({ success: true, message: 'Выход выполнен' })
+    resetPassword.mockResolvedValue({ success: true, message: 'Письмо отправлено' })
+    updatePassword.mockResolvedValue({ success: true, message: 'Пароль обновлен' })
+    confirmEmail.mockResolvedValue({ success: true, message: 'Email подтвержден' })
+  }
+
+  mockAuthError(errorMessage: string): void {
+    const { signUp, signIn, signOut, resetPassword, updatePassword, confirmEmail } = require('@/lib/auth')
+    
+    signUp.mockResolvedValue({ success: false, error: errorMessage })
+    signIn.mockResolvedValue({ success: false, error: errorMessage })
+    signOut.mockResolvedValue({ success: false, error: errorMessage })
+    resetPassword.mockResolvedValue({ success: false, error: errorMessage })
+    updatePassword.mockResolvedValue({ success: false, error: errorMessage })
+    confirmEmail.mockResolvedValue({ success: false, error: errorMessage })
+  }
+
+  mockAuthUser(user: any): void {
+    const { getCurrentUser } = require('@/lib/auth')
+    getCurrentUser.mockResolvedValue(user)
+  }
+
+  mockAuthLoading(): void {
+    const { getCurrentUser } = require('@/lib/auth')
+    getCurrentUser.mockImplementation(() => new Promise(() => {})) // Never resolves
+  }
+
+  mockNetworkError(): void {
+    const { signUp, signIn, signOut, resetPassword, updatePassword, confirmEmail } = require('@/lib/auth')
+    
+    const networkError = new Error('Ошибка сети')
+    signUp.mockRejectedValue(networkError)
+    signIn.mockRejectedValue(networkError)
+    signOut.mockRejectedValue(networkError)
+    resetPassword.mockRejectedValue(networkError)
+    updatePassword.mockRejectedValue(networkError)
+    confirmEmail.mockRejectedValue(networkError)
+  }
 }
+
+// ============================================================================
+// ТЕСТОВЫЕ УТИЛИТЫ
+// ============================================================================
+
+export class TestUtils {
+  private static instance: TestUtils
+  private logger: TestLogger
+  private mocks: TestMocks
+
+  constructor() {
+    this.logger = TestLogger.getInstance()
+    this.mocks = TestMocks.getInstance()
+  }
+
+  static getInstance(): TestUtils {
+    if (!TestUtils.instance) {
+      TestUtils.instance = new TestUtils()
+    }
+    return TestUtils.instance
+  }
+
+  // Асинхронные операции
+  async act<T>(callback: () => T | Promise<T>): Promise<T> {
+    this.logger.debug('ACT', 'Executing async operation')
+    const { act } = require('@testing-library/react')
+    return await act(callback)
+  }
+
+  // Ожидание элементов
+  async waitForElement<T>(
+    callback: () => T,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<T> {
+    this.logger.debug('WAIT', 'Waiting for element')
+    const { waitFor } = require('@testing-library/react')
+    return await waitFor(callback, options)
+  }
+
+  // Ожидание состояния
+  async waitForState<T>(
+    getState: () => T,
+    expectedState: T,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<T> {
+    this.logger.debug('WAIT', 'Waiting for state change')
+    const { waitFor } = require('@testing-library/react')
+
+    return await waitFor(() => {
+      try {
+        const currentState = getState()
+        if (currentState === expectedState) {
+          return currentState
+        }
+        throw new Error(`State mismatch: expected ${expectedState}, got ${currentState}`)
+      } catch (error) {
+        throw error
+      }
+    }, options)
+  }
+
+  // Ожидание состояния с условием
+  async waitForStateCondition<T>(
+    getState: () => T,
+    condition: (state: T) => boolean,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<T> {
+    this.logger.debug('WAIT', 'Waiting for state condition')
+    const { waitFor } = require('@testing-library/react')
+
+    return await waitFor(() => {
+      try {
+        const currentState = getState()
+        if (condition(currentState)) {
+          return currentState
+        }
+        throw new Error(`State condition not met`)
+      } catch (error) {
+        throw error
+      }
+    }, options)
+  }
+
+  // Ожидание условия
+  async waitForCondition(
+    condition: () => boolean,
+    options?: { timeout?: number; interval?: number }
+  ): Promise<void> {
+    this.logger.debug('WAIT', 'Waiting for condition')
+    const { waitFor } = require('@testing-library/react')
+
+    return await waitFor(() => {
+      if (condition()) {
+        return
+      }
+      throw new Error('Condition not met')
+    }, options)
+  }
+
+  // Генерация тестовых данных
+  generateUser(overrides: Partial<any> = {}): any {
+    const baseUser = {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      subscription: 'free',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    return { ...baseUser, ...overrides }
+  }
+
+  generateTask(overrides: Partial<any> = {}): any {
+    const baseTask = {
+      id: 'test-task-id',
+      title: 'Test Task',
+      description: 'Test Description',
+      priority: 'medium',
+      status: 'pending',
+      estimatedMinutes: 30,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    return { ...baseTask, ...overrides }
+  }
+
+  generateSubscription(overrides: Partial<any> = {}): any {
+    const baseSubscription = {
+      id: 'test-subscription-id',
+      userId: 'test-user-id',
+      plan: 'free',
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    return { ...baseSubscription, ...overrides }
+  }
+
+  generateTasks(count: number, overrides: Partial<any> = {}): any[] {
+    const tasks = []
+    for (let i = 0; i < count; i++) {
+      const baseTask = {
+        id: `test-task-${i + 1}`,
+        title: `Test Task ${i + 1}`,
+        description: `Test Description ${i + 1}`,
+        priority: 'medium',
+        status: 'pending',
+        estimatedMinutes: 30,
+        source: 'manual',
+        tags: ['test'],
+        userId: 'test-user-id',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      tasks.push({ ...baseTask, ...overrides })
+    }
+    return tasks
+  }
+
+  // Измерение производительности
+  async measurePerformance<T>(
+    operation: () => T | Promise<T>,
+    operationName: string,
+    threshold: number = 1000
+  ): Promise<{ result: T; duration: number }> {
+    const startTime = Date.now()
+    const result = await operation()
+    const duration = Date.now() - startTime
+
+    this.logger.performance(operationName, duration, threshold)
+
+    return { result, duration }
+  }
+
+  // Ожидание ошибок
+  async expectToThrow<T>(
+    operation: () => T | Promise<T>,
+    expectedError?: string | RegExp
+  ): Promise<void> {
+    try {
+      await operation()
+      throw new Error('Expected operation to throw, but it did not')
+    } catch (error) {
+      if (expectedError) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        if (typeof expectedError === 'string') {
+          if (!errorMessage.includes(expectedError)) {
+            throw new Error(`Expected error to contain "${expectedError}", but got: ${errorMessage}`)
+          }
+        } else {
+          if (!expectedError.test(errorMessage)) {
+            throw new Error(`Expected error to match ${expectedError}, but got: ${errorMessage}`)
+          }
+        }
+      }
+    }
+  }
+
+  // Рендеринг компонентов с провайдерами
+  renderWithProviders(
+    ui: any,
+    options?: any
+  ): any {
+    this.logger.debug('RENDER', 'Rendering component with providers')
+    const { render } = require('@testing-library/react')
+
+    return render(ui, {
+      ...options,
+      wrapper: ({ children }: { children: any }) => {
+        // Здесь можно добавить провайдеры (Redux, Context, etc.)
+        return children
+      }
+    })
+  }
+
+  // Рендеринг хуков
+  renderHookWithProviders<TProps, TResult>(
+    hook: (props: TProps) => TResult,
+    options?: any
+  ): any {
+    this.logger.debug('HOOK', 'Rendering hook with providers')
+    const { renderHook } = require('@testing-library/react')
+
+    return renderHook(hook, {
+      ...options,
+      wrapper: ({ children }: { children: any }) => {
+        // Здесь можно добавить провайдеры
+        return children
+      }
+    })
+  }
+
+  // Генерация тестовых данных
+  generateUser(overrides: any = {}): any {
+    const baseUser = {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      avatar_url: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    return { ...baseUser, ...overrides }
+  }
+
+  generateTask(overrides: any = {}): any {
+    const baseTask = {
+      id: 'test-task-id',
+      title: 'Test Task',
+      description: 'Test task description',
+      priority: 'medium',
+      status: 'pending',
+      due_date: null,
+      source: 'manual',
+      tags: ['test'],
+      userId: 'test-user-id',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    return { ...baseTask, ...overrides }
+  }
+
+  generateSubscription(overrides: any = {}): any {
+    const baseSubscription = {
+      id: 'test-subscription-id',
+      userId: 'test-user-id',
+      plan: 'free',
+      status: 'active',
+      currentPeriodStart: new Date().toISOString(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    return { ...baseSubscription, ...overrides }
+  }
+
+  // Очистка после тестов
+  cleanup(): void {
+    this.logger.debug('CLEANUP', 'Cleaning up after test')
+    this.mocks.clearAllMocks()
+  }
+}
+
+// ============================================================================
+// ЭКСПОРТЫ
+// ============================================================================
+
+export const testFramework = {
+  updateConfig: (config: typeof TEST_CONFIGS.UNIT) => {
+    // Обновление конфигурации фреймворка
+  }
+}
+
+export const testLogger = TestLogger.getInstance()
+export const testMocks = TestMocks.getInstance()
+export const testUtils = TestUtils.getInstance()

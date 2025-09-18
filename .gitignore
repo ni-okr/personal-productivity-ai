@@ -88,3 +88,7 @@ temp/
 # База данных
 
 # Скрипты
+scripts/
+.vercel
+# TypeScript build info
+tsconfig.tsbuildinfo

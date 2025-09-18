@@ -2,8 +2,7 @@
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
-import { signIn, signInWithGoogle } from '@/lib/auth'
-import { useAppStore } from '@/stores/useAppStore'
+import { useAuth } from '@/hooks/useAuth'
 import { validateEmail } from '@/utils/validation'
 import { useState } from 'react'
 
@@ -16,62 +15,38 @@ interface LoginFormProps {
 export function LoginForm({ onSuccess, onSwitchToRegister, onSwitchToReset }: LoginFormProps) {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState('')
-    const { setUser } = useAppStore()
+    const [showPassword, setShowPassword] = useState(false)
+    const { signIn, signInWithGoogle, isLoading, error, clearError } = useAuth()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError('')
-        setIsLoading(true)
+        clearError()
 
-        try {
-            // Валидация email
-            const emailValidation = validateEmail(email)
-            if (!emailValidation.isValid) {
-                setError(emailValidation.errors[0])
-                return
-            }
+        // Валидация email
+        const emailValidation = validateEmail(email)
+        if (!emailValidation.isValid) {
+            return
+        }
 
-            // Валидация пароля
-            if (!password || password.length < 6) {
-                setError('Пароль должен содержать минимум 6 символов')
-                return
-            }
+        // Валидация пароля
+        if (!password || password.length < 6) {
+            return
+        }
 
-            // Авторизация через Supabase
-            const result = await signIn({ email, password })
+        // Авторизация через useAuth хук
+        const result = await signIn(email, password)
 
-            if (result.success && result.user) {
-                setUser(result.user)
-                onSuccess?.()
-            } else {
-                setError(result.error || 'Ошибка входа')
-            }
-        } catch (err: any) {
-            setError(err.message || 'Произошла ошибка при входе')
-        } finally {
-            setIsLoading(false)
+        if (result.success) {
+            onSuccess?.()
         }
     }
 
     const handleGoogleSignIn = async () => {
-        setError('')
-        setIsLoading(true)
+        clearError()
+        const result = await signInWithGoogle()
 
-        try {
-            const result = await signInWithGoogle()
-
-            if (result.success) {
-                // OAuth процесс инициирован, пользователь будет перенаправлен
-                // Результат будет обработан в /auth/callback
-            } else {
-                setError(result.error || 'Ошибка входа через Google')
-            }
-        } catch (err: any) {
-            setError(err.message || 'Произошла ошибка при входе через Google')
-        } finally {
-            setIsLoading(false)
+        if (result.success) {
+            onSuccess?.()
         }
     }
 
@@ -106,16 +81,35 @@ export function LoginForm({ onSuccess, onSwitchToRegister, onSwitchToReset }: Lo
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Пароль
                             </label>
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="••••••••"
-                                required
-                                disabled={isLoading}
-                            />
+                            <div className="relative">
+                                <input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="••••••••"
+                                    required
+                                    disabled={isLoading}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                    disabled={isLoading}
+                                >
+                                    {showPassword ? (
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         {/* Ошибка */}

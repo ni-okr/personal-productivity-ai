@@ -122,7 +122,7 @@ export function SubscriptionModal({
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         <div className="text-center text-sm text-gray-500">
                             <p>
-                                💳 Безопасная оплата через Stripe •
+                                💳 Безопасная оплата через Тинькофф •
                                 🔒 Отменить можно в любое время •
                                 📧 Поддержка 24/7
                             </p>

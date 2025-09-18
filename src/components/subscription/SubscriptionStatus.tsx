@@ -2,6 +2,7 @@
 'use client'
 
 import { Button } from '@/components/ui/Button'
+import { apiGet, apiPost } from '@/lib/api-client'
 import { Subscription, SubscriptionPlan } from '@/types'
 import {
     CheckCircleIcon,
@@ -31,7 +32,7 @@ export function SubscriptionStatus({ userId, onUpgrade }: SubscriptionStatusProp
     const loadSubscriptionStatus = async () => {
         try {
             setIsLoading(true)
-            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/status`)
+            const response = await apiGet('/api/subscriptions/status')
             const result = await response.json()
 
             if (result.success) {
@@ -50,12 +51,8 @@ export function SubscriptionStatus({ userId, onUpgrade }: SubscriptionStatusProp
     const handleManageSubscription = async () => {
         try {
             setIsManaging(true)
-            const response = await fetch('/api/subscriptions/portal', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    returnUrl: window.location.href
-                })
+            const response = await apiPost('/api/subscriptions/portal', {
+                returnUrl: window.location.href
             })
 
             const result = await response.json()

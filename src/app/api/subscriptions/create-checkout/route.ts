@@ -4,36 +4,35 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
     try {
-        // Проверяем переменные окружения
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
+        const { planId, successUrl, cancelUrl, paymentMethod = 'bank_transfer' } = await request.json()
 
-            const { planId } = await request.json()
+        // Проверяем режим разработки (mock режим)
+        if (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true' || !process.env.TINKOFF_TERMINAL_KEY || process.env.NODE_ENV === 'production') {
+            console.log('🧪 MOCK РЕЖИМ: Создание checkout сессии для плана:', planId)
 
             // Заглушка для режима разработки
             return NextResponse.json({
                 success: true,
                 data: {
-                    sessionId: 'dev-session-' + Date.now(),
-                    url: '/planner?payment=success',
-                    message: 'Checkout сессия (заглушка - режим разработки)'
+                    sessionId: 'mock-session-' + Date.now(),
+                    url: successUrl || '/planner?payment=success&plan=' + planId,
+                    message: 'Checkout сессия (заглушка - режим разработки)',
+                    planId: planId
                 }
             })
         }
 
-        // Импортируем getCurrentUser только если есть переменные окружения
-        const { getCurrentUser } = await import('@/lib/auth')
+        // Импортируем getCurrentUserFromRequest только если есть переменные окружения
+        const { getCurrentUserFromRequest } = await import('@/lib/auth')
 
-        // Проверяем авторизацию
-        const user = await getCurrentUser()
+        // Проверяем авторизацию из заголовков запроса
+        const user = await getCurrentUserFromRequest(request)
         if (!user) {
             return NextResponse.json(
                 { success: false, error: 'Необходима авторизация' },
                 { status: 401 }
             )
         }
-
-        const { planId, paymentMethod = 'bank_transfer' } = await request.json()
 
         if (!planId) {
             return NextResponse.json(

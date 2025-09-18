@@ -1,6 +1,7 @@
 // 💳 Хук для управления подписками
 'use client'
 
+import { apiGet, apiPost } from '@/lib/api-client'
 import { getSubscriptionPlan } from '@/lib/subscriptions'
 import { useAppStore } from '@/stores/useAppStore'
 import { Subscription, SubscriptionPlan } from '@/types'
@@ -50,7 +51,7 @@ export function useSubscription(): UseSubscriptionReturn {
                     setError('Пользователь не авторизован')
                 }
             } else {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/status`)
+                const response = await apiGet('/api/subscriptions/status')
                 const result = await response.json()
 
                 if (result.success) {
@@ -72,14 +73,10 @@ export function useSubscription(): UseSubscriptionReturn {
         try {
             setError(null)
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/create-checkout`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    planId,
-                    successUrl: `${window.location.origin}/planner?success=true`,
-                    cancelUrl: `${window.location.origin}/planner?canceled=true`
-                })
+            const response = await apiPost('/api/subscriptions/create-checkout', {
+                planId,
+                successUrl: `${window.location.origin}/planner?success=true`,
+                cancelUrl: `${window.location.origin}/planner?canceled=true`
             })
 
             const result = await response.json()
@@ -108,12 +105,8 @@ export function useSubscription(): UseSubscriptionReturn {
         try {
             setError(null)
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/subscriptions/portal`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    returnUrl: window.location.href
-                })
+            const response = await apiPost('/api/subscriptions/portal', {
+                returnUrl: window.location.href
             })
 
             const result = await response.json()

@@ -136,8 +136,8 @@ export interface Database {
           user_id: string
           tier: 'free' | 'premium' | 'pro'
           status: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'unpaid'
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
+          tinkoff_customer_id: string | null
+          tinkoff_payment_id: string | null
           current_period_start: string
           current_period_end: string
           cancel_at_period_end: boolean
@@ -150,8 +150,8 @@ export interface Database {
           user_id: string
           tier: 'free' | 'premium' | 'pro'
           status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'unpaid'
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
+          tinkoff_customer_id?: string | null
+          tinkoff_payment_id?: string | null
           current_period_start: string
           current_period_end: string
           cancel_at_period_end?: boolean
@@ -164,8 +164,8 @@ export interface Database {
           user_id?: string
           tier?: 'free' | 'premium' | 'pro'
           status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | 'unpaid'
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
+          tinkoff_customer_id?: string | null
+          tinkoff_payment_id?: string | null
           current_period_start?: string
           current_period_end?: string
           cancel_at_period_end?: boolean
