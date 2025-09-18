@@ -121,7 +121,7 @@ class FeatureToggleManager {
       }
 
       // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('./supabase')
+      const { getSupabaseClient } = await import('@/lib/supabase')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -160,7 +160,7 @@ class FeatureToggleManager {
       }
 
       // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('./supabase')
+      const { getSupabaseClient } = await import('@/lib/supabase')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -244,7 +244,7 @@ class FeatureToggleManager {
       }
 
       // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('./supabase')
+      const { getSupabaseClient } = await import('@/lib/supabase')
       const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('feature_toggles')

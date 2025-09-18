@@ -11,20 +11,41 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
+  preset: 'ts-jest/presets/default-esm',
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  globals: {
+    'ts-jest': {
+      useESM: true,
+      tsconfig: 'tsconfig.json'
+    }
+  },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { useESM: true }]
+  },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   moduleNameMapper: {
-    // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
+    // Map lib mock imports to tests/mocks first
+    '^@/lib/(.*-mock)$': '<rootDir>/tests/mocks/$1',
+    // Map tests alias to tests directory
+    '^@/tests/(.*)$': '<rootDir>/tests/$1',
+    // Map framework alias
+    '^@/tests/framework$': '<rootDir>/tests/framework/index.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testEnvironment: 'jest-environment-jsdom',
   testMatch: [
-    '<rootDir>/tests/unit/**/*.(test|spec).(js|jsx|ts|tsx)',
-    '<rootDir>/tests/integration/**/*.(test|spec).(js|jsx|ts|tsx)'
+    // Only run tests in the new centralized framework
+    '<rootDir>/tests/framework/**/*.(test|spec).(ts)'
   ],
   testPathIgnorePatterns: [
+    '<rootDir>/tests/unit/',
+    '<rootDir>/tests/integration/',
     '<rootDir>/tests/e2e/',
     '<rootDir>/.next/',
     '<rootDir>/node_modules/'
+  ],
+  "transformIgnorePatterns": [
+    "/node_modules/"
   ],
   // Увеличиваем таймаут для API тестов
   testTimeout: 15000,

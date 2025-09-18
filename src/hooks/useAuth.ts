@@ -47,7 +47,7 @@ export function useAuth() {
             await initAuth()
 
             // Подписываемся на изменения авторизации
-            const { data: { subscription: realSubscription } } = onAuthStateChange((user: User | null) => {
+            const realSubscription = await onAuthStateChange((user: User | null) => {
                 if (mounted) {
                     setUser(user)
                     setIsLoading(false)

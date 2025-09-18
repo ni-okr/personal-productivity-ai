@@ -16,7 +16,7 @@ import {
     mockSignInWithState,
     mockSignOutWithState,
     mockSignUpWithState
-} from '@/lib/auth-mock'
+} from '../../tests/mocks/auth-mock'
 import { MOCK_CONFIGS, TEST_CONFIGS, testFramework, testLogger, testMocks } from '../framework'
 
 // Mock console.log для проверки логов
