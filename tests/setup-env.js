@@ -2,8 +2,16 @@
  * Настройка переменных окружения для тестов
  */
 
-// Загружаем переменные из .env.local
-require('dotenv').config({ path: '.env.local' })
+// Load secrets from OS pass
+const { spawnSync } = require('child_process');
+const { parse } = require('dotenv');
+(function loadPassEnv() {
+  const result = spawnSync('pass', ['show', 'personal-productivity-ai/env']);
+  if (result.status === 0 && result.stdout) {
+    const parsed = parse(result.stdout.toString());
+    Object.assign(process.env, parsed);
+  }
+})();
 
 // Устанавливаем значения по умолчанию если не найдены
 process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zpgkzvflmgxrlgkecscg.supabase.co'

@@ -19,6 +19,9 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+/.env.local
+/.env.*     # игнорируем любые env-файлы, кроме .env.example
+!/env.example  # только пример оставляем
 
 # Gmail API credentials (секретные файлы)
 gmail_credentials.json

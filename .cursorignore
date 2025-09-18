@@ -2,8 +2,6 @@
 
 # Dependencies
 node_modules/
-.pnp
-.pnp.js
 
 # Production builds
 .next/
@@ -12,11 +10,12 @@ dist/
 build/
 
 # Environment variables (содержат секреты)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+/.env*           # ИИ не будет видеть или создавать файлы env
+/.env
+/.env.local
+/.env.development.local
+/.env.test.local
+/.env.production.local
 
 # Logs
 npm-debug.log*
@@ -68,46 +67,6 @@ Thumbs.db
 *.tmp
 *.temp
 .tmp/
-
-# Large binary files
-*.zip
-*.tar.gz
-*.rar
-*.7z
-*.dmg
-*.iso
-
-# Images (unless specifically needed for context)
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.webp
-*.svg
-*.ico
-
-# Videos and audio
-*.mp4
-*.avi
-*.mov
-*.wmv
-*.mp3
-*.wav
-*.flac
-
-# Documentation that's not code-related
-*.pdf
-*.doc
-*.docx
-
-# Package manager files (keep package.json but ignore lock files for context)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# Git files (ИИ не нужен доступ к git internals)
-.git/
-.gitignore
 
 # Vercel deployment files
 .vercel/
