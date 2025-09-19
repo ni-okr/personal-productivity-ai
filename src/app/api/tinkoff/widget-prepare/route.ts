@@ -3,10 +3,13 @@
 // на https://securepay.tinkoff.ru/html/payForm/index.html методом POST
 
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 function sha256(input: string): string {
-  const crypto = require('crypto')
-  return crypto.createHash('sha256').update(input, 'utf8').digest('hex')
+  return createHash('sha256').update(input, 'utf8').digest('hex')
 }
 
 function generateToken(payload: Record<string, any>, secretKey: string): string {
