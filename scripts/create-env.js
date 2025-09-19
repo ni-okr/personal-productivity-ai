@@ -3,9 +3,12 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Функция для получения секрета из pass
+// Функция для получения секрета из pass (на CI не вызываем)
 function getSecret(passPath) {
   try {
+    if (process.env.CI) {
+      return null
+    }
     const result = execSync(`pass show ${passPath}`, { encoding: 'utf8' });
     return result.trim();
   } catch {
