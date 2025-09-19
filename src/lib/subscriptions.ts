@@ -4,7 +4,7 @@ import type { SubscriptionInsert } from '@/types/supabase'
 import {
     mockGetSubscription
 } from '../../tests/mocks/subscription-mock'
-import { supabase } from './supabase'
+import { supabase, createServerSupabaseClient } from './supabase'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
@@ -554,6 +554,110 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
             success: false,
             error: 'Произошла ошибка при получении подписок'
         }
+    }
+}
+
+/**
+ * 🔄 Создать или обновить подписку пользователя (server-only, через service role при наличии)
+ * Обновляются только общие поля (tier/status/period), чтобы не зависеть от провайдера.
+ */
+export async function upsertUserSubscription(
+    userId: string,
+    tier: SubscriptionTier,
+    updates: UpdateSubscriptionData
+): Promise<SubscriptionResponse> {
+    try {
+        const server = createServerSupabaseClient({
+            serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+            url: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+        })
+
+        // Пытаемся найти текущую запись
+        const { data: existing, error: selectErr } = await (server as any)
+            .from('user_subscriptions')
+            .select('*')
+            .eq('user_id', userId)
+            .single()
+
+        if (selectErr && selectErr.code !== 'PGRST116') {
+            // Ошибка кроме отсутствия записи
+            console.error('Ошибка чтения подписки:', selectErr)
+        }
+
+        const payload: any = {
+            user_id: userId,
+            tier,
+            updated_at: new Date().toISOString()
+        }
+        if (updates.status) payload.status = updates.status
+        if (updates.currentPeriodStart) payload.current_period_start = updates.currentPeriodStart.toISOString()
+        if (updates.currentPeriodEnd) payload.current_period_end = updates.currentPeriodEnd.toISOString()
+        if (updates.cancelAtPeriodEnd !== undefined) payload.cancel_at_period_end = updates.cancelAtPeriodEnd
+        if (updates.trialEnd) payload.trial_end = updates.trialEnd.toISOString()
+
+        if (!existing) {
+            // Вставка новой записи
+            const insertPayload = {
+                ...payload,
+                status: payload.status || 'active',
+                current_period_start: payload.current_period_start || new Date().toISOString(),
+                current_period_end: payload.current_period_end || new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+                cancel_at_period_end: payload.cancel_at_period_end ?? false,
+                created_at: new Date().toISOString()
+            }
+            const { data, error } = await (server as any)
+                .from('user_subscriptions')
+                .insert(insertPayload)
+                .select('*')
+                .single()
+            if (error) return { success: false, error: error.message }
+            return {
+                success: true,
+                subscription: {
+                    id: (data as any).id,
+                    userId: (data as any).user_id,
+                    tier: (data as any).tier,
+                    status: (data as any).status,
+                    tinkoffCustomerId: (data as any).tinkoff_customer_id,
+                    tinkoffPaymentId: (data as any).tinkoff_payment_id,
+                    currentPeriodStart: new Date((data as any).current_period_start),
+                    currentPeriodEnd: new Date((data as any).current_period_end),
+                    cancelAtPeriodEnd: (data as any).cancel_at_period_end,
+                    trialEnd: (data as any).trial_end ? new Date((data as any).trial_end) : undefined,
+                    createdAt: new Date((data as any).created_at),
+                    updatedAt: new Date((data as any).updated_at)
+                }
+            }
+        } else {
+            // Обновление существующей записи
+            const { data, error } = await (server as any)
+                .from('user_subscriptions')
+                .update(payload)
+                .eq('id', (existing as any).id)
+                .select('*')
+                .single()
+            if (error) return { success: false, error: error.message }
+            return {
+                success: true,
+                subscription: {
+                    id: (data as any).id,
+                    userId: (data as any).user_id,
+                    tier: (data as any).tier,
+                    status: (data as any).status,
+                    tinkoffCustomerId: (data as any).tinkoff_customer_id,
+                    tinkoffPaymentId: (data as any).tinkoff_payment_id,
+                    currentPeriodStart: new Date((data as any).current_period_start),
+                    currentPeriodEnd: new Date((data as any).current_period_end),
+                    cancelAtPeriodEnd: (data as any).cancel_at_period_end,
+                    trialEnd: (data as any).trial_end ? new Date((data as any).trial_end) : undefined,
+                    createdAt: new Date((data as any).created_at),
+                    updatedAt: new Date((data as any).updated_at)
+                }
+            }
+        }
+    } catch (error: any) {
+        console.error('upsertUserSubscription error:', error)
+        return { success: false, error: error.message || 'Ошибка upsert подписки' }
     }
 }
 
