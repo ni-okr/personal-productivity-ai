@@ -597,7 +597,8 @@ export default function Home() {
                         })
                         const j = await r.json()
                         if (j?.data?.paymentUrl) {
-                          window.open(j.data.paymentUrl, '_blank', 'width=900,height=700')
+                          // Прямой переход в этой вкладке, чтобы исключить блокировку попапов
+                          window.location.href = j.data.paymentUrl
                         } else if (j?.error) {
                           alert(`Ошибка тестового платежа: ${j.error}`)
                         }
@@ -619,7 +620,7 @@ export default function Home() {
                         })
                         const j = await r.json()
                         if (j?.data?.paymentUrl) {
-                          window.open(j.data.paymentUrl, '_blank', 'width=900,height=700')
+                          window.location.href = j.data.paymentUrl
                         } else if (j?.error) {
                           alert(`Ошибка платежа: ${j.error}`)
                         }
