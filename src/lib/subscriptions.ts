@@ -165,7 +165,7 @@ export async function getSubscription(userId: string): Promise<SubscriptionRespo
         // supabase client is imported above
 
         const { data, error } = await supabase
-            .from('user_subscriptions')
+            .from('subscriptions')
             .select('*')
             .eq('user_id', userId)
             .single()
@@ -289,7 +289,7 @@ export async function createSubscription(data: CreateSubscriptionData): Promise<
         }
 
         const { data: subscription, error } = await supabase
-            .from('user_subscriptions')
+            .from('subscriptions')
             .insert(subscriptionData as any)
             .select()
             .single()
@@ -509,7 +509,7 @@ export async function getUserSubscriptions(userId: string): Promise<Subscription
         const supabase = getSupabaseClient()
         
         const { data, error } = await supabase
-            .from('user_subscriptions')
+            .from('subscriptions')
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
