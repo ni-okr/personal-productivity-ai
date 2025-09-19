@@ -44,9 +44,9 @@ export interface SignInData {
     password: string
 }
 
-export interface AuthResponse {
+export interface AuthResponse<T = User> {
     success: boolean
-    user?: any
+    user?: T
     error?: string
     message?: string
 }
@@ -75,13 +75,13 @@ export async function signUp({ email, password, name }: SignUpData): Promise<Aut
     }
 
     // Реальная регистрация через Supabase
-    const { error: signupError, data } = await supabase.auth.signUp({ email, password })
+    const { error: signupError } = await supabase.auth.signUp({ email, password })
     if (signupError) {
         // Локализуем сообщения об ошибках регистрации
         return { success: false, error: getAuthErrorMessage(signupError.message) }
     }
     // Возвращаем объект пользователя из Supabase
-    return { success: true, user: data.user, message: 'Регистрация успешна' }
+    return { success: true, message: 'Регистрация успешна' }
 }
 
 /**
@@ -668,5 +668,3 @@ function getAuthErrorMessage(error: string): string {
     return errorMap[error] || 'Произошла ошибка авторизации'
 }
 
-export * from './auth-real'
-// Этот файл теперь переадресует реализацию в auth-real.ts

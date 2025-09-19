@@ -59,7 +59,7 @@ describe('Auth Components - Simple Tests', () => {
     })
 
     test('should handle form submission', async () => {
-        mockSignIn.mockResolvedValue({ success: true, message: 'Вход выполнен' })
+        mockSignIn.mockResolvedValue({ success: true })
 
         const mockOnSuccess = jest.fn()
         render(

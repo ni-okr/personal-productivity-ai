@@ -2,10 +2,30 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Создаём клиент с использованием переменных окружения
+// Базовый браузерный клиент (сохранён для обратной совместимости)
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 )
+
+// Создание клиента для браузера (использует публичные ключи)
+export function createBrowserSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+  )
+}
+
+// Создание клиента для сервера. Позволяет переопределять ключи через параметры/ENV
+export function createServerSupabaseClient(options?: {
+  url?: string
+  anonKey?: string
+  serviceRoleKey?: string
+}) {
+  const url = options?.url || (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)
+  const key = options?.serviceRoleKey || options?.anonKey || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  return createClient(url as string, key as string)
+}
 
 export function getSupabaseClient() {
     return supabase

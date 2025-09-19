@@ -15,6 +15,15 @@
 - **UpdatePasswordForm** - форма обновления пароля
 - **ProtectedRoute** - компонент для защищенных маршрутов
 - **Middleware** - защита маршрутов на уровне Next.js
+  
+### Клиенты Supabase:
+- **createBrowserSupabaseClient** — браузерный клиент (публичные ключи)
+- **createServerSupabaseClient** — серверный клиент (поддержка service role)
+- Единый модуль `src/lib/supabase.ts` с обратной совместимостью (`supabase`, `getSupabaseClient`)
+
+### Консолидация авторизации:
+- Вся реализация находится в `src/lib/auth.ts`
+- Удалён дублирующий файл `src/lib/auth-real.ts`
 
 ### Страницы:
 - `/auth/login` - страница входа
