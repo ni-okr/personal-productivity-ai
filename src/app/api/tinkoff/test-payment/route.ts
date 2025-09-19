@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Используем тестовые ключи
-        const terminalKey = process.env.TINKOFF_TERMINAL_KEY_TEST!
-        const secretKey = process.env.TINKOFF_SECRET_KEY_TEST!
+        // Используем тестовые ключи (Vercel: *_TEST или *_LIVE)
+        const terminalKey = process.env.TINKOFF_TERMINAL_KEY_TEST || process.env.TINKOFF_TERMINAL_KEY || ''
+        const secretKey = process.env.TINKOFF_SECRET_KEY_TEST || process.env.TINKOFF_SECRET_KEY || ''
 
         // Всегда пытаемся использовать реальный API Тинькофф
         console.log('💳 Используем API Тинькофф с ключами:', {

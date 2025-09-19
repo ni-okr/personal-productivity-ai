@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { supabase } from '@/lib/supabase'
 
 // Схема валидации для email
 const subscribeSchema = z.object({
@@ -47,29 +48,12 @@ export async function POST(request: NextRequest) {
             })
         }
 
-        // Импортируем addSubscriber только если есть переменные окружения
-        console.log('📡 Вызываем addSubscriber...')
-        const { addSubscriber } = await import('@/lib/supabase')
-        const subscription = await addSubscriber(email)
-        console.log('📡 Результат addSubscriber:', subscription)
+        console.log('📡 Создание подписчика через Supabase')
+        const { data, error } = await supabase.from('subscribers').insert({ email })
+        if (error) throw error
+        console.log('📡 Подписчик создан:', data)
 
-        if (!subscription.success) {
-            console.log('⚠️ Подписка не удалась:', subscription.message)
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: subscription.message
-                },
-                { status: 200 } // Возвращаем 200 для дубликатов
-            )
-        }
-
-        console.log('🎉 Подписка успешна!')
-        return NextResponse.json({
-            success: true,
-            message: subscription.message,
-            data: subscription.data
-        })
+        return NextResponse.json({ success: true, subscription: data })
 
     } catch (error: any) {
         console.error('Ошибка при подписке:', error)

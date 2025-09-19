@@ -4,6 +4,7 @@
  */
 
 import { execSync } from 'child_process';
+import fs from 'fs';
 
 /**
  * Получить секрет из pass
@@ -29,13 +30,13 @@ export function getSecret(path: string): string | null {
  */
 export function getAllSecrets(): Record<string, string> | null {
     try {
-        const secrets = {
-            NEXT_PUBLIC_SUPABASE_URL: getSecret('personal-productivity-ai/supabase/url'),
-            NEXT_PUBLIC_SUPABASE_ANON_KEY: getSecret('personal-productivity-ai/supabase/anon-key'),
-            TINKOFF_TERMINAL_KEY_TEST: getSecret('personal-productivity-ai/tinkoff/terminal-key-test'),
-            TINKOFF_SECRET_KEY_TEST: getSecret('personal-productivity-ai/tinkoff/secret-key-test'),
-            TINKOFF_TERMINAL_KEY_LIVE: getSecret('personal-productivity-ai/tinkoff/terminal-key-live'),
-            TINKOFF_SECRET_KEY_LIVE: getSecret('personal-productivity-ai/tinkoff/secret-key-live'),
+        const secrets: Record<string, string> = {
+            NEXT_PUBLIC_SUPABASE_URL: getSecret('personal-productivity-ai/supabase/url')!,
+            NEXT_PUBLIC_SUPABASE_ANON_KEY: getSecret('personal-productivity-ai/supabase/anon-key')!,
+            TINKOFF_TERMINAL_KEY_TEST: getSecret('personal-productivity-ai/tinkoff/terminal-key-test')!,
+            TINKOFF_SECRET_KEY_TEST: getSecret('personal-productivity-ai/tinkoff/secret-key-test')!,
+            TINKOFF_TERMINAL_KEY_LIVE: getSecret('personal-productivity-ai/tinkoff/terminal-key-live')!,
+            TINKOFF_SECRET_KEY_LIVE: getSecret('personal-productivity-ai/tinkoff/secret-key-live')!,
         };
 
         // Проверяем, что все секреты загружены
@@ -109,7 +110,7 @@ export function createEnvFromPass(outputPath: string = '.env.local'): void {
         .map(([key, value]) => `${key}=${value}`)
         .join('\n');
 
-    require('fs').writeFileSync(outputPath, envContent);
+    fs.writeFileSync(outputPath, envContent);
     console.log(`✅ .env.local создан из секретов pass: ${outputPath}`);
 }
 

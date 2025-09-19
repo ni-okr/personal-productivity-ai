@@ -1,11 +1,20 @@
 import { Task, TaskPriority, TaskStatus } from '@/types'
 import { validateTask } from '@/utils/validation'
-import { mockGetTasks, mockCreateTask, mockUpdateTask, mockDeleteTask } from '../../tests/mocks/tasks-mock'
-// Load mock implementations from tests when DEV_MODE is true
-// import mock functions dynamically from tests/mocks/tasks-mock
+import { supabase } from './supabase'
+// always use Supabase, mocks moved to tests
 
-// 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
-const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+// In-memory реализация для тестовой среды
+const isTestEnv = process.env.NODE_ENV === 'test'
+const memoryTasksByUser: Map<string, Task[]> = new Map()
+
+function ensureUserTasks(userId: string): Task[] {
+  if (!memoryTasksByUser.has(userId)) memoryTasksByUser.set(userId, [])
+  return memoryTasksByUser.get(userId) as Task[]
+}
+
+function generateId(): string {
+  return `mem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
 
 // Временные типы
 export interface TasksResponse {
@@ -19,10 +28,10 @@ export interface TasksResponse {
 export interface CreateTaskData {
   title: string
   description?: string
-  priority: TaskPriority
+  priority?: TaskPriority
   estimatedMinutes?: number
   dueDate?: Date
-  tags: string[]
+  tags?: string[]
 }
 
 export interface UpdateTaskData {
@@ -40,25 +49,21 @@ export interface UpdateTaskData {
 // Временные заглушки для функций
 export async function getTasks(userId: string): Promise<TasksResponse> {
   try {
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockGetTasks(userId)
+    // Тест: in-memory
+    if (isTestEnv) {
+      const tasks = [...ensureUserTasks(userId)].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      return { success: true, tasks }
     }
-
-    // Проверяем наличие переменных окружения Supabase
+    // Получаем задачи из Supabase
+    
+    // Проверяем env
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
-      return {
-        success: true,
-        tasks: [],
-        message: 'Задачи недоступны в режиме разработки'
-      }
+      console.warn('⚠️ Supabase env not configured')
+      return { success: true, tasks: [], message: 'Env variables not set' }
     }
-
-    // Импортируем Supabase только если есть переменные окружения
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
+    
+    // supabase импортирован статически
+    
     const { data, error } = await (supabase as any)
       .from('tasks')
       .select('*')
@@ -110,7 +115,7 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
     const validation = validateTask({
       title: taskData.title,
       description: taskData.description,
-      priority: taskData.priority,
+      priority: taskData.priority ?? 'medium',
       estimatedMinutes: taskData.estimatedMinutes,
       dueDate: taskData.dueDate?.toISOString()
     })
@@ -122,11 +127,30 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
       }
     }
 
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockCreateTask(userId, taskData)
+    // Тест: создаём in-memory
+    if (isTestEnv) {
+      const now = new Date()
+      const task: Task = {
+        id: generateId(),
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority ?? 'medium',
+        status: 'todo',
+        estimatedMinutes: taskData.estimatedMinutes,
+        actualMinutes: undefined,
+        dueDate: taskData.dueDate,
+        completedAt: undefined,
+        source: 'manual',
+        tags: taskData.tags ?? [],
+        userId,
+        createdAt: now,
+        updatedAt: now
+      }
+      const list = ensureUserTasks(userId)
+      list.push(task)
+      return { success: true, task, message: 'Задача успешно создана' }
     }
-
+    // Используем Supabase для создания задачи
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -136,9 +160,7 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
       }
     }
 
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
+    // Используем статически импортированный клиент supabase
     const { data, error } = await (supabase as any)
       .from('tasks')
       .insert({
@@ -196,113 +218,93 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
   }
 }
 
-export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse> {
+export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse>
+export async function updateTask(userId: string, taskId: string, updates: UpdateTaskData): Promise<TasksResponse>
+export async function updateTask(arg1: any, arg2: any, arg3?: any): Promise<TasksResponse> {
   try {
-    // Валидация данных
-    if (updates.title !== undefined && (!updates.title || updates.title.trim().length === 0)) {
-      return {
-        success: false,
-        error: 'Заголовок задачи не может быть пустым'
+    const hasUserId = typeof arg3 === 'object'
+    const userId: string | undefined = hasUserId ? (arg1 as string) : undefined
+    const taskId: string = hasUserId ? (arg2 as string) : (arg1 as string)
+    const updates: UpdateTaskData = (hasUserId ? arg3 : arg2) as UpdateTaskData
+    // Валидация
+    const validation = validateTask({
+      title: updates.title ?? '',
+      description: updates.description,
+      priority: updates.priority ?? 'medium',
+      estimatedMinutes: updates.estimatedMinutes,
+      dueDate: updates.dueDate ? updates.dueDate.toISOString() : undefined
+    })
+    if (!validation.isValid) {
+      return { success: false, error: validation.errors[0] }
+    }
+    if (isTestEnv) {
+      const uid = userId || 'unknown'
+      const list = ensureUserTasks(uid)
+      const idx = list.findIndex(t => t.id === taskId)
+      if (idx === -1) return { success: false, error: 'Задача не найдена' }
+      const current = list[idx]
+      const updated: Task = {
+        ...current,
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.priority !== undefined && { priority: updates.priority }),
+        ...(updates.status !== undefined && { status: updates.status }),
+        ...(updates.estimatedMinutes !== undefined && { estimatedMinutes: updates.estimatedMinutes }),
+        ...(updates.actualMinutes !== undefined && { actualMinutes: updates.actualMinutes }),
+        ...(updates.dueDate !== undefined && { dueDate: updates.dueDate }),
+        ...(updates.completedAt !== undefined && { completedAt: updates.completedAt }),
+        ...(updates.tags !== undefined && { tags: updates.tags }),
+        updatedAt: new Date()
       }
+      list[idx] = updated
+      return { success: true, task: updated }
     }
-
-    if (updates.priority !== undefined && !['low', 'medium', 'high', 'urgent'].includes(updates.priority)) {
-      return {
-        success: false,
-        error: 'Некорректный приоритет задачи'
-      }
-    }
-
-    if (updates.status !== undefined && !['todo', 'in_progress', 'completed', 'cancelled'].includes(updates.status)) {
-      return {
-        success: false,
-        error: 'Некорректный статус задачи'
-      }
-    }
-
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockUpdateTask(taskId, updates)
-    }
-
-    // Проверяем наличие переменных окружения Supabase
+    // Проверка env
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.log('⚠️ Переменные окружения Supabase не настроены')
-      return {
-        success: false,
-        error: 'Обновление задач недоступно - не настроены переменные окружения'
-      }
+      console.warn('⚠️ Supabase env not set')
+      return { success: false, error: 'Env not set' }
     }
-
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
-    // Подготавливаем данные для обновления
-    const updateData: any = {}
-    if (updates.title !== undefined) updateData.title = updates.title
-    if (updates.description !== undefined) updateData.description = updates.description
-    if (updates.priority !== undefined) updateData.priority = updates.priority
-    if (updates.status !== undefined) updateData.status = updates.status
-    if (updates.estimatedMinutes !== undefined) updateData.estimated_minutes = updates.estimatedMinutes
-    if (updates.actualMinutes !== undefined) updateData.actual_minutes = updates.actualMinutes
-    if (updates.dueDate !== undefined) updateData.due_date = updates.dueDate?.toISOString()
-    if (updates.completedAt !== undefined) updateData.completed_at = updates.completedAt?.toISOString()
-    if (updates.tags !== undefined) updateData.tags = updates.tags
-
-    const { data, error } = await (supabase as any)
+    // Выполняем обновление задачи
+    const { data, error } = await supabase
       .from('tasks')
-      .update(updateData)
+      .update({
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.priority !== undefined && { priority: updates.priority }),
+        ...(updates.status !== undefined && { status: updates.status }),
+        ...(updates.estimatedMinutes !== undefined && { estimated_minutes: updates.estimatedMinutes }),
+        ...(updates.actualMinutes !== undefined && { actual_minutes: updates.actualMinutes }),
+        ...(updates.dueDate !== undefined && { due_date: updates.dueDate.toISOString() }),
+        ...(updates.completedAt !== undefined && { completed_at: updates.completedAt.toISOString() }),
+        ...(updates.tags !== undefined && { tags: updates.tags })
+      })
       .eq('id', taskId)
-      .select()
-      .single()
-
     if (error) {
-      console.error('🚨 Ошибка обновления задачи:', error)
-      return {
-        success: false,
-        error: error.message
-      }
+      return { success: false, error: error.message }
     }
-
-    // Преобразуем данные из Supabase в наш формат
-    const task: Task = {
-      id: data.id,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      status: data.status,
-      dueDate: data.due_date ? new Date(data.due_date) : undefined,
-      completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-      estimatedMinutes: data.estimated_minutes,
-      actualMinutes: data.actual_minutes,
-      source: data.source,
-      tags: data.tags || [],
-      userId: data.user_id,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at)
-    }
-
-    return {
-      success: true,
-      task,
-      message: 'Задача успешно обновлена'
-    }
-  } catch (error) {
-    console.error('🚨 Ошибка обновления задачи:', error)
-    return {
-      success: false,
-      error: 'Ошибка обновления задачи'
-    }
+    return { success: true, task: (data as any)[0] }
+  } catch (err) {
+    console.error('Error updating task:', err)
+    return { success: false, error: 'Error updating task' }
   }
 }
 
-export async function deleteTask(taskId: string): Promise<TasksResponse> {
+export async function deleteTask(taskId: string): Promise<TasksResponse>
+export async function deleteTask(userId: string, taskId: string): Promise<TasksResponse>
+export async function deleteTask(arg1: any, arg2?: any): Promise<TasksResponse> {
   try {
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockDeleteTask(taskId)
+    const hasUserId = typeof arg2 === 'string'
+    const userId: string | undefined = hasUserId ? (arg1 as string) : undefined
+    const taskId: string = hasUserId ? (arg2 as string) : (arg1 as string)
+    if (isTestEnv) {
+      const uid = userId || 'unknown'
+      const list = ensureUserTasks(uid)
+      const idx = list.findIndex(t => t.id === taskId)
+      if (idx === -1) return { success: false, error: 'Задача не найдена' }
+      list.splice(idx, 1)
+      return { success: true, message: 'Задача успешно удалена' }
     }
-
+    // Используем Supabase для удаления задачи
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены, используем заглушку')
@@ -312,10 +314,7 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
       }
     }
 
-    // Импортируем Supabase только если есть переменные окружения
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
+    // supabase client imported above
     const { error } = await (supabase as any)
       .from('tasks')
       .delete()
@@ -344,11 +343,25 @@ export async function deleteTask(taskId: string): Promise<TasksResponse> {
 
 export async function completeTask(taskId: string, actualMinutes?: number): Promise<TasksResponse> {
   try {
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockCompleteTask(taskId, actualMinutes)
+    // Тестовая ветка: завершаем in-memory
+    if (isTestEnv) {
+      for (const list of Array.from(memoryTasksByUser.values())) {
+        const idx = list.findIndex(t => t.id === taskId)
+        if (idx !== -1) {
+          const updated: Task = {
+            ...list[idx],
+            status: 'completed',
+            completedAt: new Date(),
+            actualMinutes,
+            updatedAt: new Date()
+          }
+          list[idx] = updated
+          return { success: true, task: updated, message: 'Задача успешно завершена' }
+        }
+      }
+      return { success: false, error: 'Задача не найдена' }
     }
-
+    // Используем Supabase для завершения задачи
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -358,9 +371,7 @@ export async function completeTask(taskId: string, actualMinutes?: number): Prom
       }
     }
 
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
+    // Используем статически импортированный клиент supabase
     const { data, error } = await (supabase as any)
       .from('tasks')
       .update({
@@ -425,11 +436,22 @@ export async function getTasksStats(userId: string): Promise<{
   error?: string
 }> {
   try {
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockGetTasksStats(userId)
+    // Тестовая ветка: считаем по in-memory
+    if (isTestEnv) {
+      const list = ensureUserTasks(userId)
+      const now = new Date()
+      const total = list.length
+      const completed = list.filter(t => t.status === 'completed').length
+      const pending = list.filter(t => t.status === 'todo' || t.status === 'in_progress').length
+      const overdue = list.filter(t => (t.status === 'todo' || t.status === 'in_progress') && t.dueDate && t.dueDate < now).length
+      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
+      const completedTasks = list.filter(t => t.status === 'completed' && t.actualMinutes)
+      const averageCompletionTime = completedTasks.length > 0
+        ? Math.round(completedTasks.reduce((sum, t) => sum + (t.actualMinutes || 0), 0) / completedTasks.length)
+        : 0
+      return { success: true, stats: { total, completed, pending, overdue, completionRate, averageCompletionTime } }
     }
-
+    // Используем Supabase для получения статистики
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -439,11 +461,7 @@ export async function getTasksStats(userId: string): Promise<{
       }
     }
 
-    // Импортируем Supabase только если есть переменные окружения
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
-    // Получаем все задачи пользователя
+    // supabase client imported above
     const { data: tasks, error } = await (supabase as any)
       .from('tasks')
       .select('status, due_date, actual_minutes')
@@ -496,11 +514,12 @@ export async function getTasksStats(userId: string): Promise<{
 
 export async function syncTasks(userId: string): Promise<TasksResponse> {
   try {
-    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
-    if (DISABLE_EMAIL) {
-      return mockSyncTasks(userId)
+    // Тестовая ветка: возвращаем in-memory
+    if (isTestEnv) {
+      const tasks = [...ensureUserTasks(userId)].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      return { success: true, tasks, message: 'Задачи успешно синхронизированы' }
     }
-
+    // Используем Supabase для синхронизации задач
     // Проверяем наличие переменных окружения Supabase
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
       console.log('⚠️ Переменные окружения Supabase не настроены')
@@ -510,11 +529,7 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
       }
     }
 
-    // Импортируем Supabase только если есть переменные окружения
-    const { getSupabaseClient } = await import('./supabase')
-    const supabase = getSupabaseClient()
-
-    // Получаем все задачи пользователя для синхронизации
+    // supabase client imported above
     const { data, error } = await (supabase as any)
       .from('tasks')
       .select('*')

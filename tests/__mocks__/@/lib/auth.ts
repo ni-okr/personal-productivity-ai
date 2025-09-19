@@ -1,26 +1,62 @@
-/**
- * Mock для auth функций
- */
+// 🧪 Mock для auth функций
 
-// Создаем mock функции с правильной типизацией
-const createMockFunction = (defaultValue: any) => {
-    const mockFn = jest.fn()
-    mockFn.mockResolvedValue = jest.fn().mockReturnValue(mockFn)
-    mockFn.mockRejectedValue = jest.fn().mockReturnValue(mockFn)
-    mockFn.mockImplementation = jest.fn().mockReturnValue(mockFn)
-    mockFn.mockReturnValue = jest.fn().mockReturnValue(mockFn)
-    mockFn.mockResolvedValue(defaultValue)
-    return mockFn
-}
+export const signUp = jest.fn(async ({ email, password, name }) => ({
+  success: true,
+  user: { id: 'test-user-id', email, name: name ?? 'Test User' },
+  message: 'Регистрация успешна'
+}))
 
-export const signUp = createMockFunction({ success: true, message: 'Регистрация успешна' })
-export const signIn = createMockFunction({ success: true, message: 'Вход выполнен' })
-export const signOut = createMockFunction({ success: true, message: 'Выход выполнен' })
-export const resetPassword = createMockFunction({ success: true, message: 'Письмо отправлено' })
-export const updatePassword = createMockFunction({ success: true, message: 'Пароль обновлен' })
-export const confirmEmail = createMockFunction({ success: true, message: 'Email подтвержден' })
-export const signInWithGoogle = createMockFunction({ success: true, message: 'Вход через Google выполнен' })
-export const signInWithGitHub = createMockFunction({ success: true, message: 'Вход через GitHub выполнен' })
-export const getCurrentUser = createMockFunction(null)
-export const getUserProfile = createMockFunction(null)
-export const getCurrentUserFromRequest = createMockFunction(null)
+export const signIn = jest.fn(async ({ email, password }) => ({
+  success: true,
+  user: { id: 'test-user-id', email, name: 'Test User', subscription: 'free', createdAt: new Date(), lastLoginAt: new Date() },
+  message: 'Вход выполнен'
+}))
+
+export const signOut = jest.fn(async () => ({
+  success: true,
+  message: 'Выход выполнен'
+}))
+
+export const resetPassword = jest.fn(async () => ({
+  success: true,
+  message: 'Письмо отправлено'
+}))
+
+export const updatePassword = jest.fn(async () => ({
+  success: true,
+  message: 'Пароль обновлен'
+}))
+
+export const confirmEmail = jest.fn(async (token) => {
+  if (typeof token === 'string' && token.includes('invalid')) {
+    return { success: false, error: 'Неверные учетные данные' }
+  }
+  return { success: true, message: 'Email успешно подтвержден!' }
+})
+
+export const signInWithGoogle = jest.fn(async () => ({
+  success: true,
+  message: 'Перенаправление на Google...'
+}))
+
+export const signInWithGitHub = jest.fn(async () => ({
+  success: true,
+  message: 'Перенаправление на GitHub...'
+}))
+
+export const getUserProfile = jest.fn(async (userId) => {
+  if (userId === 'test-user-id') {
+    return { id: userId, email: 'test@taskai.space', name: 'Test User', subscription: 'free', createdAt: new Date(), lastLoginAt: new Date() }
+  }
+  return null
+})
+
+export const getCurrentUser = jest.fn(async () => null)
+
+export const getCurrentUserFromRequest = jest.fn(async () => null)
+
+export const updateUserProfile = jest.fn(async (userId, updates) => ({
+  success: true,
+  message: 'Профиль успешно обновлен',
+  user: { id: userId, email: 'test@taskai.space', name: updates.name || 'Test User', subscription: updates.subscription || 'free', createdAt: new Date(), lastLoginAt: new Date() }
+}))

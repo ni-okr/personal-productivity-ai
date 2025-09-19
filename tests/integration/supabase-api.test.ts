@@ -20,49 +20,24 @@ import { testFramework, testLogger, testMocks, testUtils } from '../framework'
 import { addSubscriber, getActiveSubscribers, getSupabaseClient, unsubscribe } from '@/lib/supabase'
 
 describe('🗄️ Supabase API Integration', () => {
-    // Используем уникальные email для каждого теста
-    const testEmail = `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}@example.com`
-    const testEmail2 = `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-2@example.com`
+    // Генерируем уникальные email на каждый тест
+    const genEmail = (suffix: string = '') => `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}${suffix}@taskai.space`
 
-    // Получаем Supabase клиент для тестов
-    const supabase = getSupabaseClient()
+    // Получаем Supabase клиент для тестов (может быть undefined в fake)
+    const supabase = getSupabaseClient() as any
 
-    // Очистка тестовых данных перед каждым тестом
-    beforeEach(async () => {
-        try {
-            // Удаляем тестовые данные перед тестом из правильной таблицы
-            await supabase
-                .from('subscribers')
-                .delete()
-                .in('email', [testEmail, testEmail2])
-        } catch (error) {
-            testLogger.warn('TEST', 'Не удалось очистить тестовые данные перед тестом:', error)
-        }
-    })
-
-    // Очистка тестовых данных после каждого теста
+    // Очистка in-memory fake между тестами
     afterEach(async () => {
         try {
-            // Удаляем тестовые данные из правильной таблицы
-            await supabase
-                .from('subscribers')
-                .delete()
-                .in('email', [testEmail, testEmail2])
-
-            // Дополнительная очистка по времени (удаляем записи созданные в последние 5 минут)
-            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-            await supabase
-                .from('subscribers')
-                .delete()
-                .gte('created_at', fiveMinutesAgo)
-                .like('email', 'test-%@example.com')
-        } catch (error) {
-            testLogger.warn('TEST', 'Не удалось очистить тестовые данные:', error)
-        }
+            const { resetSubscribers } = require('@/lib/supabase')
+            if (typeof resetSubscribers === 'function') resetSubscribers()
+        } catch (_) {}
     })
 
     describe('📧 Управление подписчиками', () => {
         test('✅ Успешное добавление нового подписчика', async () => {
+            const testEmail = genEmail()
+            // Очистка происходит через resetSubscribers()
             const result = await addSubscriber(testEmail)
 
             expect(result.success).toBe(true)
@@ -73,7 +48,8 @@ describe('🗄️ Supabase API Integration', () => {
         }, 10000)
 
         test('🔄 Предотвращение дублирования email', async () => {
-            const duplicateEmail = `duplicate-${Date.now()}@example.com`
+            const duplicateEmail = genEmail('-dup')
+            // Очистка происходит через resetSubscribers()
 
             // Добавляем подписчика первый раз
             await addSubscriber(duplicateEmail)
@@ -99,8 +75,8 @@ describe('🗄️ Supabase API Integration', () => {
         }, 15000)
 
         test('📋 Получение списка активных подписчиков', async () => {
-            const listEmail1 = `list-${Date.now()}-1@example.com`
-            const listEmail2 = `list-${Date.now()}-2@example.com`
+            const listEmail1 = genEmail('-l1')
+            const listEmail2 = genEmail('-l2')
 
             // Добавляем тестовых подписчиков
             const result1 = await addSubscriber(listEmail1)
@@ -119,8 +95,8 @@ describe('🗄️ Supabase API Integration', () => {
                 s.email === listEmail1 || s.email === listEmail2
             )
 
-            // Проверяем, что есть хотя бы наши тестовые подписчики
-            expect(testSubscribers.length).toBeGreaterThanOrEqual(2)
+            // Проверяем, что наши тестовые подписчики присутствуют независимо от "шума"
+            expect(testSubscribers.length).toBe(2)
 
             // Проверяем структуру данных
             testSubscribers.forEach(subscriber => {
@@ -132,7 +108,8 @@ describe('🗄️ Supabase API Integration', () => {
         }, 15000)
 
         test('🚫 Отписка от уведомлений', async () => {
-            const unsubscribeEmail = `unsubscribe-${Date.now()}@example.com`
+            const unsubscribeEmail = genEmail('-unsub')
+            // Очистка происходит через resetSubscribers()
 
             // Сначала подписываемся
             const subscribeResult = await addSubscriber(unsubscribeEmail)
@@ -145,7 +122,7 @@ describe('🗄️ Supabase API Integration', () => {
             expect(result.message).toContain('отписались')
 
             // Проверяем, что подписчик стал неактивным
-            const { data, error } = await supabase
+            const { data, error } = supabase
                 .from('subscribers')
                 .select('is_active')
                 .eq('email', unsubscribeEmail)

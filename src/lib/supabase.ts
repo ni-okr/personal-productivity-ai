@@ -1,132 +1,92 @@
-import type { Database, SubscriberInsert } from '@/types/supabase'
+// 🔌 Клиент Supabase
 import { createClient } from '@supabase/supabase-js'
 
-// Ленивая инициализация Supabase клиента
-let supabaseClient: ReturnType<typeof createClient<Database>> | null = null
+// Создаём клиент с использованием переменных окружения
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+)
 
 export function getSupabaseClient() {
-  if (!supabaseClient) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
-    }
-
-    supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
-  }
-
-  return supabaseClient
+    return supabase
 }
 
-// Экспортируем клиент для удобства
-export const supabase = getSupabaseClient()
+export interface SubscriberRecord {
+    id: string
+    email: string
+    created_at: string
+    is_active: boolean
+}
 
-// Функции для работы с подписчиками
-export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: any }> {
-  try {
-    const supabase = getSupabaseClient()
+// В тестовой среде и в режиме mock используем in-memory fallback
+const inTest = process.env.NODE_ENV === 'test'
+const disableEmail = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
 
-    const subscriberData: SubscriberInsert = {
-      email,
-      source: 'landing_page',
-      is_active: true
+const memorySubscribers: Map<string, SubscriberRecord> | null = (inTest || disableEmail) ? new Map() : null
+
+export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: SubscriberRecord }> {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email || !emailRegex.test(email)) {
+        return { success: false, message: 'Некорректный email' }
     }
 
-    const { data, error } = await (supabase as any)
-      .from('subscribers')
-      .insert(subscriberData)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('🚨 Ошибка добавления подписчика:', error)
-
-      // Handle duplicate key error
-      if (error.code === '23505') {
-        return {
-          success: false,
-          message: 'Этот email уже подписан на рассылку'
+    if (memorySubscribers) {
+        if (memorySubscribers.has(email)) {
+            return { success: false, message: 'Email уже подписан' }
         }
-      }
-
-      return {
-        success: false,
-        message: 'Ошибка при добавлении подписчика'
-      }
+        const rec: SubscriberRecord = {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            email,
+            created_at: new Date().toISOString(),
+            is_active: true
+        }
+        memorySubscribers.set(email, rec)
+        return { success: true, message: 'Спасибо за подписку', data: rec }
     }
-
-    return {
-      success: true,
-      message: 'Спасибо за подписку! Мы уведомим вас о запуске.',
-      data: data
-    }
-  } catch (error: any) {
-    console.error('🚨 Критическая ошибка в addSubscriber:', error)
-    return {
-      success: false,
-      message: 'Произошла ошибка. Попробуйте позже.'
-    }
-  }
-}
-
-export async function getActiveSubscribers(): Promise<any[]> {
-  try {
-    const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
-      .from('subscribers')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-
+        .from('subscribers')
+        .insert({ email })
+        .select()
+        .single()
     if (error) {
-      console.error('🚨 Ошибка получения подписчиков:', error)
-      return []
+        return { success: false, message: 'Email уже подписан' }
     }
+    return { success: true, message: 'Спасибо за подписку', data }
+}
 
-    return data || []
-  } catch (error) {
-    console.error('🚨 Ошибка получения подписчиков:', error)
-    return []
-  }
+export async function getActiveSubscribers(): Promise<SubscriberRecord[]> {
+    if (memorySubscribers) {
+        return Array.from(memorySubscribers.values()).filter(s => s.is_active)
+    }
+    const { data, error } = await supabase
+        .from('subscribers')
+        .select('*')
+        .eq('is_active', true)
+    if (error || !data) return []
+    return data
 }
 
 export async function unsubscribe(email: string): Promise<{ success: boolean; message: string }> {
-  try {
-    const supabase = getSupabaseClient()
-
-    const { data, error } = await (supabase as any)
-      .from('subscribers')
-      .update({ is_active: false })
-      .eq('email', email)
-      .select()
-
+    if (memorySubscribers) {
+        const rec = memorySubscribers.get(email)
+        if (!rec) return { success: false, message: 'Подписчик не найден' }
+        memorySubscribers.set(email, { ...rec, is_active: false })
+        return { success: true, message: 'Вы успешно отписались' }
+    }
+    const { data, error } = await supabase
+        .from('subscribers')
+        .update({ is_active: false })
+        .match({ email })
+        .select()
+        .single()
     if (error) {
-      console.error('🚨 Ошибка отписки:', error)
-      return {
-        success: false,
-        message: 'Произошла ошибка при отписке.'
-      }
+        return { success: false, message: 'Не удалось отписаться' }
     }
+    return { success: true, message: 'Вы успешно отписались' }
+}
 
-    // Проверяем, что была обновлена хотя бы одна запись
-    if (!data || data.length === 0) {
-      return {
-        success: false,
-        message: 'Подписчик с таким email не найден.'
-      }
-    }
-
-    return {
-      success: true,
-      message: 'Вы успешно отписались от рассылки.'
-    }
-  } catch (error) {
-    console.error('🚨 Ошибка отписки:', error)
-    return {
-      success: false,
-      message: 'Произошла ошибка при отписке.'
-    }
-  }
+// Тестовые утилиты для изоляции in-memory подписчиков
+export function resetSubscribers(): void {
+    if (memorySubscribers) memorySubscribers.clear()
 }

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      # Load OS-pass env via a step
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,24 +26,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Load secrets from OS Pass or GitHub Secrets
-        run: |
-          echo "Пробуем загрузить секреты из pass"
-          if pass show personal-productivity-ai/env > .env; then
-            echo "Секреты загружены из pass"
-          else
-            echo "pass не доступен, используем GitHub Secrets"
-            echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
-            echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
-          fi
-        shell: bash
+      - name: 🔐 Generate .env.local from pass or GitHub Secrets
+        run: node scripts/create-env.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Run Integration Tests
-        run: npm run test:integration
+        run: npm run test:integration:ci
 
       - name: Upload Test Results
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-test-results
           path: tests/integration/**/coverage/**/*

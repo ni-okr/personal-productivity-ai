@@ -3,7 +3,7 @@
  * Система управления функциональностью в продакшене
  */
 
-// Условный импорт Supabase будет добавлен в функциях
+import { supabase } from './supabase'
 
 export interface FeatureToggle {
   id: string;
@@ -41,9 +41,7 @@ class FeatureToggleManager {
         return false
       }
 
-      // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('./supabase')
-      const supabase = getSupabaseClient()
+      if (!supabase) throw new Error('Supabase client не инициализирован')
 
       const { data, error } = await supabase
         .from('feature_toggles')
@@ -78,9 +76,7 @@ class FeatureToggleManager {
         return {}
       }
 
-      // Импортируем Supabase только если есть переменные окружения
-      const { getSupabaseClient } = await import('./supabase')
-      const supabase = getSupabaseClient()
+      if (!supabase) throw new Error('Supabase client не инициализирован')
 
       const { data, error } = await supabase
         .from('feature_toggles')

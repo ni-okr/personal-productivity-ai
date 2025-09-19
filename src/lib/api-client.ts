@@ -1,7 +1,7 @@
 // 🌐 API клиент с автоматической авторизацией
 'use client'
 
-import { getSupabaseClient } from './supabase'
+import { supabase } from './supabase'
 
 /**
  * Получение JWT токена из Supabase
@@ -13,7 +13,6 @@ export async function getAuthToken(): Promise<string | null> {
             return null
         }
 
-        const supabase = getSupabaseClient()
         const { data: { session } } = await supabase.auth.getSession()
 
         return session?.access_token || null

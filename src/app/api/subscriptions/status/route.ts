@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 // 📊 API для получения статуса подписки
 import { getSubscriptionPlan } from '@/lib/subscription-plans'
 import { NextRequest, NextResponse } from 'next/server'

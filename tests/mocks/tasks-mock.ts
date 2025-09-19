@@ -1,7 +1,7 @@
 // 🧪 Mock функции для тестирования задач без Supabase
 
 import { AICoachSuggestion, ProductivityMetrics, Task, TaskForm, TaskStatus } from '@/types'
-import { TasksResponse, UpdateTaskData } from './tasks'
+import { TasksResponse, UpdateTaskData } from '@/lib/tasks'
 
 // Mock данные для задач
 const mockTasks: Task[] = [

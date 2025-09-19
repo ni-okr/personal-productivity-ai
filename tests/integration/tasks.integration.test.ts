@@ -9,7 +9,8 @@ describe('Tasks Integration: CRUD операции с задачами в Supaba
 
   test('Полный цикл CRUD: создать, получить, обновить, удалить задачу', async () => {
     let createdTask: Task
-    const userId = 'integration-user'
+    // Используем валидный UUID формата v4 для поля user_id
+    const userId = '11111111-1111-4111-8111-111111111111'
     testLogger.step('Создание задачи')
     const createRes = await createTask(userId, { title: 'Integration Task', description: 'desc', estimatedMinutes: 15 })
     expect(createRes.success).toBe(true)
