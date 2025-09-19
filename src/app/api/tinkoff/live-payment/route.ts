@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Используем рабочие ключи
-        const terminalKey = process.env.TINKOFF_TERMINAL_KEY!
-        const secretKey = process.env.TINKOFF_SECRET_KEY!
+        // Используем рабочие ключи (поддержка *_LIVE из Vercel)
+        const terminalKey = process.env.TINKOFF_TERMINAL_KEY || process.env.TINKOFF_TERMINAL_KEY_LIVE || ''
+        const secretKey = process.env.TINKOFF_SECRET_KEY || process.env.TINKOFF_SECRET_KEY_LIVE || ''
 
         console.log('💳 Используем живой API Тинькофф с ключами:', {
             terminalKey: terminalKey,

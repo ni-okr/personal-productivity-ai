@@ -24,6 +24,7 @@ export function TestPaymentModal({
 }: TestPaymentModalProps) {
     const [isProcessing, setIsProcessing] = useState(false)
     const [paymentData, setPaymentData] = useState<any>(null)
+    const [showInlineForm, setShowInlineForm] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [copiedField, setCopiedField] = useState<string | null>(null)
 
@@ -60,9 +61,25 @@ export function TestPaymentModal({
     }
 
     const handleOpenPayment = () => {
-        if (paymentData?.paymentUrl) {
-            window.open(paymentData.paymentUrl, '_blank', 'width=800,height=600')
-        }
+        if (!paymentData?.paymentUrl) return
+        // Пытаемся открыть во встраиваемом iframe
+        setShowInlineForm(true)
+        // Фолбэк: если блокируется встраивание, откроем новое окно
+        setTimeout(() => {
+            try {
+                const iframe = document.getElementById('tinkoff-test-iframe') as HTMLIFrameElement | null
+                if (!iframe) return
+                // Если в течение 2с не загрузилось — откроем в новом окне
+                const timer = setTimeout(() => {
+                    if (!iframe.contentWindow) {
+                        window.open(paymentData.paymentUrl, '_blank', 'width=900,height=700')
+                    }
+                }, 2000)
+                iframe.onload = () => clearTimeout(timer)
+            } catch (e) {
+                window.open(paymentData.paymentUrl, '_blank', 'width=900,height=700')
+            }
+        }, 50)
     }
 
     const copyToClipboard = async (text: string, field: string) => {
@@ -294,12 +311,32 @@ export function TestPaymentModal({
                                 className="flex-1 bg-yellow-600 hover:bg-yellow-700"
                             >
                                 <ExternalLinkIcon className="w-4 h-4 mr-2" />
-                                Перейти к оплате
+                                Открыть форму оплаты
                             </Button>
                         )}
                     </div>
                 </div>
             </div>
+            {/* Inline-форма оплаты */}
+            {showInlineForm && paymentData?.paymentUrl && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setShowInlineForm(false)} />
+                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl h-[80vh]">
+                        <div className="flex items-center justify-between p-3 border-b">
+                            <div className="font-semibold">Форма оплаты Тинькофф (тест)</div>
+                            <Button variant="ghost" size="sm" onClick={() => setShowInlineForm(false)}>
+                                <XIcon className="w-5 h-5" />
+                            </Button>
+                        </div>
+                        <iframe
+                            id="tinkoff-test-iframe"
+                            src={paymentData.paymentUrl}
+                            className="w-full h-full"
+                            sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

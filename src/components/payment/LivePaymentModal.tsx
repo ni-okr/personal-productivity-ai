@@ -24,6 +24,7 @@ export function LivePaymentModal({
 }: LivePaymentModalProps) {
     const [isProcessing, setIsProcessing] = useState(false)
     const [paymentData, setPaymentData] = useState<any>(null)
+    const [showInlineForm, setShowInlineForm] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     const handleCreatePayment = async () => {
@@ -59,9 +60,22 @@ export function LivePaymentModal({
     }
 
     const handleOpenPayment = () => {
-        if (paymentData?.paymentUrl) {
-            window.open(paymentData.paymentUrl, '_blank', 'width=800,height=600')
-        }
+        if (!paymentData?.paymentUrl) return
+        setShowInlineForm(true)
+        setTimeout(() => {
+            try {
+                const iframe = document.getElementById('tinkoff-live-iframe') as HTMLIFrameElement | null
+                if (!iframe) return
+                const timer = setTimeout(() => {
+                    if (!iframe.contentWindow) {
+                        window.open(paymentData.paymentUrl, '_blank', 'width=900,height=700')
+                    }
+                }, 2000)
+                iframe.onload = () => clearTimeout(timer)
+            } catch (e) {
+                window.open(paymentData.paymentUrl, '_blank', 'width=900,height=700')
+            }
+        }, 50)
     }
 
     const formatPrice = (price: number) => {
@@ -151,7 +165,7 @@ export function LivePaymentModal({
                         </h4>
                         <ol className="text-sm text-blue-700 space-y-1">
                             <li>1. Нажмите "Создать платеж"</li>
-                            <li>2. Перейдите по ссылке для оплаты</li>
+                            <li>2. Откройте форму оплаты (в окне или здесь)</li>
                             <li>3. Введите данные вашей банковской карты</li>
                             <li>4. Подтвердите платеж в вашем банке</li>
                             <li>5. Ожидайте подтверждения оплаты</li>
@@ -189,12 +203,31 @@ export function LivePaymentModal({
                                 className="flex-1 bg-green-600 hover:bg-green-700"
                             >
                                 <ExternalLinkIcon className="w-4 h-4 mr-2" />
-                                Перейти к оплате
+                                Открыть форму оплаты
                             </Button>
                         )}
                     </div>
                 </div>
             </div>
+            {showInlineForm && paymentData?.paymentUrl && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60" onClick={() => setShowInlineForm(false)} />
+                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl h-[80vh]">
+                        <div className="flex items-center justify-between p-3 border-b">
+                            <div className="font-semibold">Форма оплаты Тинькофф</div>
+                            <Button variant="ghost" size="sm" onClick={() => setShowInlineForm(false)}>
+                                <XIcon className="w-5 h-5" />
+                            </Button>
+                        </div>
+                        <iframe
+                            id="tinkoff-live-iframe"
+                            src={paymentData.paymentUrl}
+                            className="w-full h-full"
+                            sandbox="allow-scripts allow-forms allow-same-origin allow-popups"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

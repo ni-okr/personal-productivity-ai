@@ -48,7 +48,7 @@ export async function signUp({ email, password, name }: SignUpData): Promise<Aut
 }
 
 /** Вход пользователя */
-export async function signIn({ email, password }: SignInData): Promise<{ success: boolean; user?: User; error?: string }> {
+export async function signIn({ email, password }: SignInData): Promise<AuthResponse> {
   const emailValidation = validateEmail(email)
   if (!emailValidation.isValid) return { success: false, error: emailValidation.errors[0] }
   if (!password) return { success: false, error: 'Пароль обязателен' }

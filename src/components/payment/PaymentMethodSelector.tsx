@@ -35,7 +35,7 @@ export function PaymentMethodSelector({ onMethodSelect, selectedMethod, classNam
         {
             id: 'card' as const,
             name: 'Карта',
-            description: 'Оплата банковской картой',
+            description: 'Откроется форма Тинькофф для ввода карты',
             icon: CreditCard,
             color: 'bg-orange-500',
             popular: false

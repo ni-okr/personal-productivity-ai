@@ -47,7 +47,8 @@ const getTaskAPI = async (): Promise<TaskAPI> => {
     const mockModule = await import('../../tests/mocks/tasks-mock')
     return {
       getTasks: mockModule.mockGetTasks,
-      createTask: mockModule.mockCreateTask,
+      // Приводим типы: принимаем CreateTaskData и передаем в mock как совместимый тип
+      createTask: (userId: string, taskData: CreateTaskData) => mockModule.mockCreateTask(userId, taskData as any),
       updateTask: mockModule.mockUpdateTask,
       deleteTask: mockModule.mockDeleteTask,
       completeTask: mockModule.mockCompleteTask,

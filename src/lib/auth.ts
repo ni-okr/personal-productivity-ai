@@ -68,7 +68,13 @@ export async function signUp({ email, password, name }: SignUpData): Promise<Aut
     if (!nameValidation.isValid) {
         return { success: false, error: nameValidation.errors[0] }
     }
-    // Реальный вход через Supabase
+    // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
+    if (DISABLE_EMAIL) {
+        const { mockSignUpWithState } = await import('../../tests/mocks/auth-mock')
+        return mockSignUpWithState(email, password, name)
+    }
+
+    // Реальная регистрация через Supabase
     const { error: signupError, data } = await supabase.auth.signUp({ email, password })
     if (signupError) {
         // Локализуем сообщения об ошибках регистрации
@@ -101,19 +107,22 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
 
         // 🚨 MOCK РЕЖИМ: Отключение реальных запросов к Supabase
         if (DISABLE_EMAIL) {
-            // Removed mock branch for sign in
+            const { mockSignInWithState } = await import('../../tests/mocks/auth-mock')
+            return mockSignInWithState(email, password)
         }
 
         // 🚨 ЗАЩИТА: Проверка на реальные email в dev режиме
         if (DEV_MODE && isRealEmail(email)) {
             console.log('⚠️ Реальный email в dev режиме, переключаемся на mock')
-            // Removed mock branch for sign in
+            const { mockSignInWithState } = await import('../../tests/mocks/auth-mock')
+            return mockSignInWithState(email, password)
         }
 
         // Проверяем наличие переменных окружения Supabase
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             console.log('⚠️ Переменные окружения Supabase не настроены, используем mock')
-            // Removed mock branch for sign in
+            const { mockSignInWithState } = await import('../../tests/mocks/auth-mock')
+            return mockSignInWithState(email, password)
         }
 
         // Используем статический импорт Supabase клиента
@@ -147,27 +156,31 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
         // Получаем полный профиль пользователя
         const userProfileResponse = await getUserProfile(data.user.id)
 
-        return {
-            success: true,
-            user: userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : {
-                id: data.user.id,
-                email: data.user.email!,
-                name: data.user.user_metadata?.name || 'Пользователь',
-                avatar: data.user.user_metadata?.avatar_url,
-                timezone: 'Europe/Moscow',
-                subscription: 'free',
-                subscriptionStatus: 'active',
-                preferences: {
-                    workingHours: { start: '09:00', end: '18:00' },
-                    focusTime: 25,
-                    breakTime: 5,
-                    notifications: { email: true, push: true, desktop: true },
-                    aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-                },
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
+        const fallbackUser = {
+            id: data.user.id,
+            email: data.user.email!,
+            name: data.user.user_metadata?.name || 'Пользователь',
+            avatar: data.user.user_metadata?.avatar_url,
+            timezone: 'Europe/Moscow',
+            subscription: 'free' as const,
+            subscriptionStatus: 'active' as const,
+            preferences: {
+                workingHours: { start: '09:00', end: '18:00' },
+                focusTime: 25,
+                breakTime: 5,
+                notifications: { email: true, push: true, desktop: true },
+                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+            },
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
+
+        // Если профиль найден — используем его, но email предпочитаем из auth
+        const mergedUser = userProfileResponse.success && userProfileResponse.user
+            ? { ...userProfileResponse.user, email: data.user.email || userProfileResponse.user.email }
+            : fallbackUser
+
+        return { success: true, user: mergedUser }
     } catch (error) {
         console.error('Ошибка входа:', error)
         return {
@@ -410,7 +423,11 @@ export async function getCurrentUser(): Promise<User | null> {
         }
 
         const userProfileResponse = await getUserProfile(user.id)
-        return userProfileResponse.success && userProfileResponse.user ? userProfileResponse.user : null
+        if (userProfileResponse.success && userProfileResponse.user) {
+            // Предпочитаем email из auth, если он есть (устраняет расхождения в тестах)
+            return { ...userProfileResponse.user, email: user.email || userProfileResponse.user.email }
+        }
+        return null
     } catch (error) {
         console.error('Ошибка получения текущего пользователя:', error)
         return null

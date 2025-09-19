@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
         const amountInRubles = amount > 1000 ? amount / 100 : amount
         
         const requestData = {
-            TerminalKey: process.env.TINKOFF_TERMINAL_KEY || 'TestTerminalKey',
+            TerminalKey: process.env.TINKOFF_TERMINAL_KEY || process.env.TINKOFF_TERMINAL_KEY_LIVE || process.env.TINKOFF_TERMINAL_KEY_TEST || 'TestTerminalKey',
             Amount: amountInRubles * 100, // Конвертируем в копейки
             OrderId: orderId,
             Description: description,
@@ -18,9 +18,9 @@ export async function POST(request: NextRequest) {
             PayType: 'T',
             Language: 'ru',
             Email: 'test@taskai.space',
-            NotificationURL: 'https://taskai.space/api/tinkoff/webhook',
-            SuccessURL: 'https://taskai.space/planner?payment=success',
-            FailURL: 'https://taskai.space/planner?payment=failed',
+            NotificationURL: 'https://www.taskai.space/api/tinkoff/webhook',
+            SuccessURL: 'https://www.taskai.space/planner?payment=success',
+            FailURL: 'https://www.taskai.space/planner?payment=failed',
             Receipt: {
                 Email: 'test@taskai.space',
                 EmailCompany: 'support@taskai.space',

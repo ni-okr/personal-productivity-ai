@@ -345,7 +345,7 @@ export async function completeTask(taskId: string, actualMinutes?: number): Prom
   try {
     // Тестовая ветка: завершаем in-memory
     if (isTestEnv) {
-      for (const list of memoryTasksByUser.values()) {
+      for (const list of Array.from(memoryTasksByUser.values())) {
         const idx = list.findIndex(t => t.id === taskId)
         if (idx !== -1) {
           const updated: Task = {
