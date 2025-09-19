@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, subscription: data })
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Ошибка при подписке:', error)
 
         // Более детальная информация об ошибке
