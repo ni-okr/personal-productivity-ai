@@ -138,7 +138,8 @@ class TinkoffAPI {
         const candidates: string[] = []
         candidates.push(this.baseURL)
         if (this.isTestMode) {
-            const alt = process.env.TINKOFF_TEST_ALT_BASE_URL || 'https://securepay.tinkoff.ru/v2/'
+            // В тестовом режиме НЕЛЬЗЯ ходить на боевой хост: оставляем fallback в пределах test‑контуров
+            const alt = process.env.TINKOFF_TEST_ALT_BASE_URL || process.env.TINKOFF_TEST_BASE_URL || 'https://rest-api-test.tinkoff.ru/v2/'
             if (!candidates.includes(alt)) candidates.push(alt)
         } else {
             const alt = process.env.TINKOFF_LIVE_ALT_BASE_URL
