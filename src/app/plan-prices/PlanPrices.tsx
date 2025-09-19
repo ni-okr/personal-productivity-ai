@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/Button'
+import { CheckoutButton } from '@/components/payment/CheckoutButton'
 import { useRouter } from 'next/navigation'
 
 export default function PlanPrices() {
@@ -17,22 +18,8 @@ export default function PlanPrices() {
             <div>Приоритетная поддержка</div>
           </div>
           <div className="space-y-3">
-            <Button onClick={async () => {
-              await fetch('/api/tinkoff/test-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: 99900, description: 'Подписка Premium', planId: 'premium' }) })
-                .then(r => r.json()).then((res) => {
-                  if (res?.data?.paymentUrl) {
-                    window.open(res.data.paymentUrl, '_blank', 'width=900,height=700')
-                  }
-                })
-            }} className="w-full" variant="secondary">Тестовая оплата</Button>
-            <Button onClick={async () => {
-              await fetch('/api/tinkoff/live-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: 99900, description: 'Подписка Premium', planId: 'premium' }) })
-                .then(r => r.json()).then((res) => {
-                  if (res?.data?.paymentUrl) {
-                    window.open(res.data.paymentUrl, '_blank', 'width=900,height=700')
-                  }
-                })
-            }} className="w-full">Живая оплата</Button>
+            <CheckoutButton planId="premium" method="card" label="Оплатить картой" />
+            <CheckoutButton planId="premium" method="bank_transfer" label="Банковский перевод" />
           </div>
         </div>
       </div>
