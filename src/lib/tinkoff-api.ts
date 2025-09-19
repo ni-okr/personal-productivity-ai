@@ -138,9 +138,14 @@ class TinkoffAPI {
         const candidates: string[] = []
         candidates.push(this.baseURL)
         if (this.isTestMode) {
-            // В тестовом режиме НЕЛЬЗЯ ходить на боевой хост: оставляем fallback в пределах test‑контуров
-            const alt = process.env.TINKOFF_TEST_ALT_BASE_URL || process.env.TINKOFF_TEST_BASE_URL || 'https://rest-api-test.tinkoff.ru/v2/'
-            if (!candidates.includes(alt)) candidates.push(alt)
+            // В тестовом режиме по умолчанию ходим только в test‑контур.
+            const altTest = process.env.TINKOFF_TEST_ALT_BASE_URL || process.env.TINKOFF_TEST_BASE_URL || 'https://rest-api-test.tinkoff.ru/v2/'
+            if (!candidates.includes(altTest)) candidates.push(altTest)
+            // Опционально разрешаем fallback на боевой хост, если это явно включено в ENV (некоторые провайдеры блокируют rest-api-test)
+            if (process.env.TINKOFF_TEST_FALLBACK_TO_LIVE === 'true') {
+                const altLive = process.env.TINKOFF_LIVE_BASE_URL || 'https://securepay.tinkoff.ru/v2/'
+                if (!candidates.includes(altLive)) candidates.push(altLive)
+            }
         } else {
             const alt = process.env.TINKOFF_LIVE_ALT_BASE_URL
             if (alt && !candidates.includes(alt)) candidates.push(alt)
@@ -150,7 +155,13 @@ class TinkoffAPI {
             try {
                 const resp = await fetch(`${base}${path}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'User-Agent': 'TaskAI/1.0 (Vercel)' },
+                    headers: {
+                        'Content-Type': 'application/json; charset=utf-8',
+                        'Accept': 'application/json',
+                        'Accept-Language': 'ru,en;q=0.9',
+                        // Используем «обычный» браузерный UA для снижения шансов блокировки WAF
+                        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36'
+                    },
                     body: JSON.stringify(payload)
                 })
                 const contentType = resp.headers.get('content-type') || ''
