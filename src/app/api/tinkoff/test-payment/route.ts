@@ -30,8 +30,10 @@ export async function POST(request: NextRequest) {
             hasSecretKey: !!process.env.TINKOFF_SECRET_KEY
         })
 
-        // Проверяем наличие ключей Тинькофф
-        const hasTinkoffKeys = process.env.TINKOFF_TERMINAL_KEY && process.env.TINKOFF_SECRET_KEY
+        // Проверяем наличие ключей Тинькофф (приоритет тестовых)
+        const term = process.env.TINKOFF_TERMINAL_KEY_TEST || process.env.TINKOFF_TERMINAL_KEY
+        const pass = process.env.TINKOFF_SECRET_KEY_TEST || process.env.TINKOFF_SECRET_KEY
+        const hasTinkoffKeys = !!(term && pass)
 
         if (!hasTinkoffKeys) {
             console.error('❌ Ключи Тинькофф не настроены для тестовой оплаты')
@@ -46,9 +48,9 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Используем тестовые ключи (Vercel: *_TEST или *_LIVE)
-        const terminalKey = process.env.TINKOFF_TERMINAL_KEY_TEST || process.env.TINKOFF_TERMINAL_KEY || ''
-        const secretKey = process.env.TINKOFF_SECRET_KEY_TEST || process.env.TINKOFF_SECRET_KEY || ''
+        // Используем тестовые ключи (Vercel: *_TEST → приоритет)
+        const terminalKey = term as string
+        const secretKey = pass as string
 
         // Всегда пытаемся использовать реальный API Тинькофф
         console.log('💳 Используем API Тинькофф с ключами:', {
