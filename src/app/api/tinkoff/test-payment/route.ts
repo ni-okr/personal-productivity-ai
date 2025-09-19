@@ -1,3 +1,6 @@
+export const runtime = 'nodejs'
+export const preferredRegion = 'fra1'
+export const dynamic = 'force-dynamic'
 // 🧪 API endpoint для тестирования платежей Тинькофф
 
 import { createTestTinkoffPayment, TEST_CARD_DATA } from '@/lib/tinkoff-api'

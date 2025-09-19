@@ -113,9 +113,10 @@ class TinkoffAPI {
 
         // Выбор окружения по флагам: явный тестовый режим или переменная окружения
         const shouldUseTestEnv = isTestMode || process.env.TINKOFF_ENV === 'test'
-        this.baseURL = shouldUseTestEnv
-            ? 'https://rest-api-test.tinkoff.ru/v2/'
-            : 'https://securepay.tinkoff.ru/v2/'
+        // Разрешаем переопределять базовые URL через переменные окружения (на случай сетевых блокировок)
+        const TEST_BASE = process.env.TINKOFF_TEST_BASE_URL || 'https://rest-api-test.tinkoff.ru/v2/'
+        const LIVE_BASE = process.env.TINKOFF_LIVE_BASE_URL || 'https://securepay.tinkoff.ru/v2/'
+        this.baseURL = shouldUseTestEnv ? TEST_BASE : LIVE_BASE
 
         if (!this.terminalKey || !this.secretKey) {
             if (process.env.NODE_ENV !== 'production') {
@@ -198,6 +199,7 @@ class TinkoffAPI {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'User-Agent': 'TaskAI/1.0 (Vercel)'
                 },
                 body: JSON.stringify(payload)
             })
@@ -253,6 +255,7 @@ class TinkoffAPI {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'User-Agent': 'TaskAI/1.0 (Vercel)'
                 },
                 body: JSON.stringify(payload)
             })
@@ -309,6 +312,7 @@ class TinkoffAPI {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'User-Agent': 'TaskAI/1.0 (Vercel)'
                 },
                 body: JSON.stringify(payload)
             })

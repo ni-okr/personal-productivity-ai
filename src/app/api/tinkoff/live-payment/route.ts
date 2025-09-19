@@ -1,3 +1,6 @@
+export const runtime = 'nodejs'
+export const preferredRegion = 'fra1'
+export const dynamic = 'force-dynamic'
 // 💳 API endpoint для живой оплаты через Тинькофф (продакшн)
 
 import { createLiveTinkoffPayment } from '@/lib/tinkoff-api'
