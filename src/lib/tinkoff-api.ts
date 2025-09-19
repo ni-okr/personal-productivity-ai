@@ -80,8 +80,19 @@ export interface TinkoffGetStateResponse {
     CardHolder?: string
     Recurrent?: boolean
     RedirectDueDate?: string
-    Receipt?: any
-    Data?: any
+    Receipt?: {
+        Email?: string
+        EmailCompany: string
+        Taxation: 'osn' | 'usn_income' | 'usn_income_outcome' | 'envd' | 'esn' | 'patent'
+        Items: Array<{
+            Name: string
+            Price: number
+            Quantity: number
+            Amount: number
+            Tax: 'none' | 'vat0' | 'vat10' | 'vat18' | 'vat20'
+        }>
+    }
+    Data?: Record<string, unknown>
 }
 
 export interface TinkoffCancelRequest {
