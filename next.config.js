@@ -1,57 +1,52 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // appDir is now stable in Next.js 14, no need for experimental flag
-
-  // PWA Configuration
+  // PWA/Headers
   async headers() {
     return [
       {
         source: '/manifest.json',
         headers: [
+          { key: 'Content-Type', value: 'application/manifest+json' },
+        ],
+      },
+      {
+        // Базовый CSP для XSS защиты и Lighthouse
+        source: '/(.*)',
+        headers: [
           {
-            key: 'Content-Type',
-            value: 'application/manifest+json',
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self' https://www.taskai.space https://personal-productivity-ai.vercel.app",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: https://avatars.githubusercontent.com https://images.unsplash.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https://securepay.tinkoff.ru https://rest-api-test.tinkoff.ru https://zpgkzvflmgxrlgkecscg.supabase.co",
+              "frame-src 'self' https://securepay.tinkoff.ru",
+              "base-uri 'self'",
+              "form-action 'self' https://securepay.tinkoff.ru",
+            ].join('; '),
           },
         ],
       },
     ]
   },
 
-  // Environment variables
   env: {
     NEXT_PUBLIC_APP_NAME: 'Personal Productivity AI',
     NEXT_PUBLIC_APP_VERSION: '0.1.0',
   },
 
-  // Image optimization
   images: {
     domains: ['images.unsplash.com', 'avatars.githubusercontent.com'],
   },
 
-  // Webpack configuration
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-      }
+      config.resolve.fallback = { ...config.resolve.fallback, fs: false }
     }
     return config
   },
 }
 
-// Load environment variables from OS Pass
-const { spawnSync } = require('child_process');
-const { parse } = require('dotenv');
-function loadPassEnv() {
-  const result = spawnSync('pass', ['show', 'personal-productivity-ai/env']);
-  if (result.status === 0 && result.stdout) {
-    const parsed = parse(result.stdout.toString());
-    Object.assign(process.env, parsed);
-  }
-}
-loadPassEnv();
-
-module.exports = {
-  experimental: {},
-}
+module.exports = nextConfig

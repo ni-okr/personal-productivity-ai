@@ -20,7 +20,7 @@ export async function addSubscriber(email: string): Promise<{ success: boolean; 
 }
 
 export async function getActiveSubscribers(): Promise<Array<{ email: string; is_active: boolean; created_at: string }>> {
-  return Array.from(subscribers.values())
+  return Array.from(subscribers.values()).filter(s => s.is_active)
 }
 
 export async function unsubscribe(email: string): Promise<{ success: boolean; message: string }> {

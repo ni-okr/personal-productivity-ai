@@ -1,13 +1,13 @@
-'use client'
+"use client"
 export const dynamic = 'force-dynamic';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/Button'
 import { confirmEmail } from '@/lib/auth'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailInner() {
     const [isLoading, setIsLoading] = useState(true)
     const [isSuccess, setIsSuccess] = useState(false)
     const [error, setError] = useState('')
@@ -137,5 +137,22 @@ export default function ConfirmEmailPage() {
                 </div>
             </div>
         </ErrorBoundary>
+    )
+}
+
+export default function ConfirmEmailPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <div className="max-w-md w-full space-y-8 p-8">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                        <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">Загрузка...</h2>
+                    </div>
+                </div>
+            </div>
+        }>
+            <ConfirmEmailInner />
+        </Suspense>
     )
 }

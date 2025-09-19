@@ -312,6 +312,17 @@ export async function updateUserProfile(
     updates: Partial<Pick<AuthUser, 'name' | 'subscription'>>
 ): Promise<AuthResponse> {
     try {
+        // MOCK режим: обновляем профиль без обращения к БД
+        if (DISABLE_EMAIL) {
+            const { mockGetUserProfile } = await import('../../tests/mocks/auth-mock')
+            const current = await mockGetUserProfile(userId)
+            if (!current.success || !current.user) {
+                return { success: false, error: 'Профиль не найден' }
+            }
+            const merged = { ...current.user, ...updates }
+            return { success: true, message: 'Профиль успешно обновлен', user: merged }
+        }
+
         // Ensure Supabase environment variables are set
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
             throw new Error('Supabase environment variables are not configured')
