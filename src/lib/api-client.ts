@@ -57,7 +57,7 @@ export async function apiGet(url: string): Promise<Response> {
 /**
  * Выполнение POST запроса с авторизацией
  */
-export async function apiPost(url: string, data?: any): Promise<Response> {
+export async function apiPost(url: string, data?: Record<string, unknown>): Promise<Response> {
     return apiRequest(url, {
         method: 'POST',
         body: data ? JSON.stringify(data) : undefined,
@@ -67,7 +67,7 @@ export async function apiPost(url: string, data?: any): Promise<Response> {
 /**
  * Выполнение PUT запроса с авторизацией
  */
-export async function apiPut(url: string, data?: any): Promise<Response> {
+export async function apiPut(url: string, data?: Record<string, unknown>): Promise<Response> {
     return apiRequest(url, {
         method: 'PUT',
         body: data ? JSON.stringify(data) : undefined,

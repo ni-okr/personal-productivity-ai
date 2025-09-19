@@ -1,11 +1,13 @@
 // 🔌 Клиент Supabase
 import { createClient } from '@supabase/supabase-js'
 
-// Создаём клиент с использованием переменных окружения
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-)
+// Безопасная инициализация: если env не заданы (CI/Preview) — используем in-memory фолбэк
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : (null as any)
 
 export function getSupabaseClient() {
     return supabase
@@ -18,11 +20,12 @@ export interface SubscriberRecord {
     is_active: boolean
 }
 
-// В тестовой среде и в режиме mock используем in-memory fallback
+// В тестовой среде/без env/в mock используем in-memory fallback
 const inTest = process.env.NODE_ENV === 'test'
 const disableEmail = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+const noEnv = !SUPABASE_URL || !SUPABASE_ANON_KEY
 
-const memorySubscribers: Map<string, SubscriberRecord> | null = (inTest || disableEmail) ? new Map() : null
+const memorySubscribers: Map<string, SubscriberRecord> | null = (inTest || disableEmail || noEnv) ? new Map() : null
 
 export async function addSubscriber(email: string): Promise<{ success: boolean; message: string; data?: SubscriberRecord }> {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

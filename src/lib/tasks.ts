@@ -1,4 +1,4 @@
-import { Task, TaskPriority, TaskStatus } from '@/types'
+import { Task, TaskPriority, TaskStatus, TaskSource } from '@/types'
 import { validateTask } from '@/utils/validation'
 import { supabase } from './supabase'
 // always use Supabase, mocks moved to tests
@@ -79,21 +79,21 @@ export async function getTasks(userId: string): Promise<TasksResponse> {
     }
 
     // Преобразуем данные из Supabase в наш формат
-    const tasks: Task[] = ((data as any) || []).map((task: any) => ({
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      priority: task.priority,
-      status: task.status,
-      dueDate: task.due_date ? new Date(task.due_date) : undefined,
-      completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-      estimatedMinutes: task.estimated_minutes,
-      actualMinutes: task.actual_minutes,
-      source: task.source,
-      tags: task.tags || [],
-      userId: task.user_id,
-      createdAt: new Date(task.created_at),
-      updatedAt: new Date(task.updated_at)
+    const tasks: Task[] = ((data as Record<string, unknown>[]) || []).map((task: Record<string, unknown>) => ({
+      id: task.id as string,
+      title: task.title as string,
+      description: task.description as string,
+      priority: task.priority as TaskPriority,
+      status: task.status as TaskStatus,
+      dueDate: task.due_date ? new Date(task.due_date as string) : undefined,
+      completedAt: task.completed_at ? new Date(task.completed_at as string) : undefined,
+      estimatedMinutes: task.estimated_minutes as number,
+      actualMinutes: task.actual_minutes as number,
+      source: task.source as TaskSource,
+      tags: (task.tags as string[]) || [],
+      userId: task.user_id as string,
+      createdAt: new Date(task.created_at as string),
+      updatedAt: new Date(task.updated_at as string)
     }))
 
     return {
@@ -220,7 +220,7 @@ export async function createTask(userId: string, taskData: CreateTaskData): Prom
 
 export async function updateTask(taskId: string, updates: UpdateTaskData): Promise<TasksResponse>
 export async function updateTask(userId: string, taskId: string, updates: UpdateTaskData): Promise<TasksResponse>
-export async function updateTask(arg1: any, arg2: any, arg3?: any): Promise<TasksResponse> {
+export async function updateTask(arg1: string, arg2: string | UpdateTaskData, arg3?: UpdateTaskData): Promise<TasksResponse> {
   try {
     const hasUserId = typeof arg3 === 'object'
     const userId: string | undefined = hasUserId ? (arg1 as string) : undefined
@@ -282,7 +282,7 @@ export async function updateTask(arg1: any, arg2: any, arg3?: any): Promise<Task
     if (error) {
       return { success: false, error: error.message }
     }
-    return { success: true, task: (data as any)[0] }
+    return { success: true, task: (data as unknown[])[0] as Task }
   } catch (err) {
     console.error('Error updating task:', err)
     return { success: false, error: 'Error updating task' }
@@ -291,7 +291,7 @@ export async function updateTask(arg1: any, arg2: any, arg3?: any): Promise<Task
 
 export async function deleteTask(taskId: string): Promise<TasksResponse>
 export async function deleteTask(userId: string, taskId: string): Promise<TasksResponse>
-export async function deleteTask(arg1: any, arg2?: any): Promise<TasksResponse> {
+export async function deleteTask(arg1: string, arg2?: string): Promise<TasksResponse> {
   try {
     const hasUserId = typeof arg2 === 'string'
     const userId: string | undefined = hasUserId ? (arg1 as string) : undefined
@@ -476,20 +476,20 @@ export async function getTasksStats(userId: string): Promise<{
     }
 
     const now = new Date()
-    const total = (tasks as any)?.length || 0
-    const completed = (tasks as any)?.filter((task: any) => task.status === 'completed').length || 0
-    const pending = (tasks as any)?.filter((task: any) => task.status === 'todo' || task.status === 'in_progress').length || 0
-    const overdue = (tasks as any)?.filter((task: any) =>
+    const total = (tasks as Task[])?.length || 0
+    const completed = (tasks as Task[])?.filter((task: Task) => task.status === 'completed').length || 0
+    const pending = (tasks as Task[])?.filter((task: Task) => task.status === 'todo' || task.status === 'in_progress').length || 0
+    const overdue = (tasks as Task[])?.filter((task: Task) =>
       (task.status === 'todo' || task.status === 'in_progress') &&
-      task.due_date &&
-      new Date(task.due_date) < now
+      task.dueDate &&
+      task.dueDate < now
     ).length || 0
 
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
 
-    const completedTasks = (tasks as any)?.filter((task: any) => task.status === 'completed' && task.actual_minutes) || []
+    const completedTasks = (tasks as Task[])?.filter((task: Task) => task.status === 'completed' && task.actualMinutes) || []
     const averageCompletionTime = completedTasks.length > 0
-      ? Math.round(completedTasks.reduce((sum: number, task: any) => sum + (task.actual_minutes || 0), 0) / completedTasks.length)
+      ? Math.round(completedTasks.reduce((sum: number, task: Task) => sum + (task.actualMinutes || 0), 0) / completedTasks.length)
       : 0
 
     return {
@@ -545,21 +545,21 @@ export async function syncTasks(userId: string): Promise<TasksResponse> {
     }
 
     // Преобразуем данные из Supabase в наш формат
-    const tasks: Task[] = ((data as any) || []).map((task: any) => ({
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      priority: task.priority,
-      status: task.status,
-      dueDate: task.due_date ? new Date(task.due_date) : undefined,
-      completedAt: task.completed_at ? new Date(task.completed_at) : undefined,
-      estimatedMinutes: task.estimated_minutes,
-      actualMinutes: task.actual_minutes,
-      source: task.source,
-      tags: task.tags || [],
-      userId: task.user_id,
-      createdAt: new Date(task.created_at),
-      updatedAt: new Date(task.updated_at)
+    const tasks: Task[] = ((data as Record<string, unknown>[]) || []).map((task: Record<string, unknown>) => ({
+      id: task.id as string,
+      title: task.title as string,
+      description: task.description as string,
+      priority: task.priority as TaskPriority,
+      status: task.status as TaskStatus,
+      dueDate: task.due_date ? new Date(task.due_date as string) : undefined,
+      completedAt: task.completed_at ? new Date(task.completed_at as string) : undefined,
+      estimatedMinutes: task.estimated_minutes as number,
+      actualMinutes: task.actual_minutes as number,
+      source: task.source as TaskSource,
+      tags: (task.tags as string[]) || [],
+      userId: task.user_id as string,
+      createdAt: new Date(task.created_at as string),
+      updatedAt: new Date(task.updated_at as string)
     }))
 
     return {
