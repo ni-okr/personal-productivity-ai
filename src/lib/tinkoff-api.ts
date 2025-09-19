@@ -136,6 +136,12 @@ class TinkoffAPI {
      */
     private async postJSONWithFallback<T = any>(path: string, payload: any): Promise<{ ok: boolean; json?: T; status: number; contentType?: string; text?: string }> {
         const candidates: string[] = []
+        // Если задан прокси (российский VPS) — используем его приоритетно
+        const proxyBase = process.env.TINKOFF_PROXY_BASE_URL
+        if (proxyBase) {
+            const normalized = proxyBase.endsWith('/') ? proxyBase : `${proxyBase}/`
+            candidates.push(normalized)
+        }
         candidates.push(this.baseURL)
         if (this.isTestMode) {
             // В тестовом режиме по умолчанию ходим только в test‑контур.

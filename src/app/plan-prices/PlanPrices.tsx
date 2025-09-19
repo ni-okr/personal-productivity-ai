@@ -20,6 +20,41 @@ export default function PlanPrices() {
           <div className="space-y-3">
             <CheckoutButton planId="premium" method="card" label="Оплатить картой" />
             <CheckoutButton planId="premium" method="bank_transfer" label="Банковский перевод" />
+            <button
+              onClick={async () => {
+                try {
+                  const r = await fetch('/api/tinkoff/widget-prepare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: 99900, description: 'Подписка Premium', planId: 'premium' })
+                  })
+                  const j = await r.json()
+                  if (!j.success) {
+                    alert(`Ошибка подготовки виджета: ${j.error || 'unknown'}`)
+                    return
+                  }
+                  const { actionUrl, fields } = j.data
+                  const form = document.createElement('form')
+                  form.method = 'POST'
+                  form.action = actionUrl
+                  form.acceptCharset = 'UTF-8'
+                  Object.entries(fields).forEach(([k, v]) => {
+                    const input = document.createElement('input')
+                    input.type = 'hidden'
+                    input.name = k
+                    input.value = String(v)
+                    form.appendChild(input)
+                  })
+                  document.body.appendChild(form)
+                  form.submit()
+                } catch (e: any) {
+                  alert(`Ошибка сети: ${e?.message || e}`)
+                }
+              }}
+              className="px-4 py-2 rounded bg-indigo-600 text-white w-full"
+            >
+              Оплата картой (виджет)
+            </button>
           </div>
         </div>
       </div>

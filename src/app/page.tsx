@@ -631,6 +631,42 @@ export default function Home() {
                   >
                     Живая оплата (Тинькофф)
                   </Button>
+                  <Button
+                    variant="primary"
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        const r = await fetch('/api/tinkoff/widget-prepare', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ amount: 99900, description: 'Подписка Premium', planId: 'premium' })
+                        })
+                        const j = await r.json()
+                        if (!j.success) {
+                          alert(`Ошибка подготовки виджета: ${j.error || 'unknown'}`)
+                          return
+                        }
+                        const { actionUrl, fields } = j.data
+                        const form = document.createElement('form')
+                        form.method = 'POST'
+                        form.action = actionUrl
+                        form.acceptCharset = 'UTF-8'
+                        Object.entries(fields).forEach(([k, v]) => {
+                          const input = document.createElement('input')
+                          input.type = 'hidden'
+                          input.name = k as string
+                          input.value = String(v)
+                          form.appendChild(input)
+                        })
+                        document.body.appendChild(form)
+                        form.submit()
+                      } catch (e: any) {
+                        alert(`Ошибка сети: ${e?.message || e}`)
+                      }
+                    }}
+                  >
+                    Оплата картой (виджет)
+                  </Button>
                 </div>
               </div>
 
