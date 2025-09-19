@@ -132,6 +132,42 @@ class TinkoffAPI {
     }
 
     /**
+     * Вспомогательный POST с fallback на альтернативный хост
+     */
+    private async postJSONWithFallback<T = any>(path: string, payload: any): Promise<{ ok: boolean; json?: T; status: number; contentType?: string; text?: string }> {
+        const candidates: string[] = []
+        candidates.push(this.baseURL)
+        if (this.isTestMode) {
+            const alt = process.env.TINKOFF_TEST_ALT_BASE_URL || 'https://securepay.tinkoff.ru/v2/'
+            if (!candidates.includes(alt)) candidates.push(alt)
+        } else {
+            const alt = process.env.TINKOFF_LIVE_ALT_BASE_URL
+            if (alt && !candidates.includes(alt)) candidates.push(alt)
+        }
+
+        for (const base of candidates) {
+            try {
+                const resp = await fetch(`${base}${path}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'User-Agent': 'TaskAI/1.0 (Vercel)' },
+                    body: JSON.stringify(payload)
+                })
+                const contentType = resp.headers.get('content-type') || ''
+                if (contentType.includes('application/json')) {
+                    const json = await resp.json()
+                    return { ok: true, json, status: resp.status, contentType }
+                }
+                const text = await resp.text()
+                console.warn('⚠️ Нехарактерный ответ Т‑Кассы', { base, path, status: resp.status, contentType, text: text.substring(0, 200) + '...' })
+            } catch (e: any) {
+                console.warn('⚠️ Ошибка сети при обращении к Т‑Кассе', { base, path, error: e?.message })
+            }
+        }
+
+        return { ok: false, status: 0 }
+    }
+
+    /**
      * Установить ключи API
      */
     setKeys(terminalKey: string, secretKey: string) {
@@ -195,33 +231,12 @@ class TinkoffAPI {
                 Description: request.Description
             })
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'TaskAI/1.0 (Vercel)'
-                },
-                body: JSON.stringify(payload)
-            })
-
-            // Проверяем тип ответа
-            const contentType = response.headers.get('content-type')
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text()
-                console.error('Тинькофф API вернул не JSON:', text)
-                return {
-                    Success: false,
-                    ErrorCode: 'INVALID_RESPONSE',
-                    Message: `Ожидался JSON, получен: ${contentType}`,
-                    Details: text.substring(0, 200) + '...'
-                }
+            const resp = await this.postJSONWithFallback<TinkoffInitResponse>('Init', payload)
+            if (!resp.ok || !resp.json) {
+                return { Success: false, ErrorCode: 'INVALID_RESPONSE', Message: 'Ожидался JSON, получен: text/html' }
             }
-
-            const data = await response.json()
-
-            console.log('💳 Ответ Тинькофф Init:', data)
-
-            return data
+            console.log('💳 Ответ Тинькофф Init:', resp.json)
+            return resp.json
         } catch (error: any) {
             console.error('Ошибка инициализации платежа:', error)
             return {
@@ -251,33 +266,12 @@ class TinkoffAPI {
                 PaymentId: request.PaymentId
             })
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'TaskAI/1.0 (Vercel)'
-                },
-                body: JSON.stringify(payload)
-            })
-
-            // Проверяем тип ответа
-            const contentType = response.headers.get('content-type')
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text()
-                console.error('Тинькофф API вернул не JSON:', text)
-                return {
-                    Success: false,
-                    ErrorCode: 'INVALID_RESPONSE',
-                    Message: `Ожидался JSON, получен: ${contentType}`,
-                    Details: text.substring(0, 200) + '...'
-                }
+            const resp = await this.postJSONWithFallback<TinkoffGetStateResponse>('GetState', payload)
+            if (!resp.ok || !resp.json) {
+                return { Success: false, ErrorCode: 'INVALID_RESPONSE', Message: 'Ожидался JSON, получен: text/html' }
             }
-
-            const data = await response.json()
-
-            console.log('🔍 Ответ Тинькофф GetState:', data)
-
-            return data
+            console.log('🔍 Ответ Тинькофф GetState:', resp.json)
+            return resp.json
         } catch (error: any) {
             console.error('Ошибка получения статуса платежа:', error)
             return {
@@ -308,30 +302,12 @@ class TinkoffAPI {
                 Amount: request.Amount
             })
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'TaskAI/1.0 (Vercel)'
-                },
-                body: JSON.stringify(payload)
-            })
-
-            const contentType = response.headers.get('content-type')
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text()
-                console.error('Тинькофф API вернул не JSON (Cancel):', text)
-                return {
-                    Success: false,
-                    ErrorCode: 'INVALID_RESPONSE',
-                    Message: `Ожидался JSON, получен: ${contentType}`,
-                    Details: text.substring(0, 200) + '...'
-                }
+            const resp = await this.postJSONWithFallback<TinkoffCancelResponse>('Cancel', payload)
+            if (!resp.ok || !resp.json) {
+                return { Success: false, ErrorCode: 'INVALID_RESPONSE', Message: 'Ожидался JSON, получен: text/html' }
             }
-
-            const data = await response.json()
-            console.log('↩️ Ответ Тинькофф Cancel:', data)
-            return data
+            console.log('↩️ Ответ Тинькофф Cancel:', resp.json)
+            return resp.json
         } catch (error: any) {
             console.error('Ошибка отмены платежа:', error)
             return {
