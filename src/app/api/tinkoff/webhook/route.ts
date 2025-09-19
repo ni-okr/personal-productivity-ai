@@ -1,30 +1,30 @@
-// 🔗 Webhook endpoint для обработки уведомлений от Тинькофф
+// 🔗 Webhook эндпоинт для обработки уведомлений от Т‑Кассы (Т‑Банк)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { handleTinkoffWebhook, verifyTinkoffWebhookSignature } from '@/lib/tinkoff'
+import { handleTinkoffWebhook } from '@/lib/tinkoff'
 import { getTinkoffPaymentState, cancelTinkoffPayment } from '@/lib/tinkoff-api'
+import { updatePaymentStatusByPaymentId, setPaymentProviderInfo } from '@/lib/payments'
+import crypto from 'crypto'
+
+// Верификация Token согласно правилам Т‑Кассы
+function generateTokenForWebhook(payload: Record<string, any>): string {
+    const EXCLUDE_KEYS = new Set(['Token', 'Receipt', 'DATA'])
+    const pairs = Object.keys(payload)
+        .filter(k => !EXCLUDE_KEYS.has(k))
+        .filter(k => payload[k] !== undefined && payload[k] !== null)
+        .filter(k => typeof payload[k] !== 'object')
+        .map(k => ({ key: k, value: String(payload[k]) }))
+    pairs.push({ key: 'Password', value: (process.env.TINKOFF_ENV === 'test' ? (process.env.TINKOFF_SECRET_KEY_TEST || '') : (process.env.TINKOFF_SECRET_KEY || '')) })
+    pairs.sort((a, b) => a.key.localeCompare(b.key))
+    const tokenString = pairs.map(p => p.value).join('')
+    return crypto.createHash('sha256').update(tokenString, 'utf8').digest('hex')
+}
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.text()
-        const signature = request.headers.get('x-tinkoff-signature') || ''
 
-        console.log('🔗 Получен webhook от Тинькофф', {
-            body: body.substring(0, 200) + '...',
-            signature: signature.substring(0, 20) + '...',
-            timestamp: new Date().toISOString()
-        })
-
-        // Проверяем подпись (в реальной системе)
-        const isValidSignature = verifyTinkoffWebhookSignature(body, signature)
-        
-        if (!isValidSignature) {
-            console.warn('⚠️ Неверная подпись webhook от Тинькофф')
-            return NextResponse.json(
-                { success: false, error: 'Invalid signature' },
-                { status: 401 }
-            )
-        }
+        console.log('🔗 Получен webhook от Т‑Кассы', { snippet: body.substring(0, 200) + '...' })
 
         // Парсим JSON
         let payload
@@ -38,6 +38,13 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Проверяем Token
+        const expectedToken = generateTokenForWebhook(payload)
+        if (!payload.Token || payload.Token !== expectedToken) {
+            console.warn('⚠️ Неверный Token webhook')
+            return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
+        }
+
         console.log('📦 Обработка webhook payload:', {
             TerminalKey: payload.TerminalKey,
             OrderId: payload.OrderId,
@@ -47,6 +54,22 @@ export async function POST(request: NextRequest) {
 
         // Обрабатываем webhook
         const result = await handleTinkoffWebhook(payload)
+
+        // Идемпотентное обновление записей платежа (если знаем PaymentId)
+        if (payload.PaymentId) {
+            const statusMap: Record<string, 'authorized' | 'confirmed' | 'canceled' | 'rejected' | 'refunded' | 'failed' | 'pending'> = {
+                'AUTHORIZED': 'authorized',
+                'CONFIRMED': 'confirmed',
+                'CANCELED': 'canceled',
+                'REJECTED': 'rejected',
+                'REFUNDED': 'refunded',
+                'NEW': 'pending',
+                'FORM_SHOWED': 'pending'
+            }
+            const mapped = statusMap[payload.Status] || 'failed'
+            await updatePaymentStatusByPaymentId(String(payload.PaymentId), mapped)
+            await setPaymentProviderInfo({ orderId: payload.OrderId, metaAppend: payload })
+        }
 
         if (result.success) {
             console.log('✅ Webhook успешно обработан')

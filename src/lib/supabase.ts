@@ -27,6 +27,7 @@ export function createServerSupabaseClient(options?: {
   return createClient(url as string, key as string)
 }
 
+// Совместимая функция-обёртка: возвращает базовый клиент (браузерный)
 export function getSupabaseClient() {
     return supabase
 }
