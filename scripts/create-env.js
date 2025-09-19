@@ -26,8 +26,10 @@ const secretsList = {
 // Формируем объект секретов
 const secrets = {};
 for (const [key, passPath] of Object.entries(secretsList)) {
-  const value = getSecret(passPath) || process.env[key];
-  if (!value) {
+  const value = process.env[key] || getSecret(passPath);
+  if (!value && process.env.CI) {
+    // На CI не спамим предупреждениями
+  } else if (!value) {
     console.warn(`⚠️ Секрет ${key} не получен`);
   }
   secrets[key] = value || '';

@@ -15,6 +15,8 @@ export interface TinkoffInitRequest {
     NotificationURL?: string
     SuccessURL?: string
     FailURL?: string
+    Frame?: 'Y' | 'N'
+    DATA?: Record<string, any>
     Receipt?: {
         Email?: string
         EmailCompany: string
@@ -116,7 +118,9 @@ class TinkoffAPI {
             : 'https://securepay.tinkoff.ru/v2/'
 
         if (!this.terminalKey || !this.secretKey) {
-            console.warn('Tinkoff API keys not configured')
+            if (process.env.NODE_ENV !== 'production') {
+                console.warn('Tinkoff API keys not configured')
+            }
         }
 
         // Если создан тестовый экземпляр и заданы тестовые ключи — применим их
@@ -140,11 +144,14 @@ class TinkoffAPI {
     private generateToken(data: Record<string, any>): string {
         const crypto = require('crypto')
 
-        // 1. Создаем массив пар ключ-значение (только корневые ПРИМИТИВНЫЕ параметры — без объектов/массивов)
+        // 1) Формируем список параметров для токена согласно Т‑Банк (Тинькофф) Kassa
+        // Исключаем служебные и проблемные для подписи поля
+        const EXCLUDE_KEYS = new Set(['Token', 'Receipt', 'DATA'])
+
         const pairs = Object.keys(data)
-            .filter(key => key !== 'Token') // Исключаем сам токен
+            .filter(key => !EXCLUDE_KEYS.has(key))
             .filter(key => data[key] !== undefined && data[key] !== null)
-            .filter(key => typeof data[key] !== 'object') // Исключаем вложенные объекты/массивы (Receipt, DATA, т.п.)
+            .filter(key => typeof data[key] !== 'object')
             .map(key => ({ key, value: String(data[key]) }))
 
         // 2. Добавляем пароль
@@ -156,9 +163,9 @@ class TinkoffAPI {
         // 4. Конкатенируем только значения в одну строку
         const tokenString = pairs.map(pair => pair.value).join('')
 
+        // Логи без секретов
         console.log('🔐 Генерация токена Тинькофф:', {
-            keys: pairs.map(p => p.key),
-            tokenStringPreview: tokenString.substring(0, 32) + '...'
+            includedKeys: pairs.map(p => p.key)
         })
 
         // 5. Применяем SHA-256 с поддержкой UTF-8
@@ -358,6 +365,8 @@ class TinkoffAPI {
             NotificationURL: `${appUrl.replace(/\/$/, '')}/api/tinkoff/webhook`,
             SuccessURL: `${appUrl.replace(/\/$/, '')}/planner?payment=success`,
             FailURL: `${appUrl.replace(/\/$/, '')}/planner?payment=failed`,
+            Frame: 'Y',
+            DATA: { connection_type: 'custom-api' },
             Receipt: {
                 Email: 'payments@taskai.space',
                 EmailCompany: 'support@taskai.space',

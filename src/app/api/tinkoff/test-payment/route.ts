@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
                 description: description,
                 testCardData: TEST_CARD_DATA,
                 paymentType: 'test',
+                frame: 'Y',
                 instructions: {
                     step1: 'Перейдите по ссылке для оплаты',
                     step2: `Используйте тестовую карту: ${TEST_CARD_DATA.number}`,

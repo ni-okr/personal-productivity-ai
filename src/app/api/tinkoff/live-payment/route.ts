@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
                 amount: amount,
                 description: description,
                 paymentType: 'live',
+                frame: 'Y',
                 instructions: {
                     step1: 'Перейдите по ссылке для оплаты',
                     step2: 'Введите данные вашей банковской карты',

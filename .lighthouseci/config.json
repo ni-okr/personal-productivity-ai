@@ -1,0 +1,25 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://personal-productivity-ai.vercel.app",
+        "https://personal-productivity-ai.vercel.app/planner"
+      ],
+      "numberOfRuns": 3
+    },
+    "assert": {
+      "assertions": {
+        "color-contrast": ["warn", {"minScore": 0.6}],
+        "content-width": ["warn", {"minScore": 0.6}],
+        "csp-xss": ["warn", {"minScore": 0.6}],
+        "errors-in-console": ["warn", {"minScore": 0.6}],
+        "meta-viewport": ["warn", {"minScore": 0.6}],
+        "service-worker": ["warn", {"minScore": 0.6}],
+        "unused-javascript": ["warn", {"maxLength": 3}],
+        "largest-contentful-paint": ["warn", {"minScore": 0.6}],
+        "render-blocking-resources": ["warn", {"maxLength": 2}]
+      }
+    }
+  }
+}
+

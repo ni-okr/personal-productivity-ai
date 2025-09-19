@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
   themeColor: '#6366f1',
 }
 
@@ -42,6 +42,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#6366f1" />
         <meta name="msapplication-tap-highlight" content="no" />
+        <script dangerouslySetInnerHTML={{__html:`(function(){if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}})();`}} />
       </head>
       <body className={`${inter.className} bg-gray-50 text-gray-900`}>
         <div id="root">
