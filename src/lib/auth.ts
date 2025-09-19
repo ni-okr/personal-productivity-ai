@@ -46,7 +46,7 @@ export interface SignInData {
 
 export interface AuthResponse {
     success: boolean
-    user?: any
+    user?: User
     error?: string
     message?: string
 }
@@ -169,7 +169,7 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
                 focusTime: 25,
                 breakTime: 5,
                 notifications: { email: true, push: true, desktop: true },
-                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
+                aiCoaching: { enabled: true, frequency: 'medium' as const, style: 'gentle' as const }
             },
             createdAt: new Date(),
             updatedAt: new Date()

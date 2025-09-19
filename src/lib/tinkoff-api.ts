@@ -80,8 +80,19 @@ export interface TinkoffGetStateResponse {
     CardHolder?: string
     Recurrent?: boolean
     RedirectDueDate?: string
-    Receipt?: any
-    Data?: any
+    Receipt?: {
+        Email?: string
+        EmailCompany: string
+        Taxation: 'osn' | 'usn_income' | 'usn_income_outcome' | 'envd' | 'esn' | 'patent'
+        Items: Array<{
+            Name: string
+            Price: number
+            Quantity: number
+            Amount: number
+            Tax: 'none' | 'vat0' | 'vat10' | 'vat18' | 'vat20'
+        }>
+    }
+    Data?: Record<string, unknown>
 }
 
 export interface TinkoffCancelRequest {
@@ -113,9 +124,8 @@ class TinkoffAPI {
 
         // Выбор окружения по флагам: явный тестовый режим или переменная окружения
         const shouldUseTestEnv = isTestMode || process.env.TINKOFF_ENV === 'test'
-        this.baseURL = shouldUseTestEnv
-            ? 'https://rest-api-test.tinkoff.ru/v2/'
-            : 'https://securepay.tinkoff.ru/v2/'
+        // Используем единый endpoint; тест/боевой различаются по ключам
+        this.baseURL = 'https://securepay.tinkoff.ru/v2/'
 
         if (!this.terminalKey || !this.secretKey) {
             if (process.env.NODE_ENV !== 'production') {
@@ -196,7 +206,9 @@ class TinkoffAPI {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json',
+                    'User-Agent': 'TaskAI-Payments/1.0 (+https://www.taskai.space)'
                 },
                 body: JSON.stringify(payload)
             })
@@ -251,7 +263,9 @@ class TinkoffAPI {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json',
+                    'User-Agent': 'TaskAI-Payments/1.0 (+https://www.taskai.space)'
                 },
                 body: JSON.stringify(payload)
             })
@@ -307,7 +321,9 @@ class TinkoffAPI {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json',
+                    'User-Agent': 'TaskAI-Payments/1.0 (+https://www.taskai.space)'
                 },
                 body: JSON.stringify(payload)
             })

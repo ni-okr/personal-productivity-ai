@@ -26,7 +26,7 @@ export interface SignInData {
 
 export interface AuthResponse {
   success: boolean
-  user?: any
+  user?: User
   error?: string
   message?: string
 }
