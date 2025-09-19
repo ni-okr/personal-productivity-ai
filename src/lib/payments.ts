@@ -108,4 +108,23 @@ export async function updatePaymentStatusByPaymentId(arg1: string, status: Payme
   }
 }
 
+// Получить платеж по PaymentId
+export async function getPaymentByPaymentId(paymentId: string): Promise<{ success: true; payment: PaymentRecord } | { success: false; error: string }>
+export async function getPaymentByOrderId(orderId: string): Promise<{ success: true; payment: PaymentRecord } | { success: false; error: string }>
+export async function getPaymentByPaymentId(arg1: string): Promise<{ success: true; payment: PaymentRecord } | { success: false; error: string }> {
+  try {
+    const client = getServerClientPreferServiceRole()
+    const column = arg1.includes('-') ? 'order_id' : 'payment_id'
+    const { data, error } = await (client as any)
+      .from('payments')
+      .select('*')
+      .eq(column, arg1)
+      .single()
+    if (error) return { success: false, error: error.message }
+    return { success: true, payment: data as PaymentRecord }
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Не удалось получить платеж' }
+  }
+}
+
 

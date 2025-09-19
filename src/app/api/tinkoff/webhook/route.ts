@@ -3,7 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { handleTinkoffWebhook } from '@/lib/tinkoff'
 import { getTinkoffPaymentState, cancelTinkoffPayment } from '@/lib/tinkoff-api'
-import { updatePaymentStatusByPaymentId, setPaymentProviderInfo } from '@/lib/payments'
+import { updatePaymentStatusByPaymentId, setPaymentProviderInfo, getPaymentByPaymentId } from '@/lib/payments'
+import { updateSubscription } from '@/lib/subscriptions'
 import crypto from 'crypto'
 
 // Верификация Token согласно правилам Т‑Кассы
@@ -69,6 +70,23 @@ export async function POST(request: NextRequest) {
             const mapped = statusMap[payload.Status] || 'failed'
             await updatePaymentStatusByPaymentId(String(payload.PaymentId), mapped)
             await setPaymentProviderInfo({ orderId: payload.OrderId, metaAppend: payload })
+
+            // Если платёж подтверждён — активируем подписку
+            if (mapped === 'confirmed') {
+                // Получаем запись платежа, чтобы узнать пользователя и план
+                const payment = await getPaymentByPaymentId(String(payload.PaymentId))
+                if (payment.success) {
+                    const now = new Date()
+                    const end = new Date()
+                    end.setMonth(end.getMonth() + 1)
+                    await updateSubscription(payment.payment.user_id, {
+                        status: 'active',
+                        currentPeriodStart: now,
+                        currentPeriodEnd: end,
+                        cancelAtPeriodEnd: false
+                    } as any)
+                }
+            }
         }
 
         if (result.success) {

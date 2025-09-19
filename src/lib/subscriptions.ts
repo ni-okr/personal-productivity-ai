@@ -391,7 +391,7 @@ export async function updateSubscription(
         }
         */
 
-        // Временная заглушка
+        // Временная заглушка для совместимости, пока не включён реальный апдейт
         return {
             success: true,
             subscription: {
