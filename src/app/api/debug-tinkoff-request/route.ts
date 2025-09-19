@@ -1,5 +1,6 @@
 // 🔍 Debug endpoint для проверки Тинькофф запроса
 import { NextRequest, NextResponse } from 'next/server'
+import { createTestTinkoffPayment } from '@/lib/tinkoff-api'
 
 export async function POST(request: NextRequest) {
     try {
@@ -53,5 +54,29 @@ export async function POST(request: NextRequest) {
             { success: false, error: error.message },
             { status: 500 }
         )
+    }
+}
+
+// Удобный GET для быстрой проверки из браузера
+export async function GET() {
+    try {
+        const amountRub = 99
+        const orderId = `dbg_${Date.now()}`
+        const payment = await createTestTinkoffPayment(amountRub, 'Debug payment', orderId,
+            process.env.TINKOFF_TERMINAL_KEY_TEST || process.env.TINKOFF_TERMINAL_KEY || '',
+            process.env.TINKOFF_SECRET_KEY_TEST || process.env.TINKOFF_SECRET_KEY || ''
+        )
+
+        return NextResponse.json({
+            success: payment.Success,
+            errorCode: payment.ErrorCode,
+            message: payment.Message,
+            details: payment.Details,
+            paymentId: payment.PaymentId,
+            paymentUrl: payment.PaymentURL,
+            orderId: payment.OrderId
+        })
+    } catch (error: any) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 }

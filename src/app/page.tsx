@@ -583,6 +583,54 @@ export default function Home() {
                 >
                   Выбрать Premium
                 </Button>
+                {/* Кнопки оплаты через Тинькофф */}
+                <div className="mt-3 grid grid-cols-1 gap-2">
+                  <Button
+                    variant="secondary"
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        const r = await fetch('/api/tinkoff/test-payment', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ amount: 99900, description: 'Подписка Premium', planId: 'premium' })
+                        })
+                        const j = await r.json()
+                        if (j?.data?.paymentUrl) {
+                          window.open(j.data.paymentUrl, '_blank', 'width=900,height=700')
+                        } else if (j?.error) {
+                          alert(`Ошибка тестового платежа: ${j.error}`)
+                        }
+                      } catch (e: any) {
+                        alert(`Ошибка сети: ${e?.message || e}`)
+                      }
+                    }}
+                  >
+                    Тестовая оплата (Тинькофф)
+                  </Button>
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        const r = await fetch('/api/tinkoff/live-payment', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ amount: 99900, description: 'Подписка Premium', planId: 'premium' })
+                        })
+                        const j = await r.json()
+                        if (j?.data?.paymentUrl) {
+                          window.open(j.data.paymentUrl, '_blank', 'width=900,height=700')
+                        } else if (j?.error) {
+                          alert(`Ошибка платежа: ${j.error}`)
+                        }
+                      } catch (e: any) {
+                        alert(`Ошибка сети: ${e?.message || e}`)
+                      }
+                    }}
+                  >
+                    Живая оплата (Тинькофф)
+                  </Button>
+                </div>
               </div>
 
               {/* Pro Plan */}
