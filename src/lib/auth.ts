@@ -1,5 +1,5 @@
 // 🔐 Система авторизации с Supabase Auth
-import { User } from '@/types'
+import { User, UserPreferences } from '@/types'
 import { validateEmail, validateName } from '@/utils/validation'
 import { supabase } from '@/lib/supabase'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
@@ -22,6 +22,36 @@ const isTestEmail = (email: string): boolean => {
 const isRealEmail = (email: string): boolean => {
     const realDomains = ['@gmail.com', '@yahoo.com', '@outlook.com', '@hotmail.com', '@yandex.ru', '@mail.ru']
     return realDomains.some(domain => email.endsWith(domain))
+}
+
+/**
+ * 🧹 Нормализация пользовательских настроек к строгому типу UserPreferences
+ */
+function normalizeUserPreferences(raw: any): UserPreferences {
+    const allowedFreq = new Set(['low', 'medium', 'high'])
+    const allowedStyle = new Set(['gentle', 'direct', 'motivational'])
+
+    const freq = raw?.aiCoaching?.frequency
+    const style = raw?.aiCoaching?.style
+
+    return {
+        workingHours: {
+            start: typeof raw?.workingHours?.start === 'string' ? raw.workingHours.start : '09:00',
+            end: typeof raw?.workingHours?.end === 'string' ? raw.workingHours.end : '18:00'
+        },
+        focusTime: Number.isFinite(Number(raw?.focusTime)) ? Number(raw.focusTime) : 25,
+        breakTime: Number.isFinite(Number(raw?.breakTime)) ? Number(raw.breakTime) : 5,
+        notifications: {
+            email: raw?.notifications?.email !== false,
+            push: raw?.notifications?.push !== false,
+            desktop: raw?.notifications?.desktop !== false
+        },
+        aiCoaching: {
+            enabled: raw?.aiCoaching?.enabled !== false,
+            frequency: allowedFreq.has(freq) ? (freq as 'low' | 'medium' | 'high') : 'medium',
+            style: allowedStyle.has(style) ? (style as 'gentle' | 'direct' | 'motivational') : 'gentle'
+        }
+    }
 }
 
 export interface AuthUser {
@@ -156,7 +186,7 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
         // Получаем полный профиль пользователя
         const userProfileResponse = await getUserProfile(data.user.id)
 
-        const fallbackUser = {
+        const fallbackUser: User = {
             id: data.user.id,
             email: data.user.email!,
             name: data.user.user_metadata?.name || 'Пользователь',
@@ -164,20 +194,18 @@ export async function signIn({ email, password }: SignInData): Promise<{ success
             timezone: 'Europe/Moscow',
             subscription: 'free' as const,
             subscriptionStatus: 'active' as const,
-            preferences: {
-                workingHours: { start: '09:00', end: '18:00' },
-                focusTime: 25,
-                breakTime: 5,
-                notifications: { email: true, push: true, desktop: true },
-                aiCoaching: { enabled: true, frequency: 'medium', style: 'gentle' }
-            },
+            preferences: normalizeUserPreferences({}),
             createdAt: new Date(),
             updatedAt: new Date()
         }
 
         // Если профиль найден — используем его, но email предпочитаем из auth
-        const mergedUser = userProfileResponse.success && userProfileResponse.user
-            ? { ...userProfileResponse.user, email: data.user.email || userProfileResponse.user.email }
+        const mergedUser: User = userProfileResponse.success && userProfileResponse.user
+            ? {
+                ...userProfileResponse.user,
+                email: (data.user.email || userProfileResponse.user.email) as string,
+                preferences: normalizeUserPreferences(userProfileResponse.user.preferences)
+            }
             : fallbackUser
 
         return { success: true, user: mergedUser }
