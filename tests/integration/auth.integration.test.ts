@@ -8,9 +8,12 @@ describe('Auth Integration', () => {
 
   test('Регистрация пользователя через signUp (Supabase)', async () => {
     testLogger.step('Регистрация нового пользователя через Supabase')
-    const result = await signUp({ email: 'integration@test.com', password: 'Password123!', name: 'Integration Test' })
+    const unique = Date.now()
+    const email = `integration-${unique}@taskai.space`
+    const result = await signUp({ email, password: 'Password123!', name: 'Integration Test' })
     expect(result.success).toBe(true)
     expect(result.user).toBeDefined()
+    expect(result.user?.email).toBe(email)
     testLogger.assertion('Регистрация прошла успешно', true)
   })
 })

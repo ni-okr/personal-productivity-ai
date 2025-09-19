@@ -59,7 +59,7 @@ describe('Auth Components - Adapted Tests', () => {
             )
 
             // Заполняем форму
-            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@example.com' } })
+            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@taskai.space' } })
             fireEvent.change(getByLabelText('Пароль'), { target: { value: 'password123' } })
 
             // Отправляем форму
@@ -124,7 +124,7 @@ describe('Auth Components - Adapted Tests', () => {
 
             // Заполняем форму
             fireEvent.change(getByLabelText('Имя'), { target: { value: 'Test User' } })
-            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@example.com' } })
+            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@taskai.space' } })
             fireEvent.change(getByLabelText('Пароль'), { target: { value: 'password123' } })
             fireEvent.change(getByLabelText('Подтвердите пароль'), { target: { value: 'password123' } })
 
@@ -146,7 +146,7 @@ describe('Auth Components - Adapted Tests', () => {
 
             // Заполняем форму с разными паролями
             fireEvent.change(getByLabelText('Имя'), { target: { value: 'Test User' } })
-            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@example.com' } })
+            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@taskai.space' } })
             fireEvent.change(getByLabelText('Пароль'), { target: { value: 'password123' } })
             fireEvent.change(getByLabelText('Подтвердите пароль'), { target: { value: 'differentpassword' } })
 
@@ -185,7 +185,7 @@ describe('Auth Components - Adapted Tests', () => {
             )
 
             // Заполняем форму
-            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@example.com' } })
+            fireEvent.change(getByLabelText('Email'), { target: { value: 'test@taskai.space' } })
 
             // Отправляем форму
             fireEvent.click(getByRole('button', { name: /отправить/i }))

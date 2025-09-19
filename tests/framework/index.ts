@@ -661,6 +661,17 @@ export const testFramework = {
   }
 }
 
+export const quickStart = {
+  integration: () => {
+    // Минимальная настройка для интеграционных тестов
+    const logger = TestLogger.getInstance()
+    const mocks = TestMocks.getInstance()
+    logger.startTest('Integration Setup')
+    mocks.updateConfig(MOCK_CONFIGS.API_ONLY)
+    mocks.setupAllMocks()
+  }
+}
+
 export const testLogger = TestLogger.getInstance()
 export const testMocks = TestMocks.getInstance()
 export const testUtils = TestUtils.getInstance()

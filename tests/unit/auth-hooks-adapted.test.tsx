@@ -70,7 +70,7 @@ describe('Auth Hooks - Adapted Tests', () => {
             const { result } = renderHook(() => useAuth())
 
             await act(async () => {
-                await result.current.signIn('test@example.com', 'password123')
+                await result.current.signIn('test@taskai.space', 'password123')
             })
 
             testLogger.assertion('Sign in successful', true)
@@ -108,7 +108,7 @@ describe('Auth Hooks - Adapted Tests', () => {
 
             await act(async () => {
                 await result.current.signUp({
-                    email: 'test@example.com',
+                    email: 'test@taskai.space',
                     password: 'password123',
                     name: 'Test User'
                 })
@@ -169,7 +169,7 @@ describe('Auth Hooks - Adapted Tests', () => {
             const { result } = renderHook(() => useAuth())
 
             await act(async () => {
-                await result.current.resetPassword('test@example.com')
+                await result.current.resetPassword('test@taskai.space')
             })
 
             testLogger.assertion('Password reset successful', true)
@@ -309,7 +309,7 @@ describe('Auth Hooks - Adapted Tests', () => {
             const { result } = renderHook(() => useAuth())
 
             await act(async () => {
-                await result.current.signIn('test@example.com', 'password123')
+                await result.current.signIn('test@taskai.space', 'password123')
             })
 
             testLogger.assertion('Network error handled', true)

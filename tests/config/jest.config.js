@@ -14,15 +14,17 @@ const customJestConfig = {
   rootDir: '../../',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   moduleNameMapper: {
-    // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
-    '^@/(.*)$': '<rootDir>/src/$1',
     // Моки для модулей
     '^next/navigation$': '<rootDir>/tests/__mocks__/next/navigation.ts',
     '^next/router$': '<rootDir>/tests/__mocks__/next/router.ts',
-    '^@/lib/supabase$': '<rootDir>/tests/__mocks__/lib/supabase.ts',
-    '^@/lib/auth$': '<rootDir>/tests/__mocks__/lib/auth.ts',
+    '^@/lib/auth$': '<rootDir>/tests/__mocks__/@/lib/auth.ts',
+    '^@/lib/auth-mock$': '<rootDir>/tests/mocks/auth-mock.ts',
+    '^@/lib/supabase$': '<rootDir>/tests/__mocks__/@/lib/supabase.ts',
+    '^@/lib/tasks-mock$': '<rootDir>/tests/mocks/tasks-mock.ts',
+    '^@/lib/subscription-mock$': '<rootDir>/src/lib/subscription-mock.ts',
     // Фреймворк тестирования
     '^@/tests/framework$': '<rootDir>/tests/framework/index.ts',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   testEnvironment: 'jest-environment-jsdom',
   testMatch: [

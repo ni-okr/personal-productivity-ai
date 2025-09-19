@@ -71,13 +71,13 @@ describe('Auth Components - Simple Tests', () => {
         )
 
         await act(async () => {
-            fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'test@example.com' } })
+            fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'test@taskai.space' } })
             fireEvent.change(screen.getByLabelText('Пароль'), { target: { value: 'password123' } })
             fireEvent.click(screen.getByRole('button', { name: 'Войти' }))
         })
 
         await waitFor(() => {
-            expect(mockSignIn).toHaveBeenCalledWith('test@example.com', 'password123')
+            expect(mockSignIn).toHaveBeenCalledWith('test@taskai.space', 'password123')
             expect(mockOnSuccess).toHaveBeenCalled()
         })
     })
