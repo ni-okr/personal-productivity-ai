@@ -646,11 +646,24 @@ export default function Home() {
                           alert(`Ошибка подготовки виджета: ${j.error || 'unknown'}`)
                           return
                         }
-                        const { actionUrl, fields } = j.data
+
+                        // Грузим скрипт виджета
+                        const ensureScript = () => new Promise<void>((resolve, reject) => {
+                          if (typeof window !== 'undefined' && (window as any).Tinkoff) return resolve()
+                          const script = document.createElement('script')
+                          script.src = 'https://securepay.tinkoff.ru/html/payForm/js/tinkoff_v2.js'
+                          script.async = true
+                          script.onload = () => resolve()
+                          script.onerror = () => reject(new Error('Не удалось загрузить скрипт Т‑Кассы'))
+                          document.head.appendChild(script)
+                        })
+
+                        await ensureScript()
+
+                        const { fields } = j.data
                         const form = document.createElement('form')
-                        form.method = 'POST'
-                        form.action = actionUrl
-                        form.acceptCharset = 'UTF-8'
+                        form.setAttribute('class', 'payform-tinkoff')
+                        form.setAttribute('name', 'TinkoffPayForm')
                         Object.entries(fields).forEach(([k, v]) => {
                           const input = document.createElement('input')
                           input.type = 'hidden'
@@ -659,9 +672,17 @@ export default function Home() {
                           form.appendChild(input)
                         })
                         document.body.appendChild(form)
-                        form.submit()
+
+                        const Tinkoff = (window as any).Tinkoff
+                        if (Tinkoff && typeof Tinkoff.Pay === 'function') {
+                          Tinkoff.Pay(form)
+                        } else if (typeof (window as any).pay === 'function') {
+                          ;((window as any).pay)(form)
+                        } else {
+                          form.dispatchEvent(new Event('submit', { cancelable: true }))
+                        }
                       } catch (e: any) {
-                        alert(`Ошибка сети: ${e?.message || e}`)
+                        alert(`Ошибка: ${e?.message || e}`)
                       }
                     }}
                   >
