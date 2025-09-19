@@ -440,20 +440,16 @@ export default function Home() {
                   🔔 Уведомить о релизе
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    const pricingSection = document.querySelector('[data-testid="pricing-section"]')
-                    if (pricingSection) {
-                      pricingSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                    }
-                  }}
-                  size="lg"
-                  className="text-lg px-8 py-4"
-                  data-testid="pricing-button"
-                >
-                  💰 Посмотреть цены
-                </Button>
+                <Link href="/pricing">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="text-lg px-8 py-4"
+                    data-testid="pricing-button"
+                  >
+                    💰 Посмотреть цены
+                  </Button>
+                </Link>
               </div>
 
               <p className="text-sm text-gray-500 mt-4">
@@ -545,6 +541,11 @@ export default function Home() {
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Выберите подходящий план для ваших потребностей
               </p>
+              <div className="mt-6">
+                <Link href="/pricing">
+                  <Button className="px-6">Открыть сетку тарифов</Button>
+                </Link>
+              </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -579,7 +580,7 @@ export default function Home() {
                 <Button 
                   className="w-full bg-indigo-600 hover:bg-indigo-700" 
                   data-testid="select-premium-plan"
-                  onClick={() => handlePlanSelect('premium')}
+                  onClick={() => location.assign('/pricing')}
                 >
                   Выбрать Premium
                 </Button>
@@ -646,7 +647,7 @@ export default function Home() {
                   variant="outline" 
                   className="w-full" 
                   data-testid="select-pro-plan"
-                  onClick={() => handlePlanSelect('pro')}
+                  onClick={() => location.assign('/pricing')}
                 >
                   Выбрать Pro
                 </Button>
