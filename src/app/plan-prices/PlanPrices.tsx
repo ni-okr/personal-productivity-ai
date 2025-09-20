@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 
 export default function PlanPrices() {
   const router = useRouter()
+  const widgetEnabled = process.env.NEXT_PUBLIC_TINKOFF_WIDGET_ENABLED === 'true'
   return (
     <div className="py-16">
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -20,6 +21,7 @@ export default function PlanPrices() {
           <div className="space-y-3">
             <CheckoutButton planId="premium" method="card" label="Оплатить картой" />
             <CheckoutButton planId="premium" method="bank_transfer" label="Банковский перевод" />
+            {widgetEnabled && (
             <button
               onClick={async () => {
                 try {
@@ -78,6 +80,7 @@ export default function PlanPrices() {
             >
               Оплата картой (виджет)
             </button>
+            )}
           </div>
         </div>
       </div>
