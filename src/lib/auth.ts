@@ -7,7 +7,8 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 // 🚨 ЗАЩИТА ОТ ТЕСТИРОВАНИЯ С РЕАЛЬНЫМИ EMAIL
 const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
-const DISABLE_EMAIL = process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true'
+// ⚠️ В продакшене всегда отключаем mock-режим, даже если переменная выставлена по ошибке
+const DISABLE_EMAIL = (process.env.NODE_ENV !== 'production') && (process.env.NEXT_PUBLIC_DISABLE_EMAIL === 'true')
 const TEST_EMAIL_DOMAIN = process.env.TEST_EMAIL_DOMAIN || '@example.test'
 
 // Проверка на тестовые email адреса

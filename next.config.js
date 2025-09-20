@@ -17,7 +17,7 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self' https://www.taskai.space https://personal-productivity-ai.vercel.app",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://securepay.tinkoff.ru",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https://avatars.githubusercontent.com https://images.unsplash.com",
               "font-src 'self' https://fonts.gstatic.com",
