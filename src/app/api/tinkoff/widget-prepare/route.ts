@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     const orderId = `widget_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
     const amountCents = Number.isFinite(Number(amount)) ? Math.round(Number(amount)) : 0
 
-    // Поля формы (минимально достаточный набор)
-    const fields: Record<string, any> = {
+    // Поля формы. Дублируем ключи в нижнем регистре для совместимости с tinkoff_v2.js
+    const fieldsUpper: Record<string, any> = {
       TerminalKey: terminalKey,
       Amount: amountCents, // в копейках
       OrderId: orderId,
@@ -57,7 +57,22 @@ export async function POST(request: NextRequest) {
       DATA: JSON.stringify({ connection_type: 'integrationjs' })
     }
 
-    const token = generateToken(fields, secretKey)
+    const fieldsLower: Record<string, any> = {
+      terminalkey: terminalKey,
+      amount: amountCents,
+      order: orderId,
+      description: description || 'Оплата',
+      frame: 'true',
+      language: 'ru',
+      successurl: `${appUrl.replace(/\/$/, '')}/planner?payment=success&plan=${planId || ''}`,
+      failurl: `${appUrl.replace(/\/$/, '')}/planner?payment=failed&plan=${planId || ''}`,
+      notificationurl: `${appUrl.replace(/\/$/, '')}/api/tinkoff/webhook`,
+      terminal: terminalKey, // аналитика/SDK
+    }
+
+    const fields: Record<string, any> = { ...fieldsUpper, ...fieldsLower }
+
+    const token = generateToken(fieldsUpper, secretKey)
     const actionUrl = 'https://securepay.tinkoff.ru/html/payForm/index.html'
 
     return NextResponse.json({ success: true, data: { actionUrl, fields: { ...fields, Token: token } } })

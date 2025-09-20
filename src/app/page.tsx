@@ -675,7 +675,10 @@ export default function Home() {
 
                         const Tinkoff = (window as any).Tinkoff
                         if (Tinkoff && typeof Tinkoff.Pay === 'function') {
-                          Tinkoff.Pay(form)
+                          // Передаём явный URL, чтобы исключить прямой POST на index.html
+                          Tinkoff.Pay(form, {
+                            action: 'https://securepay.tinkoff.ru/html/payForm/index.html'
+                          })
                         } else if (typeof (window as any).pay === 'function') {
                           ;((window as any).pay)(form)
                         } else {
