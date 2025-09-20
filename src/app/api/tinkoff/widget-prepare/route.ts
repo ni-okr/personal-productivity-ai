@@ -42,11 +42,13 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://preview.taskai.space'
     const orderId = `widget_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
     const amountCents = Number.isFinite(Number(amount)) ? Math.round(Number(amount)) : 0
+    // Для IntegrationJS (tinkoff_v2.js) ожидается сумма в рублях, SDK сам умножит на 100
+    const amountRub = Math.max(1, Math.round(amountCents / 100))
 
     // Поля формы. Дублируем ключи в нижнем регистре для совместимости с tinkoff_v2.js
     const fieldsUpper: Record<string, any> = {
       TerminalKey: terminalKey,
-      Amount: amountCents, // в копейках
+      Amount: amountRub, // рубли для IntegrationJS
       OrderId: orderId,
       Description: description || 'Оплата',
       Frame: 'Y',
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const fieldsLower: Record<string, any> = {
       terminalkey: terminalKey,
-      amount: amountCents,
+      amount: amountRub,
       order: orderId,
       description: description || 'Оплата',
       frame: 'true',
@@ -72,10 +74,9 @@ export async function POST(request: NextRequest) {
 
     const fields: Record<string, any> = { ...fieldsUpper, ...fieldsLower }
 
-    const token = generateToken(fieldsUpper, secretKey)
+    // Для IntegrationJS токен не требуется и вычисляется на стороне Т‑Кассы при /v2/Init
     const actionUrl = 'https://securepay.tinkoff.ru/html/payForm/index.html'
-
-    return NextResponse.json({ success: true, data: { actionUrl, fields: { ...fields, Token: token } } })
+    return NextResponse.json({ success: true, data: { actionUrl, fields } })
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error?.message || 'Ошибка подготовки данных' }, { status: 500 })
   }
